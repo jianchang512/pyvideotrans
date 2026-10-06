@@ -22,7 +22,7 @@ class BaseCon:
 
     def __repr__(self):
         cls = self.__class__
-        exclude_fields=["_base_name","queue_tts","source_srt_list","target_srt_list","roledict","api_key",'raws','speech_timestamps',"text_list", "prompt","last_down_time"]
+        exclude_fields=["_base_name","queue_tts","source_srt_list","target_srt_list","roledict","api_key",'raws','speech_timestamps',"text_list", "prompt","last_down_time","video_info","video_time"]
         attrs = [
             f"{f.name}={getattr(self, f.name)!r}"
             for f in fields(self)

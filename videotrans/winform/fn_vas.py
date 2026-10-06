@@ -193,7 +193,7 @@ def openwin():
                             "-ac",
                             "2",
                             _audio
-                        ], state_dict=STATE_DICT)
+                        ])
                         if app_cfg.exit_soft: return
                         self.audio = _audio
                     audio_time = int(get_audio_time(self.audio))
@@ -210,7 +210,7 @@ def openwin():
                         runffmpeg(
                             ['-y', "-progress", protxt, '-i', self.audio, '-ss', '00:00:00.000', '-t',
                              str(self.video_time / 1000),
-                             tmp_audio], state_dict=STATE_DICT)
+                             tmp_audio])
                         if app_cfg.exit_soft: return
                         self.audio = tmp_audio
                     elif audio_time > self.video_time and self.audio_process == 1:
@@ -230,7 +230,7 @@ def openwin():
                             '-i',
                             Path(self.video).as_posix(),
                             "-vn",
-                            tmp_mp4a], state_dict=STATE_DICT
+                            tmp_mp4a]
                         )
                         if app_cfg.exit_soft: return
                         # audio_process=0截断 1=音频加速 2=视频定格
@@ -256,7 +256,7 @@ def openwin():
                             '[aout]',
                             '-ac',
                             '2',
-                            end_m4a], state_dict=STATE_DICT)
+                            end_m4a])
                         if app_cfg.exit_soft: return
                         # 混合后新音频
                         self.audio = end_m4a
@@ -277,28 +277,28 @@ def openwin():
                         novoice_mp4
                     ]
                     self.post(text='get video without voice...')
-                    runffmpeg(cmd, state_dict=STATE_DICT)
+                    runffmpeg(cmd)
                     if app_cfg.exit_soft: return
-                    if self.audio_process == 2 and audio_time > self.video_time:
-                        # 如果定格视频并且音频时长大于视频时长
-                        sec = max((audio_time - self.video_time) / 1000, 1)
-                        cmd = [
-                            '-y', "-progress", protxt,
-                            '-i',
-                            novoice_mp4,
-                            '-vf',
-                            f'tpad=stop_mode=clone:stop_duration={sec}',
-                            '-c:v',
-                            f'libx264',
-                            f'{novoice_mp4}-clone.mp4'
-                        ]
-                        try:
-                            self.post(text=f'clone video {sec}s...')
-                            runffmpeg(cmd, state_dict=STATE_DICT)
-                            if app_cfg.exit_soft: return
-                            novoice_mp4 = f'{novoice_mp4}-clone.mp4'
-                        except Exception as e:
-                            logger.exception(f'VAS合并期间，延长视频末端失败，将保持原样:{e}')
+                    # if self.audio_process == 2 and audio_time > self.video_time:
+                    #     # 如果定格视频并且音频时长大于视频时长
+                    #     sec = max((audio_time - self.video_time) / 1000, 1)
+                    #     cmd = [
+                    #         '-y', "-progress", protxt,
+                    #         '-i',
+                    #         novoice_mp4,
+                    #         '-vf',
+                    #         f'tpad=stop_mode=clone:stop_duration={sec}',
+                    #         '-c:v',
+                    #         f'libx264',
+                    #         f'{novoice_mp4}-clone.mp4'
+                    #     ]
+                    #     try:
+                    #         self.post(text=f'clone video {sec}s...')
+                    #         runffmpeg(cmd)
+                    #         if app_cfg.exit_soft: return
+                    #         novoice_mp4 = f'{novoice_mp4}-clone.mp4'
+                    #     except Exception as e:
+                    #         logger.exception(f'VAS合并期间，延长视频末端失败，将保持原样:{e}')
 
                     # 视频音频合并
                     audiovideoend_mp4 = config.TEMP_DIR + f"/vad-end-{time.time()}.mp4"
@@ -314,7 +314,7 @@ def openwin():
                         "-c:a",
                         "aac",
                         audiovideoend_mp4
-                    ], state_dict=STATE_DICT)
+                    ])
                     if app_cfg.exit_soft: return
 
                     # 不存在字幕，则结束了
@@ -364,7 +364,7 @@ def openwin():
                         f"language={subtitle_language}",
                         self.file
                     ]
-                    runffmpeg(cmd, cmd_dir=config.TEMP_DIR, state_dict=STATE_DICT)
+                    runffmpeg(cmd, cmd_dir=config.TEMP_DIR)
                 else:
                     assfile = set_ass_font(tmpsrt)
 

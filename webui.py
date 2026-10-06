@@ -35,25 +35,12 @@ from videotrans.configure import config  # noqa: E402
 
 config.init_run()
 
-# These modules consume the runtime configuration initialized by init_run().
-from videotrans.configure.config import (  # noqa: E402
-    ROOT_DIR,
-    TEMP_DIR,
-    app_cfg,
-    params,
-    settings,
-)
-from videotrans.configure.constants import (  # noqa: E402
-    FASTER_MODELS_DICT,
-    DEEPGRAM_MODEL,
-    Openai_Whisper_Models,
-    FUNASR_MODEL,
-)
-from videotrans import recognition, translator, tts  # noqa: E402
-from videotrans.util import tools  # noqa: E402
-from videotrans.util.gpus import getset_gpu  # noqa: E402
-from videotrans.util.help_role import role_menu  # noqa: E402
-
+from videotrans.configure.config import ROOT_DIR, TEMP_DIR, app_cfg, params, settings
+from videotrans.configure.constants import FASTER_MODELS_DICT, DEEPGRAM_ASR_MODELS, OPENAI_WHISPER_MODELS, FUN_ASR_MODELS
+from videotrans import recognition, translator, tts
+from videotrans.util import tools
+from videotrans.util.gpus import getset_gpu
+from videotrans.util.help_role import role_menu
 
 # ---------------------------------------------------------------------------
 # params / settings 持久化路径
@@ -638,7 +625,15 @@ CHANNEL_SETTINGS = {
             },
         ],
     },
-    tr("小米 AI 翻译"): {
+    tr("Atlas Cloud 翻译"): {
+        "category": tr("字幕翻译渠道"),
+        "fields": [
+            {"key": "atlascloud_key", "label": "API Key", "type": "text", "default": ""},
+            {"key": "atlascloud_model", "label": "模型", "type": "text", "default": "deepseek-ai/deepseek-v4-flash", "placeholder": "输入模型名称"},
+            {"key": "atlascloud_max_token", "label": "最大输出 Token", "type": "text", "default": "8192"},
+        ],
+    },
+    ("小米 AI 翻译"): {
         "category": tr("字幕翻译渠道"),
         "fields": [
             {
@@ -2086,28 +2081,24 @@ def build_ui():
                     # 根据渠道更新模型下拉框
                     models = []
                     disabled = False
-                    print(f"{idx=}")
-                    print(f"{recognition.Whisper_CPP=}")
-                    if idx in [
-                        recognition.FASTER_WHISPER,
-                        recognition.Faster_Whisper_XXL,
-                        recognition.WHISPERX_API,
-                    ]:
-                        models = settings.WHISPER_MODEL_LIST
+                    print(f'{idx=}')
+                    print(f'{recognition.Whisper_CPP=}')
+                    if idx in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL, recognition.WHISPERX_API]:
+                        models = settings.WHISPER_MODELS
                     elif idx == recognition.OPENAI_WHISPER:
-                        models = Openai_Whisper_Models.split(",")
+                        models = OPENAI_WHISPER_MODELS.split(',')
                     elif idx == recognition.Deepgram:
-                        models = DEEPGRAM_MODEL
+                        models = DEEPGRAM_ASR_MODELS
                     elif idx == recognition.Whisper_CPP:
-                        models = settings.Whisper_CPP_MODEL_LIST
+                        models = settings.WHISPER_CPP_MODELS
                     elif idx == recognition.WHISPER_NET:
-                        models = settings.Whisper_NET_MODEL_LIST
+                        models = settings.WHISPER_NET_MODELS
                     elif idx == recognition.QWENASR:
                         models = ["1.7B", "0.6B"]
                     elif idx == recognition.HUGGINGFACE_ASR:
                         models = list(recognition.HUGGINGFACE_ASR_MODELS.keys())
                     elif idx == recognition.FUNASR_CN:
-                        models = FUNASR_MODEL
+                        models = FUN_ASR_MODELS
                     else:
                         models = FASTER_MODEL_NAMES
                         disabled = True

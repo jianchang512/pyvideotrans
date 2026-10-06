@@ -55,7 +55,6 @@ class AssembleMixin:
             logger.exception(f'仅输出mp4时清理临时文件移动视频位置出错，跳过 {e}', exc_info=True)
 
         self.set_end(True)
-        logger.debug(f'[{self.cfg.name}视频翻译任务结束，总耗时]:{time.time()-self.cost_duration}s')
 
 
     def _join_video_audio_srt(self) -> None:
@@ -73,8 +72,6 @@ class AssembleMixin:
         target_m4a = self.cfg.cache_folder + "/will_embed.m4a"
         output_source_output = True
         duration_ms = int(get_video_duration(self.cfg.novoice_mp4))
-        # 如果视频时长大于音频时长，音频末尾补静音，后续不再判断音频是否大于视频
-        audio_had_append=False
         if not self.should_dubbing:
             self.signal(text=tr("Get original sound..."))
             self._get_origin_audio(target_m4a,duration_ms)
@@ -128,13 +125,13 @@ class AssembleMixin:
             subtitle_langcode=translator.get_mkv_code(subtitle_langcode)
 
         audio_ms = get_audio_time(target_m4a)
-        logger.debug(f'当前音频时长 {audio_ms}ms, 视频时长: {duration_ms}ms')
+        a_v_offset=audio_ms-duration_ms
+        logger.debug(f'最终合并视频前：音频时长 {audio_ms}ms, 视频时长: {duration_ms}ms ' + (f'，音频大于时长 {a_v_offset}ms, 应实现视频末尾定格' if a_v_offset>0 else ''))
+        # 中间处理均为 h264, 若最终输出也是264，可直接 copy
         is_copy_mode = str(self.video_codec_num) == '264'
-        is_lossless=self.is_copy_video and is_copy_mode and not self.cfg.video_autorate and self.cfg.subtitle_type not in [1, 3]
+        is_lossless= is_copy_mode and not self.cfg.video_autorate and self.cfg.subtitle_type not in [1, 3]
         if is_lossless:
-            a_v_offset=audio_ms-duration_ms
-            logger.debug(f'当前原始视频是标准264,输出也是264，未视频慢速，未嵌入硬字幕，放弃视频末尾处理，实现无损输出。音频时长-视频时长={a_v_offset}ms'+(f'，\n音频时长大于视频时长{a_v_offset}ms，理论上视频末尾应定格等待音频播放完毕，但不同播放器可能有不同处理方式，如音频截断，视频末尾黑屏等' if a_v_offset>0 else ''))
-
+            logger.debug(f'当前原始视频是标准264, 输出也是264，未视频慢速，未嵌入硬字幕，实现无损输出。')
 
         tmp_target_mp4 = self.cfg.cache_folder + f"/laste_target{_video_output_ext}"
         self.signal(text=tr("Video + Subtitles + Dubbing in merge"))
@@ -219,6 +216,7 @@ class AssembleMixin:
                     except Exception as e:
                         cmd1[cmd1.index('-c:v') + 1] = f'libx{self.video_codec_num}'
                         logger.exception(f'硬件处理视频合成失败，回退软编 {e}', exc_info=True)
+                        logger.debug(f'cmd=\n{cmd0 + cmd1 + enc_qua + cmd2}')
                         runffmpeg(cmd0 + cmd1 + enc_qua + cmd2, cmd_dir=self.cfg.cache_folder, force_cpu=True)
 
             else:
@@ -238,7 +236,7 @@ class AssembleMixin:
 
                 if fps_mode:
                     cmd3.extend(fps_mode)
-                cmd3.extend(['-shortest', tmp_target_mp4_basename])
+                cmd3.extend([ tmp_target_mp4_basename])
                 if app_cfg.video_codec.startswith('libx') or settings.get('force_lib'):
                     logger.debug(f'[最终视频合成]不支持硬件编解码或指定了强制软编解码:\n{cmd0 + cmd1 + cmd2}')
                     runffmpeg(cmd0 + cmd1 + subtitle_filter + cmd2 + enc_qua + cmd3,
@@ -251,6 +249,7 @@ class AssembleMixin:
                     except Exception as e:
                         cmd2[cmd2.index('-c:v') + 1] = f'libx{self.video_codec_num}'
                         logger.exception(f'硬件处理视频合成失败，回退软编 {e}', exc_info=True)
+                        logger.debug(f'cmd=\n{cmd0 + cmd1 + subtitle_filter + cmd2 + enc_qua + cmd3}')
                         runffmpeg(cmd0 + cmd1 + subtitle_filter + cmd2 + enc_qua + cmd3,
                                         cmd_dir=self.cfg.cache_folder, force_cpu=True)
         except Exception as e:
@@ -260,12 +259,17 @@ class AssembleMixin:
             try:
                 self.cfg.targetdir_mp4=self.cfg.targetdir_mp4[:-4]+_video_output_ext
                 shutil.move(tmp_target_mp4, self.cfg.targetdir_mp4)
-            except Exception:
+            except Exception as e:
+                logger.exception(e,exc_info=True)
                 try:
                     shutil.move(tmp_target_mp4, f'{self.cfg.target_dir}/0{_video_output_ext}')
                 except Exception as e:
-                    logger.exception(f'再次复制到目标文件夹内 0{_video_output_ext}也失败 {e}', exc_info=True)
-                    raise VideoTransError(tr('Translation successful but transfer failed.', tmp_target_mp4)) from e
+                    logger.exception(e,exc_info=True)
+                    try:
+                        shutil.copy2(tmp_target_mp4,self.cfg.targetdir_mp4)
+                    except Exception as e:
+                        logger.exception(e,exc_info=True)
+                        raise VideoTransError(tr('Translation successful but transfer failed.', tmp_target_mp4)) from e
 
         while output_source_output is not True:
             if app_cfg.exit_soft:return

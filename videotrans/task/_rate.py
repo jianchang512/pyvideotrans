@@ -642,36 +642,36 @@ class SpeedRate:
         if _total_ms < self.raw_total_time:
             audio_list.append(self._create_silen_file(f"append_video_end", self.raw_total_time - _total_ms))
             _total_ms+=self.raw_total_time - _total_ms
-        elif _total_ms > self.raw_total_time and not Path(f'{ROOT_DIR}/noloss.txt').exists():
-            # 定格视频, 如果软件根目录下存在 noloss.txt文件，则不定格，以便实现无损输出，可能导致音频末尾截断
-            self._video_extend(_total_ms - self.raw_total_time)
-            # 定格后视频可能大于音频，需补音频静音
-            if self.raw_total_time > _total_ms:
-                audio_list.append(self._create_silen_file(f"append_video_end", self.raw_total_time - _total_ms))
-                _total_ms+=self.raw_total_time - _total_ms
+        # elif _total_ms > self.raw_total_time and not Path(f'{ROOT_DIR}/noloss.txt').exists():
+        #     # 定格视频, 如果软件根目录下存在 noloss.txt文件，则不定格，以便实现无损输出，可能导致音频末尾截断
+        #     self._video_extend(_total_ms - self.raw_total_time)
+        #     # 定格后视频可能大于音频，需补音频静音
+        #     if self.raw_total_time > _total_ms:
+        #         audio_list.append(self._create_silen_file(f"append_video_end", self.raw_total_time - _total_ms))
+        #         _total_ms+=self.raw_total_time - _total_ms
 
         logger.debug(f'变速处理后，音频片段连接前， 配音总时长: {_total_ms}ms, 视频总时长: {self.raw_total_time}ms')
         self._exec_concat_audio(audio_list)
 
 
-    def _video_extend(self, duration_ms=1000):
-        sec = (duration_ms / 1000.0) + 0.1
-        final_video_path = Path(f'{self.cache_folder}/final_video_with_freeze_lastend.mp4').as_posix()
-
-        cmd = ['-y', '-i', os.path.basename(self.novoice_mp4),
-               '-vf', f'tpad=stop_mode=clone:stop_duration={sec:.3f}',
-               '-c:v', 'libx264',
-               '-crf', f'{settings.get("crf", 23)}',
-               '-preset', settings.get('preset', 'veryfast'),
-               '-an', 'final_video_with_freeze_lastend.mp4'
-               ]
-        tools.get_video_duration(self.novoice_mp4)
-        tools.runffmpeg(cmd, force_cpu=True, cmd_dir=self.cache_folder)
-
-        shutil.copy2(final_video_path, self.novoice_mp4)
-        self.raw_total_time = tools.get_video_duration(final_video_path)
-        logger.debug(f"视频延长后实际时长 {self.raw_total_time=}ms")
-        return self.raw_total_time
+    # def _video_extend(self, duration_ms=1000):
+    #     sec = (duration_ms / 1000.0) + 0.1
+    #     final_video_path = Path(f'{self.cache_folder}/final_video_with_freeze_lastend.mp4').as_posix()
+    #
+    #     cmd = ['-y', '-i', os.path.basename(self.novoice_mp4),
+    #            '-vf', f'tpad=stop_mode=clone:stop_duration={sec:.3f}',
+    #            '-c:v', 'libx264',
+    #            '-crf', f'{settings.get("crf", 23)}',
+    #            '-preset', settings.get('preset', 'veryfast'),
+    #            '-an', 'final_video_with_freeze_lastend.mp4'
+    #            ]
+    #     tools.get_video_duration(self.novoice_mp4)
+    #     tools.runffmpeg(cmd, force_cpu=True, cmd_dir=self.cache_folder)
+    #
+    #     shutil.copy2(final_video_path, self.novoice_mp4)
+    #     self.raw_total_time = tools.get_video_duration(final_video_path)
+    #     logger.debug(f"视频延长后实际时长 {self.raw_total_time=}ms")
+    #     return self.raw_total_time
 
     def _run_no_rate_change_mode(self):
         # 不变速时直接拼接
@@ -709,9 +709,9 @@ class SpeedRate:
                 it['end_time'] = total_audio_duration
 
 
-        if self.novoice_mp4 and Path(self.novoice_mp4).exists() and total_audio_duration>self.raw_total_time:
-            # 存在视频，需定格
-            self._video_extend(total_audio_duration>self.raw_total_time)
+        # if self.novoice_mp4 and Path(self.novoice_mp4).exists() and total_audio_duration>self.raw_total_time:
+        #     # 存在视频，需定格
+        #     self._video_extend(total_audio_duration>self.raw_total_time)
 
         if self.raw_total_time > total_audio_duration:
             audio_concat_list.append(self._create_silen_file("tail_end", self.raw_total_time - total_audio_duration))
