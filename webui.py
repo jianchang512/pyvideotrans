@@ -358,7 +358,7 @@ CHANNEL_SETTINGS = {
         "category": "字幕翻译渠道",
         "fields": [
             {"key": "atlascloud_key", "label": "API Key", "type": "text", "default": ""},
-            {"key": "atlascloud_model", "label": "模型", "type": "text", "default": "deepseek-ai/DeepSeek-V3.1-Terminus", "placeholder": "输入模型名称"},
+            {"key": "atlascloud_model", "label": "模型", "type": "text", "default": "deepseek-ai/deepseek-v4-flash", "placeholder": "输入模型名称"},
             {"key": "atlascloud_max_token", "label": "最大输出 Token", "type": "text", "default": "8192"},
         ],
     },
