@@ -1,6 +1,6 @@
 ﻿> Sponsors:
 > - **[Recall.ai](https://www.recall.ai/product/meeting-transcription-api?utm_source=github&utm_medium=sponsorship&utm_campaign=jianchang512-pyvideotrans) - Meeting Transcription API**: If you’re looking for a transcription API for meetings, consider checking out **[Recall.ai](https://www.recall.ai/product/meeting-transcription-api?utm_source=github&utm_medium=sponsorship&utm_campaign=jianchang512-pyvideotrans)** , an API that works with Zoom, Google Meet, Microsoft Teams, and more
-> - **[infistar - 160+ 模型,一个 Key](https://www.infistar.cc/register?aff=9H6H7RR9&ref_source=link)**: 字幕翻译还在纠结用 GPT、Claude、Gemini 还是 DeepSeek? infistar 是 OpenAI 兼容中转,一个 Key 随时切 160+ 模型,挑出翻得最准又最省的那个
+> - **[infistar - 160+ 模型,一个 Key](https://www.infistar.cc/register?aff=9H6H7RR9&ref_source=link)**:  infistar 是 OpenAI 兼容中转,一个 Key 随时切 160+ 模型,挑出翻得最准又最省的那个
 
 
 ---
@@ -175,7 +175,7 @@ uv add nvidia-cublas-cu12 nvidia-cudnn-cu12
 | | 阿里 Qwen3-ASR / 字节火山 | 在线 API，中文效果极佳 |
 | **翻译 (LLM/MT)** | **DeepSeek** / ChatGPT | 支持上下文理解，翻译更自然 |
 | | [infistar AI](https://www.infistar.cc/register?aff=9H6H7RR9&ref_source=link) | infistar - 160+ 模型,一个 Key, OpenAI 兼容中转,一个 Key 随时切 160+ 模型 |
-| | [Atlas Cloud](https://atlascloud.ai) | OpenAI 兼容网关，一个 Key 调用 DeepSeek、GLM、Kimi、Qwen、MiniMax 及代理的闭源模型 |
+| | Atlas Cloud | OpenAI 兼容网关，一个 Key 调用 DeepSeek、GLM、Kimi、Qwen、MiniMax 及代理的闭源模型 |
 | | MiniMax AI | MiniMax M3 大模型，最新旗舰模型，OpenAI兼容接口 |
 | | Google / Microsoft | 传统机器翻译，速度快 |
 | | Ollama / M2M100 | 完全本地离线翻译 |
