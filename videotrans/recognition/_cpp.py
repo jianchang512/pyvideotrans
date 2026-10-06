@@ -62,7 +62,7 @@ class CPPRecogn(BaseRecogn):
         ]
         _lang=self.detect_language.split('-')[0]
         cmd += ["-l", _lang]
-        prompt = settings.get(f'initial_prompt_{self.detect_language}')
+        prompt = settings.get(f'initial_prompt_{self.detect_language.replace("-","_")}')
         if prompt:
             cmd += ['--prompt', prompt]
         if _lang.lower() !='auto':

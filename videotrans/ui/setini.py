@@ -6,437 +6,15 @@ from typing import List
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtGui import Qt, QIcon
 from PySide6.QtWidgets import QFileDialog
-from videotrans.configure.config import ROOT_DIR, tr, app_cfg, settings, defaulelang
-from videotrans.configure.constants import LANG_CODE, WHISPER_MODELS
+from videotrans.configure.config import ROOT_DIR, tr, app_cfg, settings
 
 # ultrafast 、 superfast 、 veryfast 、 faster 、 fast 、 medium （默认）、 slow和veryslow
 # 处理速度越来越慢，输出视频压缩率和质量越来越高，视频尺寸也将变小
 
 # 中文注释 界面ui控制
-from videotrans.translator import LLM_CONCERT_DICT
 from videotrans.util.help_misc import open_url
+from .advset_keys import notices,  ComboBox_List, ComboBox_Data
 
-prompt_dicts={}
-for code in LANG_CODE.keys():
-    if code == 'auto':
-        continue
-    prompt_dicts[f'initial_prompt_{code}']=tr('Initial prompt for the Whisper model for speech',tr(code))
-
-notices = {
-    "common": {
-        "lang": "设置软件界面语言，修改后需要重启软件",
-        "countdown_sec": "当单视频交互翻译时，暂停倒计时秒数(设为0将跳过编辑窗口)",
-        "homedir": "用于设置 批量语音转录 / 批量为字幕配音 / 批量翻译srt字幕 等功能的输出结果位置，非视频翻译结果保存位置，默认软件安装目录下output文件夹",
-
-        "retry_nums": "失败后重试次数(针对重试可能恢复的错误，在此设定重试次数)",
-
-        "llm_chunk_size": "LLM大模型纠错时，每次发送多少条字幕，该值越大断句效果越好，一次性发送全部字幕最佳，但受限于最大输出token和上下文(max_token)，过长输入可能导致超出AI限制而失败，默认20条字幕",
-        "llm_ai_type": "LLM纠错时使用的AI渠道",
-
-        "dont_notify": "任务完成或失败后不显示桌面通知",
-        "uvr_models": "选择分离背景声时所用模型",
-        "noise_separate_nums": "人声背景声分离/降噪线程数，越大越快但占用资源越多",
-
-        "batch_nums": "批量翻译视频时，在此设置每批次同时翻译几个，默认0即不限制",
-        "show_more_settings": "为避免过多参数造成困扰，主界面默认隐藏大部分参数，如果选中这里将切换为默认显示所有参数",
-
-        "process_max": "最大CPU同时任务数，越大越快但可能爆内存，最大不应超过cpu核数\n(修改保存后重启生效)",
-        "process_max_gpu": "GPU任务同时执行数量，除非显存超大，否则请设为1\n(修改保存后重启生效)",
-        "device_name":"强制指定重型任务运行设备，不要乱动，除非你知道自己在做什么",
-        "bit8":"针对qwen3-tts使用8位量化，以减少显存占用"
-    },
-
-    "video": {
-        "crf": "视频转码时损失控制，0=无损但视频会超级大，51=质量差文件小",
-        "preset": "主要调节编码速度和质量的平衡，有 ultrafast、superfast、veryfast、faster、fast、medium、slow、slower、veryslow 选项，编码速度从快到慢、压缩率从低到高、视频尺寸从大到小。 ",
-        "video_codec": "采用 libx264 编码或 libx265 编码，264兼容性更好，265压缩比更大清晰度更高",
-        "out_video_ext": "输出视频格式(mp4/mkv)",
-        "fps_mode":"有视频慢速处理时，可变帧率vrf效果更好，固定帧率cfr兼容性更佳",
-        "force_lib": "强制ffmpeg使用软编解码?（速度慢但兼容性好不易出错，默认优选硬件编码）",
-        "hw_decode": "最后一步视频合成时，强制使用cuda解码视频，更快但易出错",
-        "ffmpeg_cmd": "自定义ffmpeg命令参数， 将添加在输出文件之前的位置,例如  -bf 7 -b_ref_mode middle",
-    },
-    "whisper": {
-        "vad_type": "选择要使用的VAD",
-        "threshold": "表示音频片段被认为是语音的最低概率。VAD 会为每个音频片段计算语音概率，超过此阈值的部分被视为语音，反之视为静音或噪音。越小越灵敏但可能误将噪声视为语音",
-        "no_speech_threshold": "减小可降低幻觉但可能遗漏文字",
-        "max_speech_duration_s": "最长语音持续时长(秒),限制单个语音片段的最大长度。超过此时长时强制分割。填写数字，单位是秒",
-        "min_speech_duration_ms": "最短语音持续时长(毫秒)，如果某条字幕时长小于该ms，则尝试将该字幕合并进相邻字幕中，单位是毫秒",
-        "min_silence_duration_ms": "在语音结束时，需等待的静音时间达到此值后，才会分割出语音片段。填写数字，单位ms\n也就是只在大于此值的静音片段处分割",
-
-        "max_speech_duration_s2": "二次识别最长语音持续时长(秒),限制单个语音片段的最大长度。超过此时长时强制分割。填写数字，单位是秒",
-        "min_speech_duration_ms2": "二次识别最短语音持续时长(毫秒)，如果某条字幕时长小于该ms，则尝试将该字幕合并进相邻字幕中，单位是毫秒",
-        "model_for_recogn2":"二次识别所用模型(固定使用faster-whisper渠道)",
-
-        "speaker_type": "用于说话人分离的模型，默认内置模型支持中英. \n若选 pyannote 必须拥有 https://huggingface.co 上的token，\n并且同意pyannote组织的授权协议\n\n具体请访问URL查看教程:\nhttps://pvt9.com/shuohuaren",
-        "hf_token": "填写你在 huggingface.co 的token，否则无法使用 pyannote，具体查看教程\nhttps://pvt9.com/shuohuaren",
-
-        "cuda_com_type": "faster模式时计算数据类型，int8=消耗资源少，速度快，精度低，float32=消耗资源多，速度慢，精度高，float16适合GPU加速。default默认自选",
-        "beam_size": "字幕识别时精度调整，1-5，1=消耗显存最低，5=消耗显存最多",
-        "best_of": "字幕识别时精度调整，1-5，1=消耗显存最低，5=消耗显存最多",
-        "condition_on_previous_text": "若开启将占用更多GPU，效果也更好，但也容易出现重复或幻觉",
-        "repetition_penalty": "增大该值有利于减少重复",
-        "compression_ratio_threshold": "减小该值有利于减少重复",
-
-        "temperature": "采样温度",
-        "hotwords": "告诉模型哪些词可能出现，以英文逗号分隔多个",
-
-        "model_list": "faster-whipser的模型列表，英文逗号分隔",
-        "Whisper_cpp_models": "whisper.cpp的模型名字列表，英文逗号分隔",
-
-        "gemini_recogn_chunk": "使用gemini识别语音时，每次发送音频切片数，越大效果越好，但失败率会升高",
-        "zh_hant_s": "强制将识别出的繁体字幕转为简体",
-        "del_end_punc": "删除字幕末尾标点?",
-        "asr_wait":"云API每次识别后暂停秒数，防止超过频率限制"
-
-    },
-
-    "trans": {
-        "trans_thread": "传统翻译渠道每次发送字幕行数",
-        "aitrans_thread": "AI翻译渠道每次发送字幕行数",
-        "aitrans_context": "AI翻译渠道附带全部原始字幕做参考，翻译质量最佳\n【务必注意】\n1. 必须使用支持超长上下文的先进模型(在线AI旗舰模型)\n2.  可能反馈较慢，表现为迟迟未返回数据",
-        "translation_wait": "每次翻译后暂停秒数,用于限制请求频率",
-        "aitrans_temperature": "AI翻译模型温度值，默认0.1",
-    },
-    "dubbing": {
-        "dubbing_thread": "同时配音的线程数",
-        "dubbing_wait": "每次配音后暂停秒数,用于限制请求频率",
-        "remove_dubb_silence": "移除每条字幕配音开头和结尾静音缓冲，利于音画同步",
-        "remove_dubb_all_silence": "移除每条字幕配音中全部静音缓冲，包括开头结尾和中间停顿，利于音画同步",
-        "remove_dubb_silence_level":"移除静音的力度，默认default中等，low降低力度减少移除，max增大力度移除更多静音",
-        "save_segment_audio": "保留每行字幕的配音结果",
-        "normal_text": "配音前对文本规范化处理",
-        "chattts_voice": "ChatTTS 音色值",
-        "edgetts_max_concurrent_tasks": "EdgeTTS渠道配音并发数，越大越快，但可能限流失败",
-        "edgetts_retry_nums": "EdgeTTS渠道失败后重试次数,有些失败无论多少次重试也无法恢复，太大只会延长耗时",
-
-    },
-    "justify": {
-
-        "max_audio_speed_rate": "最大音频加速倍数，默认100",
-        "max_video_pts_rate": "视频慢放最大倍数，默认10，不可大于10",
-        "cjk_len": "中日韩字幕单行字符数，多于将换行，仅针对视频翻译中的目标字幕或单独的语音转录功能字幕",
-        "other_len": "其他语言字幕单行字符数，多于将换行，仅针对视频翻译中的目标字幕或单独的语音转录功能字幕"
-    },
-
-    "prompt_init": { }
-}
-# 中文左侧label
-titles = {
-    "process_max": "CPU同时任务数[重启生效]",
-    "process_max_gpu": "GPU同时任务数[重启生效]",
-    "device_name":"强制指定重型任务运行设备",
-    "cjk_len": "中日韩字幕单行字符数",
-    "bit8":"为qwen3-tts使用8位量化",
-    "other_len": "其他语言字幕单行字符数",
-    "max_audio_speed_rate": "音频加速最大倍数",
-    "max_video_pts_rate": "视频慢放最大倍数",
-    "batch_nums": "批量翻译视频时每批数量",
-    "dont_notify": "禁用桌面通知",
-    "llm_ai_type": "LLM纠错所用AI渠道",
-    "llm_chunk_size": "LLM纠错每批字幕行数",
-    "prompt_init": "Whisper模型提示词",
-    "gemini_recogn_chunk": "Gemini语音识别每批切片数",
-    "aitrans_temperature": "AI翻译模型温度值",
-    "aitrans_context": "AI翻译附带所有字幕做参考",
-    "remove_dubb_silence": "移除每条字幕配音开头结尾静音缓冲",
-    "remove_dubb_all_silence": "移除每条字幕配音全部静音缓冲",
-    "remove_dubb_silence_level":"静音移除力度",
-    "hw_decode": "视频合成cuda硬解码",
-    "normal_text": "文本规范化",
-    "uvr_models": "分离背景声模型",
-    "del_end_punc": "删除字幕末尾标点?",
-    "out_video_ext": "输出视频格式(mp4/mkv)",
-    "asr_wait":"云API识别暂停秒",
-
-    "retry_nums": "失败后重试次数",
-    
-    "fps_mode":"可变帧率vfr/固定帧率cfr",
-
-    "temperature": "采样温度",
-    "repetition_penalty": "重复惩罚",
-    "compression_ratio_threshold": "文本压缩率",
-
-    "no_speech_threshold": "非语音阈值",
-
-    "speaker_type": "说话人分离模型",
-
-    "hf_token": "Huggingface的token",
-
-    "show_more_settings": "主界面显示所有参数?",
-    "model_for_recogn2":"二次识别所用模型",
-
-    "edgetts_max_concurrent_tasks": "EdgeTTS配音渠道配音并发数",
-    "edgetts_retry_nums": "EdgeTTS配音渠道失败重试次数",
-
-    "ai302_models": "302.AI翻译模型",
-    "ai302tts_models": "302.AI-TTS模型",
-    "openairecognapi_model": "OpenAI语音识别模型",
-    "chatgpt_model": "ChatGPT模型列表",
-    "noise_separate_nums": "人声背景分离线程数",
-    "openaitts_model": "OpenAI TTS模型列表",
-    "azure_model": "Azure模型列表",
-    "localllm_model": "本地LLM模型列表",
-    "zijiehuoshan_model": "字节火山推理接入点",
-    "model_list": "faster-whisper模型",
-    "Whisper_cpp_models": "whisper.cpp模型",
-    "homedir": "独立功能(如语音转录/文字配音/翻译字幕)输出目录",
-    "lang": "软件界面语言",
-    "save_segment_audio": "保留每条字幕的配音文件",
-    "crf": "视频输出质量控制",
-    "force_lib": "强制软编码视频?",
-    "preset": "输出视频压缩率",
-    "ffmpeg_cmd": "自定义ffmpeg命令参数",
-    "video_codec": "264/265编码",
-
-    "threshold": "语音阈值",
-    "max_speech_duration_s": "最长语音持续(秒)",
-    "min_speech_duration_ms": "最短语音持续(毫秒)",
-
-    "max_speech_duration_s2": "二次识别最长语音持续(秒)",
-    "min_speech_duration_ms2": "二次识别最短语音持续(毫秒)",
-
-    "min_silence_duration_ms": "静音分割持续毫秒",
-    "vad_type": "选择VAD",
-
-    "trans_thread": "传统翻译渠道每批字幕行数",
-    "aitrans_thread": "AI翻译渠道每批字幕行数",
-    "translation_wait": "翻译后暂停秒",
-    "dubbing_wait": "配音后暂停秒",
-    "dubbing_thread": "并发配音线程数",
-    "countdown_sec": "单视频交互翻译暂停倒计时",
-    "backaudio_volume": "背景音量变化倍数",
-    "loop_backaudio": "循环播放背景音",
-    "cuda_com_type": "计算数据类型",
-    "beam_size": "识别准确度beam_size",
-    "best_of": "识别准确度best_of",
-    "condition_on_previous_text": "启用上下文感知",
-    "hotwords": "热词",
-
-    "zh_hant_s": "字幕繁体转简体",
-    "chattts_voice": "ChatTTS音色值",
-
-    "gemini_model": "Gemini模型列表"
-}
-# 中文分区
-heads = {
-    "common": "通用设置",
-    "video": "视频输出控制",
-    "whisper": "语音识别参数",
-    "justify": "字幕声音画面对齐",
-    "trans": "字幕翻译调整",
-    "dubbing": "字幕配音调整",
-    "prompt_init": "Whisper模型提示词"
-}
-if defaulelang != 'zh_CN':
-    notices = {
-        "common": {
-            "lang": "Set the software's interface language. Requires a restart to take effect.",
-            "countdown_sec": "Countdown in seconds for a single video translation.",
-            "homedir": "Directory to save results (STT, TTS, TransSubtitles). Defaults to the 'output' folder.",
-
-            "retry_nums": "Number of retries after failure",
-
-            "llm_chunk_size": "When LLM Correction errors in the LLM large model, the number of subtitles sent each time is important. A larger value results in better sentence segmentation. Sending all subtitles at once is optimal, but this is limited by the maximum output token and context (max_token). An excessively long input may exceed the AI  limit and fail. The default is 20 subtitles.",
-            "llm_ai_type": "AI provider for LLM Correction errors",
-
-            "dont_notify": "Disable desktop notifications for task completion or failure.",
-
-            "noise_separate_nums": "The more threads used for separation of human and background voices, the faster the process, but the more resources it consumes.",
-            "uvr_models": "Select the model used when separating background noise.",
-
-            "batch_nums": "When translating in batches, set the number of lines to translate simultaneously in each batch here.",
-            "show_more_settings": "To avoid confusion caused by too many parameters, most parameters are hidden by default on the main interface. Selecting this option will switch to displaying all parameters by default.",
-
-            "process_max": "Process Maximum for CPU",
-            "process_max_gpu": "The number of GPU tasks that can be executed simultaneously should be set to 1 unless video memory very large",
-            "device_name":"Force the operation of heavy-duty equipment; do not tamper with it unless you know what you are doing.",
-            "bit8":"8-bit quantization is used for qwen3-tts to reduce video memory usage."
-
-        },
-        "video": {
-            "crf": "Constant Rate Factor (CRF) for video quality. 0=lossless (huge file), 51=low quality (small file).",
-            "preset": "Controls the encoding speed vs. quality balance (e.g., ultrafast, medium, slow). Faster means larger files.",
-            "video_codec": "Video codec: libx264 (better compatibility) or libx265 (higher compression).",
-            "out_video_ext": "Output video format (mp4/mkv)",
-            "fps_mode": "When there is slow-motion video processing, variable frame rate (VRF) works better, while fixed frame rate (CFR) has better compatibility.",
-            
-            "force_lib": "Force software encoding (slower but more compatible). Hardware encoding is preferred by default.",
-            "hw_decode": "When compositing videos, prioritize hard decoding; it's fast but prone to errors.",
-            "ffmpeg_cmd": "Custom FFmpeg command arguments, added before the output file argument.",
-        },
-        "whisper": {
-            "vad_type": "Select VAD",
-            "threshold": "VAD: Minimum probability for an audio chunk to be considered speech.",
-            "no_speech_threshold": "no speech threshold",
-            "max_speech_duration_s": "VAD: Maximum duration (s) of a single speech segment before splitting.",
-            "min_speech_duration_ms": "If a subtitle's duration is less than this value in milliseconds, attempt to merge it into an adjacent subtitle.",
-            "min_silence_duration_ms": "VAD: Minimum silence duration (ms) to mark the end of a segment.",
-            "model_for_recogn2":"The model used for secondary recognition (always using the Faster-Whisper channel)",
-
-            "max_speech_duration_s2": "Maximum speech duration (seconds) during secondary recognition. Limits the maximum length of a single speech segment. Forced segmentation occurs if this length is exceeded. Enter a number in seconds.",
-            "min_speech_duration_ms2": "Shortest speech duration (milliseconds) during secondary recognition. If a subtitle's duration is less than this value in milliseconds, attempt to merge it into an adjacent subtitle. Unit: milliseconds.",
-
-
-            "speaker_type": "The model used for speaker separation. The default is the built-in model, supporting both Chinese and English. Pyannote is optional. \nIf selected, you must have a token from \nhttps://huggingface.co \nand agree to the Pyannote licensing agreement. \nFor details, please visit the URL for a tutorial: \nhttps://pvt9.com/shuohuaren",
-            "hf_token": "Enter your token from huggingface.co. Otherwise, you cannot use Pyannote speaker separation. \nFor details, please see the tutorial: \nhttps://pvt9.com/shuohuaren",
-
-            "cuda_com_type": "Compute type for faster-whisper (e.g., int8, float16, float32).",
-            "beam_size": "Beam size for transcription (1-5). Higher is more accurate but uses more VRAM.",
-            "best_of": "Best-of for transcription (1-5). Higher is more accurate but uses more VRAM.",
-            "condition_on_previous_text": "Condition on previous text for better context (uses more GPU, may cause repetition).",
-            "temperature": "temperature",
-            "repetition_penalty": "Increasing this value helps reduce repetitions",
-            "compression_ratio_threshold": "Decrease this value helps reduce repetitions",
-            "hotwords": "hotwords",
-
-            "model_list": "Comma-separated list of model names for faster-whisper modes.",
-            "Whisper_cpp_models": "Comma-separated list of model names for whisper.cpp mode.",
-            "gemini_recogn_chunk": "Number of audio slices per request for Gemini recognition. Larger values improve accuracy but increase failure rate.",
-            "zh_hant_s": "Force conversion of recognized Traditional Chinese to Simplified Chinese.",
-            "del_end_punc": "Remove punctuation at the end of subtitles?",
-            "asr_wait": "The number of seconds the cloud API pauses after each recognition to prevent exceeding the frequency limit."
-
-        },
-        "trans": {
-            "trans_thread": "Number of subtitle lines per request for traditional translation.",
-            "aitrans_thread": "Number of subtitle lines per request for AI translation.",
-            "translation_wait": "Delay (in seconds) between translation requests to prevent rate-limiting.",
-            "aitrans_temperature": "AI models temperature,default is 1.0",
-            "aitrans_context": "The AI translation channel includes all original subtitles for reference."
-        },
-        "dubbing": {
-            "dubbing_thread": "Number of concurrent threads for dubbing.",
-            "dubbing_wait": "Delay (in seconds) between dubbing requests to prevent rate-limiting.",
-            "remove_dubb_silence": "Removes the mute buffer at the beginning and end of each subtitle's audio, improving synchronization.",
-            "remove_dubb_all_silence": "Removes all mute buffers in each subtitle's audio, including the beginning, end, and pauses, audio-visual synchronization.",
-            "remove_dubb_silence_level":"Mute removal level",
-
-            "save_segment_audio": "Save the dubbed audio for each individual subtitle line.",
-            "normal_text": "Text normalization before dubbing",
-            "edgetts_max_concurrent_tasks": "The higher the concurrent voice-over capacity of the EdgeTTS channel, the faster the speed, but rate throttling may fail.",
-            "edgetts_retry_nums": "Number of retries after EdgeTTS channel failure",
-            "chattts_voice": "ChatTTS voice timbre value.",
-
-        },
-        "justify": {
-
-            "max_audio_speed_rate": "Maximum audio speed-up rate. Default: 100.",
-            "max_video_pts_rate": "Maximum video slow-down rate. Default: 10 (cannot exceed 10).",
-            "cjk_len": "Number of characters per line for Chinese, Japanese, and Korean subtitles; more than this will result in a line break",
-            "other_len": "Number of words per line for subtitles in other languages; more than this will result in a line break"
-        },
-
-        "prompt_init": {}
-    }
-
-    titles = {
-        "cjk_len": "Number of characters per line for CJK",
-        "other_len": "Number of words per line for Other",
-        "bit8":"8-bit quantization for qwen3-tts",
-        "process_max": "Number of CPU tasks[restart]",
-        "process_max_gpu": "Number of GPU tasks[restart]",
-        "device_name":"Force the operation of heavy-duty equipment",
-        "max_audio_speed_rate": "Maximum audio speed-up rate",
-        "max_video_pts_rate": "Maximum video slow-down rate",
-        "batch_nums": "Translating batches, quantity per batch",
-        "dont_notify": "Disable desktop notifications",
-        "llm_ai_type": "AI provider for LLM Correction errors",
-        "prompt_init": "Whisper model initial prompt",
-        "gemini_recogn_chunk": "Gemini speech recognition batch slice count",
-        "llm_chunk_size": "LLM Correction errors How many subtitles are sent each time",
-        "hw_decode": "ffmpeg decode video use cuda",
-        "ai302_models": "302.AI translation models",
-        "ai302tts_models": "302.AI-TTS models",
-        "aitrans_temperature": "AI temperature for translation subtitles",
-        "aitrans_context": "AI translation includes all original subtitles for reference?",
-        "no_speech_threshold": "no speech threshold",
-        "temperature": "temperature",
-        "hotwords": "hotwords",
-        "remove_dubb_silence": "Removes the mute buffer at the beginning and end of each subtitle's audio",
-        "remove_dubb_all_silence": "Removes all mute buffers in each subtitle's audio",
-        "remove_dubb_silence_level":"Mute removal level",
-        "normal_text": "Text Text normalization",
-        "uvr_models": "BGM separation model",
-        "del_end_punc": "Remove punctuation at end subtitles?",
-        "out_video_ext": "Output video format (mp4/mkv)",
-
-        "model_for_recogn2":"The model used for secondary recognition",
-        
-        "asr_wait": "Cloud API pauses after each recognition/Seconds",
-
-        "retry_nums": "Number of retries after failure",
-        "fps_mode": "Variable frame rate (vfr)/fixed frame rate (cfr)",
-
-        "repetition_penalty": "repetition penalty",
-        "compression_ratio_threshold": "compression ratio threshold",
-
-        "vad_type": "Select VAD",
-
-        "speaker_type": "Model for speaker separation",
-
-        "hf_token": "Your token from huggingface.co",
-
-        "show_more_settings": "Show all parameters?",
-
-        "edgetts_max_concurrent_tasks": "The higher concurrent of EdgeTTS",
-        "edgetts_retry_nums": "Retries after EdgeTTS failure",
-
-        "noise_separate_nums": "Threads nums for separation",
-        "openairecognapi_model": "OpenAI speech recognition model",
-        "chatgpt_model": "ChatGPT model list",
-        "openaitts_model": "OpenAI TTS model list",
-        "azure_model": "Azure model list",
-        "localllm_model": "Local LLM model list",
-        "zijiehuoshan_model": "ByteDance Volcano Engine inference endpoint",
-        "model_list": "faster-whisper models",
-        "Whisper_cpp_models": "whisper.cpp models",
-        "homedir": "Set output directory",
-        "lang": "Software interface language",
-        "save_segment_audio": "Save dubbed audio for each subtitle line",
-        "crf": "Video output quality control (CRF)",
-        "force_lib": "Force software video encoding?",
-        "preset": "Output video compression preset",
-        "ffmpeg_cmd": "Custom FFmpeg command arguments",
-        "video_codec": "H.264/H.265 encoding",
-        "threshold": "VAD: Speech probability threshold",
-        "max_speech_duration_s": "VAD:max speech duration(s)",
-        "min_speech_duration_ms": "VAD:min speech duration(ms)",
-
-        "max_speech_duration_s2": "Recognition(2): max speech duration(s)",
-        "min_speech_duration_ms2": "Recognition(2): min speech duration(ms)",
-
-        "min_silence_duration_ms": "VAD:Min silence duration for split(ms)",
-        "trans_thread": "Batch size (lines) for traditional translation",
-        "aitrans_thread": "Batch size (lines) for AI translation",
-        "dubbing_thread": "Concurrent dubbing threads",
-        "countdown_sec": "Countdown for single video translation pause",
-        "backaudio_volume": "Background audio volume multiplier",
-        "loop_backaudio": "Loop background audio",
-        "cuda_com_type": "Compute data type",
-        "beam_size": "Recognition accuracy (beam_size)",
-        "best_of": "Recognition accuracy (best_of)",
-        "condition_on_previous_text": "Enable context awareness",
-        "zh_hant_s": "Convert Traditional to Simplified Chinese subtitles",
-        "chattts_voice": "ChatTTS voice timbre value",
-        "translation_wait": "Pause (s) after each translation request",
-        "dubbing_wait": "Pause (s) after each dubbing request",
-        "gemini_model": "Gemini model list",
-    }
-
-    heads = {
-        "common": "General",
-        "video": "Video Output",
-        "whisper": "ASR Settings",
-        "justify": "Alignment",
-        "trans": "Translation",
-        "dubbing": "Dubbing",
-        "prompt_init": "Whisper Prompt"
-    }
-
-
-titles.update(prompt_dicts)
-notices['prompt_init'].update(prompt_dicts)
 
 class Ui_setini(QtWidgets.QWidget):
     def __init__(self):
@@ -455,57 +33,18 @@ class Ui_setini(QtWidgets.QWidget):
             settings.save()
 
     def _is_comboBox(self,key):
-        return key in ['cuda_com_type','llm_ai_type','vad_type','speaker_type','video_codec','preset','lang','uvr_models','out_video_ext',"fps_mode","device_name","model_for_recogn2","remove_dubb_silence_level"]
+        return key in ComboBox_List
 
     def _get_comboBox(self,key) -> List[str]:
-        data = {
-            "cuda_com_type": [
-                'default',
-                'auto',
-                'int8',
-                'int16',
-                'float16',
-                'float32',
-                'bfloat16',
-                'int8_float16',
-                'int8_float32',
-                'int8_bfloat16'
-            ],
-            "fps_mode":["vfr","cfr"],
-            "llm_ai_type": [it['name'] for it in LLM_CONCERT_DICT],
-            "vad_type": ['tenvad', 'silero'],
-            "speaker_type": ['built', 'ali_CAM', 'pyannote'],
-            "video_codec": ['264', '265'],
-            "preset": ['ultrafast', 'superfast', 'veryfast', 'faster', 'fast', 'medium', 'slow', 'slower',
-                       'veryslow'],
-            "lang": list(app_cfg.SUPPORT_LANG.keys()),
-            "uvr_models": [
-                'spleeter',
-                'UVR-MDX-NET-Inst_HQ_4',
-                'UVR-MDX-NET-Inst_HQ_1',
-                'UVR-MDX-NET-Inst_HQ_2',
-                'UVR-MDX-NET-Inst_HQ_3',
-                'UVR-MDX-NET-Inst_HQ_5',
-                'UVR-MDX-NET-Inst_Main',
-                'UVR-MDX-NET-Inst_1',
-                'UVR-MDX-NET-Inst_2',
-                'UVR-MDX-NET-Inst_3'
-            ],
-            "out_video_ext": ['.mp4', '.mkv'],
-            "device_name":['auto','cuda','cpu','mps','xpu','cuda:0','cuda:1','cuda:2','cuda:3'],
-            "model_for_recogn2":WHISPER_MODELS.split(','),
-            "remove_dubb_silence_level":["low","default","max"]
-        }
+        return ComboBox_Data.get(key, [""])
 
-        return data.get(key, [""])
-
-    def _build_setting_row(self, key, tips_str, parent_layout):
+    def _build_setting_row(self, key,title, tips_str, parent_layout):
         """构建单行设置项（标签按钮 + 输入控件）并添加到 parent_layout"""
         tmp = QtWidgets.QHBoxLayout()
         tmp_0 = QtWidgets.QPushButton()
         tmp_0.setStyleSheet("""background-color:transparent;""")
 
-        tmp_0.setText(titles[key])
+        tmp_0.setText(title)
         tmp_0.setObjectName(f'btn_{key}')
         tmp_0.setToolTip(tips_str)
         tmp.addWidget(tmp_0)
@@ -549,16 +88,6 @@ class Ui_setini(QtWidgets.QWidget):
 
             tmp.addWidget(tmp_1)
             tmp.addStretch(1)
-            parent_layout.addLayout(tmp)
-            return
-
-        # 是 model_list faster-whisper
-        if key in ['model_list', 'Whisper_cpp_models']:
-            tmp_1 = QtWidgets.QPlainTextEdit()
-            tmp_1.setPlainText(val)
-            tmp_1.setToolTip(tips_str)
-            tmp_1.setObjectName(key)
-            tmp.addWidget(tmp_1)
             parent_layout.addLayout(tmp)
             return
 
@@ -634,12 +163,16 @@ class Ui_setini(QtWidgets.QWidget):
             tab_layout = QtWidgets.QVBoxLayout(tab_content)
             tab_layout.setContentsMargins(10, 10, 10, 10)
 
-            for key, tips_str in item.items():
-                self._build_setting_row(key, tips_str, tab_layout)
+            for key in item:
+                if key.startswith('initial_prompt_'):
+                    _text=tr("Initial prompt for the Whisper model for speech",tr(key.split('_')[2]))
+                    self._build_setting_row(key, _text,_text,  tab_layout)
+                else:
+                    self._build_setting_row(key, tr(f'{key}_title'), tr(f'{key}_notice'),  tab_layout)
 
             tab_layout.addStretch()
             tab_scroll.setWidget(tab_content)
-            self.tab_widget.addTab(tab_scroll, heads[headkey])
+            self.tab_widget.addTab(tab_scroll, tr(f"{headkey}_head"))
 
         # stretch=1 让 tab_widget 填充剩余空间，按钮固定在底部不会遮挡内容
         self.layout.addWidget(self.tab_widget, stretch=1)

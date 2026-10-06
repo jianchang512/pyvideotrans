@@ -46,7 +46,7 @@ class HuggingfaceRecogn(BaseRecogn):
         kwargs = {
             "cut_audio_list": cut_audio_list_file,
             "prompt": settings.get(
-                f'initial_prompt_{self.detect_language}') if self.detect_language != 'auto' else None,
+                f'initial_prompt_{self.detect_language.replace("-","_")}') if self.detect_language and self.detect_language != 'auto' else None,
             "detect_language": self.detect_language,
             "model_name": self.model_name,
             "logs_file": logs_file,

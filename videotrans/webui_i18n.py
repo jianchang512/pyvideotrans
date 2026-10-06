@@ -10,7 +10,6 @@ import os
 from functools import cache
 from pathlib import Path
 
-WEBUI_LANGUAGE_DIR = Path(__file__).resolve().parent / "webui_languages"
 
 
 def normalize_locale(value):
@@ -27,9 +26,10 @@ def normalize_locale(value):
 
 @cache
 def _load_catalog(locale):
+    from videotrans.configure.config import ROOT_DIR
     """Load only WebUI-owned translations for locale."""
     locale = normalize_locale(locale)
-    path = WEBUI_LANGUAGE_DIR / f"{locale}.json"
+    path = Path(f"{ROOT_DIR}/videotrans/webui_languages/{locale}.json")
     if not path.is_file():
         return {}
     try:

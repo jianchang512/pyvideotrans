@@ -48,7 +48,7 @@ def get_model_by_type(recogn_type: int) -> List[str]:
     if recogn_type==ZHIPU_API:
         return constants.ZHIPU_ASR_MODELS.split(',')
 
-    return settings.get('model_list', '').split(',')
+    return constants.WHISPER_MODELS.split(',')
 
 
 # 判断所用渠道和模型是否支持该语言的语音识别

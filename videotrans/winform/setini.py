@@ -9,8 +9,6 @@ def openwin():
     from pathlib import Path
 
     def save():
-        # 创建一个空字典来存储结果
-        should_model_list_sign = False
         # 遍历找到的所有QLineEdit控件
         for line_edit in winobj.findChildren(QLineEdit):
             # 检查QLineEdit是否有objectName
@@ -24,8 +22,6 @@ def openwin():
             # 检查QLineEdit是否有objectName
             if hasattr(line_edit, 'objectName') and line_edit.objectName():
                 name = line_edit.objectName()
-                if name in ['model_list','Whisper_cpp_models'] and line_edit.toPlainText() != settings[name]:
-                    should_model_list_sign = True
                 # 将objectName作为key，text作为value添加到字典中
                 settings[name] = line_edit.toPlainText()
         for line_edit in winobj.findChildren(QCheckBox):
@@ -50,8 +46,6 @@ def openwin():
         
         settings.save()
         
-        if should_model_list_sign:
-            set_process(text="", type='refreshmodel_list')
 
         winobj.close()
 

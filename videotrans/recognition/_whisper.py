@@ -64,7 +64,7 @@ class FasterAll(BaseRecogn):
             _max_speech=_min_speech+1000
 
         kwargs = {
-            "prompt": settings.get(f'initial_prompt_{self.detect_language}'),
+            "prompt": settings.get(f'initial_prompt_{self.detect_language.replace("-","_")}'),
             "detect_language": self.detect_language,
             "model_name": self.model_name,
             "logs_file": logs_file,
@@ -114,7 +114,7 @@ class FasterAll(BaseRecogn):
             "jianfan": self.jianfan,
             "audio_duration":audio_duration,
             "hotwords":settings.get('hotwords'),
-            "prompt": settings.get(f'initial_prompt_{self.detect_language}'),
+            "prompt": settings.get(f'initial_prompt_{self.detect_language.replace("-","_")}'),
             "beam_size": int(settings.get('beam_size', 5)),
             "best_of": int(settings.get('best_of', 5)),
             "temperature":settings.get('temperature'),

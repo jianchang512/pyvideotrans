@@ -80,7 +80,7 @@ class AlignmentWorker(QThread):
                       word_timestamps=True,
                       language=self.language,
                       temperature=0.0,
-                      initial_prompt=settings.get(f'initial_prompt_{self.language}') if self.language != 'auto' else None,
+                      initial_prompt=settings.get(f'initial_prompt_{self.language.replace("-","_")}') if self.language and self.language != 'auto' else None,
                     beam_size=int(settings.get('beam_size', 5)),
                     best_of=int(settings.get('best_of', 5)),
                     repetition_penalty=float(settings.get('repetition_penalty', 1.0)),

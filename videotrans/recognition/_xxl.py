@@ -86,7 +86,7 @@ class XXLRecogn(BaseRecogn):
         if self.detect_language!='auto':
             cmd.extend(['-l', self.detect_language.split('-')[0]])
 
-            prompt = settings.get(f'initial_prompt_{self.detect_language}')
+            prompt = settings.get(f'initial_prompt_{self.detect_language.replace("-","_")}')
             if prompt:
                 cmd += ['--initial_prompt', prompt]
         cmd.extend(['--model', self.model_name,'--model_dir', self.local_dir, '--output_dir', '.'])

@@ -36,7 +36,7 @@ class AI302Recogn(BaseRecogn):
             'Authorization': f'Bearer {apikey}',
         }
 
-        prompt = settings.get(f'initial_prompt_{self.detect_language}')
+        prompt = settings.get(f'initial_prompt_{self.detect_language.replace("-","_")}')
 
         with open(self.audio_file, 'rb') as f:
             audio_data = f.read()
@@ -80,7 +80,7 @@ class AI302Recogn(BaseRecogn):
             'Accept': 'application/json',
             'Authorization': f'Bearer {apikey}',
         }
-        prompt = settings.get(f'initial_prompt_{self.detect_language}')
+        prompt = settings.get(f'initial_prompt_{self.detect_language.replace("-","_")}')
         err=''
         ok_nums=0
         for i, it in enumerate(raws):

@@ -12,18 +12,17 @@ Usage:
 Requires: uv sync --extra webui
 """
 
-import os
 import sys
 import json
 import time
 import asyncio
-import traceback
 from pathlib import Path
 from typing import List
 
+from videotrans.ui.advset_keys import notices, ComboBox_List, ComboBox_Data
+
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-
 
 # ---------------------------------------------------------------------------
 # WebUI localization
@@ -34,12 +33,13 @@ from videotrans.webui_i18n import tr  # noqa: E402
 # ---------------------------------------------------------------------------
 # 初始化 videotrans 环境
 # ---------------------------------------------------------------------------
-from videotrans.configure import config  # noqa: E402
+from videotrans.configure import config, constants  # noqa: E402
 
 config.init_run()
 
 from videotrans.configure.config import ROOT_DIR, TEMP_DIR, app_cfg, params, settings
-from videotrans.configure.constants import FASTER_MODELS_DICT, DEEPGRAM_ASR_MODELS, OPENAI_WHISPER_MODELS, FUN_ASR_MODELS
+from videotrans.configure.constants import FASTER_MODELS_DICT, DEEPGRAM_ASR_MODELS, OPENAI_WHISPER_MODELS, \
+    FUN_ASR_MODELS
 from videotrans import recognition, translator, tts
 from videotrans.util import tools
 from videotrans.util.gpus import getset_gpu
@@ -628,12 +628,13 @@ CHANNEL_SETTINGS = {
             },
         ],
     },
-    tr("Atlas Cloud 翻译"): {
+    tr("Atlas Cloud"): {
         "category": tr("Subtitle Translation Channels"),
         "fields": [
             {"key": "atlascloud_key", "label": "API Key", "type": "text", "default": ""},
-            {"key": "atlascloud_model", "label": "模型", "type": "text", "default": "deepseek-ai/deepseek-v4-flash", "placeholder": "输入模型名称"},
-            {"key": "atlascloud_max_token", "label": "最大输出 Token", "type": "text", "default": "8192"},
+            {"key": "atlascloud_model", "label": "Model", "type": "text", "default": "deepseek-ai/deepseek-v4-flash",
+             "placeholder": ""},
+            {"key": "atlascloud_max_token", "label": "Max-out-token", "type": "text", "default": "8192"},
         ],
     },
     tr("Xiaomi AI Translation"): {
@@ -929,7 +930,8 @@ def build_ass_editor():
     style = _load_ass_style()
 
     with gr.Accordion(tr("Hard Subtitle Style Editor"), open=False):
-        gr.Markdown(tr("Click 'Save Style' after modifying, style will apply to all tasks with embedded hard subtitles."))
+        gr.Markdown(
+            tr("Click 'Save Style' after modifying, style will apply to all tasks with embedded hard subtitles."))
         with gr.Tabs():
             with gr.Tab(tr("Primary Subtitle")):
                 with gr.Row():
@@ -1117,33 +1119,33 @@ def build_ass_editor():
             ass_status = gr.Textbox(label=tr("Status"), interactive=False, visible=True)
 
         def save_ass_style(
-            fontname,
-            fontsize,
-            primary_color,
-            outline_color,
-            back_color,
-            bold,
-            italic,
-            underline,
-            strikeout,
-            bottom_fontname,
-            bottom_fontsize,
-            bottom_primary_color,
-            bottom_outline_color,
-            bottom_back_color,
-            bottom_bold,
-            bottom_italic,
-            border_style,
-            outline,
-            shadow,
-            scale_x,
-            scale_y,
-            spacing,
-            angle,
-            margin_l,
-            margin_r,
-            margin_v,
-            alignment,
+                fontname,
+                fontsize,
+                primary_color,
+                outline_color,
+                back_color,
+                bold,
+                italic,
+                underline,
+                strikeout,
+                bottom_fontname,
+                bottom_fontsize,
+                bottom_primary_color,
+                bottom_outline_color,
+                bottom_back_color,
+                bottom_bold,
+                bottom_italic,
+                border_style,
+                outline,
+                shadow,
+                scale_x,
+                scale_y,
+                spacing,
+                angle,
+                margin_l,
+                margin_r,
+                margin_v,
+                alignment,
         ):
             am = {
                 tr("Bottom Left"): 1,
@@ -1415,8 +1417,8 @@ def build_channel_settings():
 
                     # 检查文件是否存在（支持带/不带 .wav 后缀）
                     if (
-                        not (f5tts_dir / filename).exists()
-                        and not (f5tts_dir / f"{filename}.wav").exists()
+                            not (f5tts_dir / filename).exists()
+                            and not (f5tts_dir / f"{filename}.wav").exists()
                     ):
                         errors.append(
                             tr(
@@ -1429,8 +1431,8 @@ def build_channel_settings():
 
                     # 自动补全 .wav 后缀
                     if (
-                        not filename.endswith(".wav")
-                        and (f5tts_dir / f"{filename}.wav").exists()
+                            not filename.endswith(".wav")
+                            and (f5tts_dir / f"{filename}.wav").exists()
                     ):
                         lines[i] = f"{filename}.wav#{parts[1].strip()}"
 
@@ -1453,85 +1455,6 @@ def build_channel_settings():
 # ---------------------------------------------------------------------------
 # 高级选项设置面板
 # ---------------------------------------------------------------------------
-COMBO_BOX_KEYS = {
-    "cuda_com_type",
-    "llm_ai_type",
-    "vad_type",
-    "speaker_type",
-    "video_codec",
-    "preset",
-    "lang",
-    "uvr_models",
-    "out_video_ext",
-    "fps_mode",
-}
-COMBO_BOX_OPTIONS = {
-    "cuda_com_type": [
-        "default",
-        "auto",
-        "int8",
-        "int16",
-        "float16",
-        "float32",
-        "bfloat16",
-        "int8_float16",
-        "int8_float32",
-        "int8_bfloat16",
-    ],
-    "fps_mode": ["vfr", "cfr"],
-    "llm_ai_type": ["chatgpt", "deepseek"],
-    "vad_type": ["tenvad", "silero"],
-    "speaker_type": ["built", "ali_CAM", "pyannote", "reverb"],
-    "video_codec": ["264", "265"],
-    "preset": [
-        "ultrafast",
-        "superfast",
-        "veryfast",
-        "faster",
-        "fast",
-        "medium",
-        "slow",
-        "slower",
-        "veryslow",
-    ],
-    "uvr_models": [
-        "spleeter",
-        "UVR-MDX-NET-Inst_HQ_4",
-        "UVR-MDX-NET-Inst_HQ_1",
-        "UVR-MDX-NET-Inst_HQ_2",
-        "UVR-MDX-NET-Inst_HQ_3",
-        "UVR-MDX-NET-Inst_HQ_5",
-        "UVR-MDX-NET-Inst_Main",
-        "UVR-MDX-NET-Inst_1",
-        "UVR-MDX-NET-Inst_2",
-        "UVR-MDX-NET-Inst_3",
-    ],
-    "out_video_ext": [".mp4", ".mkv"],
-}
-
-# Whisper 提示词 keys 和中文标签
-_prompt_keys_list = [
-    "initial_prompt_zh-cn",
-    "initial_prompt_zh-tw",
-    "initial_prompt_en",
-    "initial_prompt_ja",
-    "initial_prompt_ko",
-    "initial_prompt_fr",
-    "initial_prompt_de",
-    "initial_prompt_ru",
-    "initial_prompt_es",
-    "initial_prompt_pt",
-    "initial_prompt_it",
-    "initial_prompt_ar",
-    "initial_prompt_vi",
-    "initial_prompt_th",
-    "initial_prompt_tr",
-    "initial_prompt_hi",
-]
-_prompt_labels = {
-    k: tr("whisper {} prompt", k.replace("initial_prompt_", ""))
-    for k in _prompt_keys_list
-}
 
 # 全局 widget 注册表
 _all_widgets = {}
@@ -1545,8 +1468,8 @@ def _w(key, label, tip="", area=False):
     with gr.Column():
         label_text = f"**{label}**" + (f"\n<sub>{tip}</sub>" if tip else "")
         gr.Markdown(label_text)
-        if key in COMBO_BOX_KEYS:
-            options = COMBO_BOX_OPTIONS.get(key, [val])
+        if key in ComboBox_List:
+            options = ComboBox_Data.get(key, [val])
             w = gr.Dropdown(
                 choices=options,
                 value=val if val in options else options[0],
@@ -1578,7 +1501,7 @@ def _save_section(section_key, keys):
 
     with gr.Row():
         save_btn = gr.Button(
-            tr("Save {}", ADVANCED_SECTION_TITLES.get(section_key, section_key)),
+            tr("Save {}", tr(f'{section_key}_head')),
             variant="primary",
             size="sm",
         )
@@ -1602,16 +1525,6 @@ def _save_section(section_key, keys):
 # ---------------------------------------------------------------------------
 # 高级选项设置面板（紧凑网格布局）
 # ---------------------------------------------------------------------------
-ADVANCED_SECTION_TITLES = {
-    "common": tr("General Settings"),
-    "video": tr("Video Output Control"),
-    "whisper": tr("ASR Parameters"),
-    "trans": tr("Translation Settings"),
-    "dubbing": tr("Dubbing Settings"),
-    "justify": tr("Alignment Settings"),
-    "prompt_init": tr("Whisper Model Prompts"),
-}
-
 
 def build_advanced_settings():
     import gradio as gr
@@ -1622,215 +1535,21 @@ def build_advanced_settings():
         )
     )
 
-    # ---- 通用设置 ----
-    with gr.Accordion(tr("General Settings Panel"), open=True):
-        with gr.Row():
-            _w("lang", tr("UI Language"), tr("Restart required after change"))
-            _w("countdown_sec", tr("Single Video Pause Countdown"), tr("Set to 0 to skip edit window"))
-            _w("retry_nums", tr("Retry Count on Failure"), "")
-        with gr.Row():
-            _w("llm_chunk_size", tr("LLM Sentence Split Batch Size"), tr("Default 20"))
-            _w("llm_ai_type", tr("LLM Sentence Split AI Channel"), "chatgpt/deepseek")
-            _w("batch_nums", tr("Batch Processing Count"), tr("0 = Unlimited"))
-        with gr.Row():
-            _w("dont_notify", tr("Disable Desktop Notifications"), "")
-            _w("show_more_settings", tr("Show All Parameters on Main UI?"), "")
-            _w("homedir", tr("Output Directory for Standalone Tools"), "")
-        with gr.Row():
-            _w("process_max", tr("CPU Tasks [Restart]"), tr("Do not exceed CPU cores"))
-            _w("process_max_gpu", tr("GPU Tasks [Restart]"), tr(">1 only for multi-GPU or VRAM > 24G"))
-            _w("multi_gpus", tr("Multi-GPU Mode [Restart]"), "")
-        _save_section(
-            "common",
-            [
-                "lang",
-                "countdown_sec",
-                "retry_nums",
-                "llm_chunk_size",
-                "llm_ai_type",
-                "batch_nums",
-                "dont_notify",
-                "show_more_settings",
-                "homedir",
-                "process_max",
-                "process_max_gpu",
-                "multi_gpus",
-            ],
-        )
+    for k, v in notices.items():
 
-    # ---- 视频输出控制 ----
-    with gr.Accordion(tr("Video Output Control Panel"), open=False):
-        with gr.Row():
-            _w("crf", tr("Video Quality (0=lossless, 51=worst)"), "")
-            _w("preset", tr("Preset Compression"), "ultrafast→veryslow")
-            _w("video_codec", tr("H.264/H.265 Codec"), "")
-        with gr.Row():
-            _w("out_video_ext", tr("Output Format"), "mp4/mkv")
-            _w("fps_mode", tr("Frame Rate Mode"), "vfr/cfr")
-            _w("force_lib", tr("Force Software Encoding?"), "")
-        with gr.Row():
-            _w("hw_decode", tr("CUDA Hardware Decoding"), "")
-            _w("ffmpeg_cmd", tr("Custom FFmpeg Parameters"), "")
-        _save_section(
-            "video",
-            [
-                "crf",
-                "preset",
-                "video_codec",
-                "out_video_ext",
-                "fps_mode",
-                "force_lib",
-                "hw_decode",
-                "ffmpeg_cmd",
-            ],
-        )
+        # ---- 通用设置 ----
+        with gr.Accordion(tr(f'{k}_head'), open=True):
+            for k2 in v:
+                with gr.Row():
+                    if k2.startswith('initial_prompt_'):
+                        _text = tr("Initial prompt for the Whisper model for speech", tr(k2.split('_')[2]))
+                        _w(k2, _text, _text)
 
-    # ---- 语音识别参数 ----
-    with gr.Accordion(tr("ASR Parameters Panel"), open=False):
-        with gr.Row():
-            _w("vad_type", tr("Select VAD"), "tenvad/silero")
-            _w("threshold", tr("Speech Threshold"), "")
-            _w("no_speech_threshold", tr("Non-speech Threshold"), "")
-        with gr.Row():
-            _w("max_speech_duration_s", tr("Max Speech Duration (s)"), "")
-            _w("min_speech_duration_ms", tr("Min Speech Duration (ms)"), "")
-            _w("min_silence_duration_ms", tr("Silence Split (ms)"), "")
-        with gr.Row():
-            _w("max_speech_duration_s2", tr("Second Pass Max Duration (s)"), "")
-            _w("min_speech_duration_ms2", tr("Second Pass Min Duration (ms)"), "")
-            _w("merge_short_sub", tr("Merge Short Subtitles"), "")
-        with gr.Row():
-            _w("whisper_prepare", tr("Whisper Pre-segmentation?"), tr("Check when cloning voice"))
-            _w("speaker_type", tr("Speaker Diarization Model"), tr("Built-in / pyannote"))
-            _w("hf_token", "Huggingface token", tr("Required for pyannote"))
-        with gr.Row():
-            _w("cuda_com_type", tr("Compute Data Type"), "int8/float16/float32")
-            _w("beam_size", "beam_size", "1-5")
-            _w("best_of", "best_of", "1-5")
-        with gr.Row():
-            _w("condition_on_previous_text", tr("Condition on Previous Text"), "")
-            _w("repetition_penalty", tr("Repetition Penalty"), "")
-            _w("compression_ratio_threshold", tr("Compression Ratio Threshold"), "")
-        with gr.Row():
-            _w("temperature", tr("Sampling Temperature"), "")
-            _w("hotwords", tr("Hotwords"), tr("Comma-separated"))
-            _w("gemini_recogn_chunk", tr("Gemini Chunk Count"), "")
-        with gr.Row():
-            _w("zh_hant_s", tr("Traditional to Simplified Chinese"), "")
-            _w("del_end_punc", tr("Remove Trailing Punctuation"), "")
-        with gr.Row():
-            _w("model_list", tr("faster-whisper Models"), tr("Comma-separated"), area=True)
-        with gr.Row():
-            _w("Whisper_cpp_models", tr("whisper.cpp Models"), tr("Comma-separated"), area=True)
+                    else:
+                        _w(k2, tr(f'{k2}_title'), tr(f'{k2}_notice'))
         _save_section(
-            "whisper",
-            [
-                "vad_type",
-                "threshold",
-                "no_speech_threshold",
-                "max_speech_duration_s",
-                "min_speech_duration_ms",
-                "max_speech_duration_s2",
-                "min_speech_duration_ms2",
-                "min_silence_duration_ms",
-                "merge_short_sub",
-                "whisper_prepare",
-                "speaker_type",
-                "hf_token",
-                "cuda_com_type",
-                "beam_size",
-                "best_of",
-                "condition_on_previous_text",
-                "repetition_penalty",
-                "compression_ratio_threshold",
-                "temperature",
-                "hotwords",
-                "gemini_recogn_chunk",
-                "zh_hant_s",
-                "del_end_punc",
-                "model_list",
-                "Whisper_cpp_models",
-            ],
+            k, v
         )
-
-    # ---- 字幕翻译调整 ----
-    with gr.Accordion(tr("Translation Settings Panel"), open=False):
-        with gr.Row():
-            _w("trans_thread", tr("Standard Translation Batch Lines"), "")
-            _w("aitrans_thread", tr("AI Translation Batch Lines"), "")
-            _w("aitrans_temperature", tr("AI Temperature"), tr("Default 1.0"))
-        with gr.Row():
-            _w("translation_wait", tr("Pause Seconds After Translation"), "")
-            _w("aisendsrt", tr("Send Full Subtitles"), "")
-            _w("aitrans_context", tr("Translate All Lines at Once"), tr("Requires ultra-long context model"))
-        _save_section(
-            "trans",
-            [
-                "trans_thread",
-                "aitrans_thread",
-                "aitrans_temperature",
-                "translation_wait",
-                "aisendsrt",
-                "aitrans_context",
-            ],
-        )
-
-    # ---- 字幕配音调整 ----
-    with gr.Accordion(tr("Dubbing Settings Panel"), open=False):
-        with gr.Row():
-            _w("dubbing_thread", tr("Concurrent Dubbing Threads"), "")
-            _w("dubbing_wait", tr("Pause Seconds After Dubbing"), "")
-            _w("remove_dubb_silence", tr("Remove Silence Around Dubbing"), "")
-        with gr.Row():
-            _w("save_segment_audio", tr("Keep Segment Audio Files"), "")
-            _w("normal_text", tr("Text Normalization"), "")
-            _w("chattts_voice", tr("ChatTTS Voice Timbre"), "")
-        with gr.Row():
-            _w(
-                "edgetts_max_concurrent_tasks",
-                tr("EdgeTTS Concurrency"),
-                tr("Higher is faster but may rate-limit"),
-            )
-            _w("edgetts_retry_nums", tr("EdgeTTS Retries"), "")
-            _w("noise_separate_nums", tr("Vocal Separation Threads"), "")
-        with gr.Row():
-            _w("uvr_models", tr("Vocal Separation Model"), "")
-        _save_section(
-            "dubbing",
-            [
-                "dubbing_thread",
-                "dubbing_wait",
-                "remove_dubb_silence",
-                "save_segment_audio",
-                "normal_text",
-                "chattts_voice",
-                "edgetts_max_concurrent_tasks",
-                "edgetts_retry_nums",
-                "noise_separate_nums",
-                "uvr_models",
-            ],
-        )
-
-    # ---- 字幕声音画面对齐 ----
-    with gr.Accordion(tr("Alignment Settings Panel"), open=False):
-        with gr.Row():
-            _w("max_audio_speed_rate", tr("Max Audio Speedup Rate"), tr("Default 100"))
-            _w("max_video_pts_rate", tr("Max Video Slowdown Rate"), tr("Default 10, <=10"))
-        with gr.Row():
-            _w("cjk_len", tr("CJK Max Characters Per Line"), "")
-            _w("other_len", tr("Other Languages Max Characters Per Line"), "")
-        _save_section(
-            "justify",
-            ["max_audio_speed_rate", "max_video_pts_rate", "cjk_len", "other_len"],
-        )
-
-    # ---- Whisper模型提示词 ----
-    with gr.Accordion(tr("Whisper Model Prompts Panel"), open=False):
-        for i in range(0, len(_prompt_keys_list), 3):
-            with gr.Row():
-                for k in _prompt_keys_list[i : i + 3]:
-                    _w(k, _prompt_labels.get(k, k), "")
-        _save_section("prompt_init", _prompt_keys_list)
 
 
 # ---------------------------------------------------------------------------
@@ -2004,8 +1723,8 @@ def build_ui():
                             value=list(SUBTITLE_TYPES.keys())[
                                 int(_user_params.get("subtitle_type", 1))
                                 if str(_user_params.get("subtitle_type", "")).isdigit()
-                                and int(_user_params.get("subtitle_type", 1))
-                                < len(SUBTITLE_TYPES)
+                                   and int(_user_params.get("subtitle_type", 1))
+                                   < len(SUBTITLE_TYPES)
                                 else 1
                             ],
                             label=tr("Subtitle Embedding Type"),
@@ -2087,15 +1806,15 @@ def build_ui():
                     print(f'{idx=}')
                     print(f'{recognition.Whisper_CPP=}')
                     if idx in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL, recognition.WHISPERX_API]:
-                        models = settings.WHISPER_MODELS
+                        models = constants.WHISPER_MODELS.split(',')
                     elif idx == recognition.OPENAI_WHISPER:
                         models = OPENAI_WHISPER_MODELS.split(',')
                     elif idx == recognition.Deepgram:
                         models = DEEPGRAM_ASR_MODELS
                     elif idx == recognition.Whisper_CPP:
-                        models = settings.WHISPER_CPP_MODELS
+                        models = constants.WHISPER_CPP_MODELS.split(',')
                     elif idx == recognition.WHISPER_NET:
-                        models = settings.WHISPER_NET_MODELS
+                        models = constants.WHISPER_NET_MODELS.split(',')
                     elif idx == recognition.QWENASR:
                         models = ["1.7B", "0.6B"]
                     elif idx == recognition.HUGGINGFACE_ASR:
@@ -2191,27 +1910,27 @@ def build_ui():
                 _BTN_IDLE = gr.update(value=tr("Start"), interactive=True)
 
                 def run_translation(
-                    file_path,
-                    recogn_display,
-                    model_name,
-                    translate_display,
-                    source_display,
-                    target_display,
-                    tts_display,
-                    voice_role_name,
-                    voice_autorate_val,
-                    video_autorate_val,
-                    voice_rate_val,
-                    volume_rate_val,
-                    pitch_rate_val,
-                    subtitle_type_name,
-                    remove_noise_val,
-                    fix_punc_name,
-                    is_separate_val,
-                    embed_bgm_val,
-                    loop_bgm_name,
-                    backaudio_volume_val,
-                    cuda_val,
+                        file_path,
+                        recogn_display,
+                        model_name,
+                        translate_display,
+                        source_display,
+                        target_display,
+                        tts_display,
+                        voice_role_name,
+                        voice_autorate_val,
+                        video_autorate_val,
+                        voice_rate_val,
+                        volume_rate_val,
+                        pitch_rate_val,
+                        subtitle_type_name,
+                        remove_noise_val,
+                        fix_punc_name,
+                        is_separate_val,
+                        embed_bgm_val,
+                        loop_bgm_name,
+                        backaudio_volume_val,
+                        cuda_val,
                 ):
                     print(f"{file_path=}")
                     if not file_path:
@@ -2382,8 +2101,8 @@ def build_ui():
                             for f in sorted(target_path.rglob("*")):
                                 if f.is_file():
                                     if (
-                                        f.suffix.lower() == ".mp4"
-                                        and video_preview_path is None
+                                            f.suffix.lower() == ".mp4"
+                                            and video_preview_path is None
                                     ):
                                         video_preview_path = str(f)
                                     else:
@@ -2392,25 +2111,25 @@ def build_ui():
                             for f in sorted(Path(_cache_folder).rglob("*")):
                                 if f.is_file():
                                     if (
-                                        f.suffix.lower() == ".mp4"
-                                        and video_preview_path is None
+                                            f.suffix.lower() == ".mp4"
+                                            and video_preview_path is None
                                     ):
                                         video_preview_path = str(f)
                                     elif f.suffix.lower() in (
-                                        ".mkv",
-                                        ".wav",
-                                        ".srt",
-                                        ".txt",
-                                        ".mp3",
+                                            ".mkv",
+                                            ".wav",
+                                            ".srt",
+                                            ".txt",
+                                            ".mp3",
                                     ):
                                         output_files.append(str(f))
                         # 添加当天日志文件到输出列表
                         import datetime
 
                         log_file = (
-                            Path(ROOT_DIR)
-                            / "logs"
-                            / f"{datetime.datetime.now().strftime('%Y%m%d')}.log"
+                                Path(ROOT_DIR)
+                                / "logs"
+                                / f"{datetime.datetime.now().strftime('%Y%m%d')}.log"
                         )
                         if log_file.exists():
                             output_files.append(str(log_file))
@@ -2490,12 +2209,10 @@ if __name__ == "__main__":
             inbrowser=True,
             theme=gr.themes.Soft(),
             css="""
-        /* 默认字体：微软雅黑 > 苹果方黑 > 系统无衬线字体 */
         *, *::before, *::after {
             font-family: "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", "WenQuanYi Micro Hei", "Noto Sans CJK SC", "Source Han Sans SC", "SimHei", sans-serif !important;
         }
         h1{text-align:center}
-        /* 输入框和按钮的字体也统一 */
         input, textarea, select, button, label, .gr-textbox, .gr-dropdown, .gr-checkbox {
             font-family: "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", "WenQuanYi Micro Hei", "Noto Sans CJK SC", "Source Han Sans SC", "SimHei", sans-serif !important;
         }
@@ -2503,6 +2220,5 @@ if __name__ == "__main__":
         )
     except Exception as e:
         import traceback
-
         traceback.print_exc()
         print(tr("\nLaunch failed: {}", e))

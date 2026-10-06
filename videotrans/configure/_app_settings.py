@@ -43,18 +43,16 @@ class AppSettings:
         self._save_to_disk()
 
     def parse_init(self, update_data: Dict = None) -> Dict:
-        default = self._get_defaults()
 
         if update_data:
             self._apply_dict(update_data)
             self._save_to_disk()
-            self.WHISPER_MODEL_LIST = re.split(r'[,，]', update_data.get('model_list', ''))
             return self.to_dict()
 
+        default = self._get_defaults()
         if not Path(self._json_path).exists():
             self._apply_dict(default)
             self._save_to_disk()
-            self.WHISPER_MODEL_LIST = re.split(r'[,，]', default.get('model_list', ''))
             return default
 
         try:
@@ -93,9 +91,6 @@ class AppSettings:
 
         default.update(merged_settings)
 
-
-
-
         self._apply_dict(default)
         self._save_to_disk()
         self._handle_hf_token()
@@ -105,8 +100,6 @@ class AppSettings:
     @staticmethod
     def _models_dict():
         return {
-            "Whisper_cpp_models": WHISPER_CPP_MODELS,
-            "Whisper_net_models": WHISPER_NET_MODELS,
             "ai302_models": AI302_MODELS,
             'qwenmt_model': QWENMT_MODELS,
             "openaitts_model": OPENAI_TTS_MODELS,
@@ -124,9 +117,7 @@ class AppSettings:
             "cheaperinference_model": CheaperInference_MODELS,
             "siliconflow_model": SILICONFLOW_MODELS,
             "zijiehuoshan_model": ZIJIEHUOSHAN_MODELS,
-            "model_list": WHISPER_MODELS,
             "infistar_model": INFISTAR_MODELS,
-
             "minimaxi_model": MINIMAX_MODELS,
             "chattts_voice": CHATTTS_ROLES,
             "gemini_model": GEMINI_MODELS,
@@ -218,21 +209,10 @@ class AppSettings:
     def _apply_dict(self, data: Dict):
         for k, v in data.items():
             attr_name = k
-            if k.startswith('initial_prompt') and "-" in k:
-                attr_name=k.replace('-','_')
             setattr(self, attr_name, v)
 
     def to_dict(self) -> Dict:
         data = {k: v for k, v in self.__dict__.items() if not k.startswith('_')}
-        # 特殊处理几个语言
-        if "initial_prompt_zh_cn" in data:
-            data["initial_prompt_zh-cn"] = data.pop("initial_prompt_zh_cn")
-        if "initial_prompt_zh_tw" in data:
-            data["initial_prompt_zh-tw"] = data.pop("initial_prompt_zh_tw")
-        if "initial_prompt_pt_br" in data:
-            data["initial_prompt_pt-br"] = data.pop("initial_prompt_pt_br")
-        if "initial_prompt_es_419" in data:
-            data["initial_prompt_es-419"] = data.pop("initial_prompt_es_419")
         return data
 
     def _save_to_disk(self):
@@ -252,14 +232,10 @@ class AppSettings:
 
     def __getitem__(self, key):
         attr = key
-        if key.startswith('initial_prompt') and "-" in key:
-            attr=key.replace('-','_')
         return getattr(self, attr)
 
     def __setitem__(self, key, value):
         attr = key
-        if key.startswith('initial_prompt') and "-" in key:
-            attr=key.replace('-','_')
         setattr(self, attr, value)
 
     def get(self, key, default=None):

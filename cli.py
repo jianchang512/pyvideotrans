@@ -23,7 +23,7 @@ import argparse
 from dataclasses import asdict
 from multiprocessing import freeze_support
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict,  Optional
 
 import torch.cuda
 
@@ -197,7 +197,6 @@ def tr(key: str, *args) -> str:
 # ---------------------------------------------------------------------------
 def stt_fun(params: dict) -> None:
     """Execute speech-to-text task."""
-    from videotrans.configure.config import app_cfg
     from videotrans.task.speech2text import SpeechToText
     from videotrans.task.taskcfg import TaskCfgSTT
 
@@ -417,7 +416,6 @@ def build_common_params(args: argparse.Namespace, output_dir: Optional[str] = No
     """Build common parameters dict from parsed args."""
     from videotrans.configure.config import ROOT_DIR, TEMP_DIR
     from videotrans.util import tools
-    from videotrans.util.gpus import getset_gpu
 
     _file_obj = tools.format_video(Path(args.name).absolute().as_posix())
     _nospacebasename = re.sub(r'[\s. #*?!:"]', '-', _file_obj["basename"])
