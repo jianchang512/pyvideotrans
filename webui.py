@@ -1,6 +1,9 @@
 """
 pyVideoTrans WebUI — Gradio-based web interface for video translation.
 
+TODO:
+    拆分 webui.py 各个部分到 videotrans/webui_codes/ 中
+
 Usage:
     uv run webui.py
     # or
@@ -121,15 +124,15 @@ DEFAULT_SOURCE_LANG = next(iter(LANGNAME_DICT))
 DEFAULT_TARGET_LANG = "-"
 
 SUBTITLE_TYPES = {
-    tr("不嵌入字幕"): 0,
-    tr("嵌入硬字幕"): 1,
-    tr("嵌入软字幕"): 2,
-    tr("嵌入硬字幕(双语)"): 3,
-    tr("嵌入软字幕(双语)"): 4,
+    tr("No subtitles"): 0,
+    tr("Embed hard subtitles"): 1,
+    tr("Embed soft subtitles"): 2,
+    tr("Embed hard subtitles (bilingual)"): 3,
+    tr("Embed soft subtitles (bilingual)"): 4,
 }
-DEFAULT_SUBTITLE_TYPE = tr("嵌入硬字幕")
-PUNC_OPTIONS = {tr("默认标点"): 0, tr("恢复标点"): 1, tr("删除标点"): 2}
-LOOP_BGM_OPTIONS = {tr("背景音截断"): 0, tr("背景音循环"): 1}
+DEFAULT_SUBTITLE_TYPE = tr("Embed hard subtitles")
+PUNC_OPTIONS = {tr("Default punctuation"): 0, tr("Restore punctuation"): 1, tr("Remove punctuation"): 2}
+LOOP_BGM_OPTIONS = {tr("Truncate background audio"): 0, tr("Loop background audio"): 1}
 
 # ---------------------------------------------------------------------------
 # ASS 字幕样式
@@ -258,130 +261,130 @@ def _safe_get(key, default=""):
 # ---------------------------------------------------------------------------
 CHANNEL_SETTINGS = {
     # === 翻译渠道 ===
-    tr("ChatGPT 翻译"): {
-        "category": tr("字幕翻译渠道"),
+    tr("ChatGPT Translation"): {
+        "category": tr("Subtitle Translation Channels"),
         "fields": [
             {
                 "key": "chatgpt_api",
                 "label": "API URL",
                 "type": "text",
                 "default": "",
-                "placeholder": tr("留空使用官方API"),
+                "placeholder": tr("Leave empty to use official API"),
             },
             {
                 "key": "chatgpt_key",
-                "label": tr("SK 密钥"),
+                "label": tr("SK Key"),
                 "type": "text",
                 "default": "",
                 "placeholder": "API Key",
             },
             {
                 "key": "chatgpt_max_token",
-                "label": tr("最大输出 Token"),
+                "label": tr("Max Output Tokens"),
                 "type": "text",
                 "default": "8192",
             },
             {
                 "key": "chatgpt_model",
-                "label": tr("模型"),
+                "label": tr("Model"),
                 "type": "text",
                 "default": "gpt-4o-mini",
-                "placeholder": tr("输入模型名称"),
+                "placeholder": tr("Enter model name"),
             },
         ],
     },
-    tr("DeepSeek 翻译"): {
-        "category": tr("字幕翻译渠道"),
+    tr("DeepSeek Translation"): {
+        "category": tr("Subtitle Translation Channels"),
         "fields": [
             {
                 "key": "deepseek_key",
-                "label": tr("SK 密钥"),
+                "label": tr("SK Key"),
                 "type": "text",
                 "default": "",
                 "placeholder": "API Key",
             },
             {
                 "key": "deepseek_model",
-                "label": tr("模型"),
+                "label": tr("Model"),
                 "type": "text",
                 "default": "deepseek-chat",
-                "placeholder": tr("输入模型名称"),
+                "placeholder": tr("Enter model name"),
             },
             {
                 "key": "deepseek_max_token",
-                "label": tr("最大输出 Token"),
+                "label": tr("Max Output Tokens"),
                 "type": "text",
                 "default": "8192",
             },
         ],
     },
-    tr("Gemini 翻译"): {
-        "category": tr("字幕翻译渠道"),
+    tr("Gemini Translation"): {
+        "category": tr("Subtitle Translation Channels"),
         "fields": [
             {"key": "gemini_key", "label": "Gemini Key", "type": "text", "default": ""},
             {
                 "key": "gemini_model",
-                "label": tr("模型"),
+                "label": tr("Model"),
                 "type": "text",
                 "default": "gemini-2.5-flash",
-                "placeholder": tr("输入模型名称"),
+                "placeholder": tr("Enter model name"),
             },
             {
                 "key": "gemini_maxtoken",
-                "label": tr("最大 Token"),
+                "label": tr("Max Tokens"),
                 "type": "text",
                 "default": "8192",
             },
         ],
     },
-    tr("AzureGPT 翻译"): {
-        "category": tr("字幕翻译渠道"),
+    tr("AzureGPT Translation"): {
+        "category": tr("Subtitle Translation Channels"),
         "fields": [
             {"key": "azure_api", "label": "API URL", "type": "text", "default": ""},
-            {"key": "azure_key", "label": tr("SK 密钥"), "type": "text", "default": ""},
+            {"key": "azure_key", "label": tr("SK Key"), "type": "text", "default": ""},
             {
                 "key": "azure_model",
-                "label": tr("模型"),
+                "label": tr("Model"),
                 "type": "text",
                 "default": "gpt-4o-mini",
-                "placeholder": tr("输入模型名称"),
+                "placeholder": tr("Enter model name"),
             },
         ],
     },
-    tr("本地大模型 (LocalLLM)"): {
-        "category": tr("字幕翻译渠道"),
+    tr("Local LLM"): {
+        "category": tr("Subtitle Translation Channels"),
         "fields": [
             {
                 "key": "localllm_api",
                 "label": "API URL",
                 "type": "text",
                 "default": "http://127.0.0.1:11434/v1",
-                "placeholder": tr("如 http://127.0.0.1:11434/v1"),
+                "placeholder": tr("e.g. http://127.0.0.1:11434/v1"),
             },
             {
                 "key": "localllm_key",
-                "label": tr("SK 密钥"),
+                "label": tr("SK Key"),
                 "type": "text",
                 "default": "no-key",
-                "placeholder": tr("通常填 no-key"),
+                "placeholder": tr("Usually fill in no-key"),
             },
             {
                 "key": "localllm_max_token",
-                "label": tr("最大输出 Token"),
+                "label": tr("Max Output Tokens"),
                 "type": "text",
                 "default": "8192",
             },
             {
                 "key": "localllm_model",
-                "label": tr("模型"),
+                "label": tr("Model"),
                 "type": "text",
                 "default": "",
-                "placeholder": tr("输入模型名称"),
+                "placeholder": tr("Enter model name"),
             },
         ],
     },
-    tr("DeepL 翻译"): {
-        "category": tr("字幕翻译渠道"),
+    tr("DeepL Translation"): {
+        "category": tr("Subtitle Translation Channels"),
         "fields": [
             {
                 "key": "deepl_authkey",
@@ -391,28 +394,28 @@ CHANNEL_SETTINGS = {
             },
             {
                 "key": "deepl_api",
-                "label": tr("API URL (第三方)"),
+                "label": tr("API URL (Third-party)"),
                 "type": "text",
                 "default": "",
-                "placeholder": tr("留空使用官方API"),
+                "placeholder": tr("Leave empty to use official API"),
             },
             {
                 "key": "deepl_gid",
-                "label": tr("术语表 ID"),
+                "label": tr("Glossary ID"),
                 "type": "text",
                 "default": "",
             },
         ],
     },
-    tr("百度翻译"): {
-        "category": tr("字幕翻译渠道"),
+    tr("Baidu Translation"): {
+        "category": tr("Subtitle Translation Channels"),
         "fields": [
             {"key": "baidu_appid", "label": "App ID", "type": "text", "default": ""},
-            {"key": "baidu_miyue", "label": tr("密钥"), "type": "text", "default": ""},
+            {"key": "baidu_miyue", "label": tr("Secret Key"), "type": "text", "default": ""},
         ],
     },
-    tr("腾讯翻译"): {
-        "category": tr("字幕翻译渠道"),
+    tr("Tencent Translation"): {
+        "category": tr("Subtitle Translation Channels"),
         "fields": [
             {
                 "key": "tencent_SecretId",
@@ -428,55 +431,55 @@ CHANNEL_SETTINGS = {
             },
         ],
     },
-    tr("阿里百炼 (QwenMT)"): {
-        "category": tr("字幕翻译渠道"),
+    tr("Alibaba Bailian (QwenMT)"): {
+        "category": tr("Subtitle Translation Channels"),
         "fields": [
             {
                 "key": "qwenmt_key",
-                "label": tr("百炼 SK"),
+                "label": tr("Bailian SK"),
                 "type": "text",
                 "default": "",
             },
             {
                 "key": "qwenmt_model",
-                "label": tr("翻译模型"),
+                "label": tr("Translation Model"),
                 "type": "text",
                 "default": "qwen-mt-plus",
-                "placeholder": tr("需以 qwen-mt 开头"),
+                "placeholder": tr("Must start with qwen-mt"),
             },
             {
                 "key": "qwenmt_asr_model",
-                "label": tr("语音识别模型"),
+                "label": tr("ASR Model"),
                 "type": "text",
                 "default": "qwen3-asr-flash",
-                "placeholder": tr("需以 qwen3-asr 开头"),
+                "placeholder": tr("Must start with qwen3-asr"),
             },
         ],
     },
-    tr("字节火山 (VolcEngine)"): {
-        "category": tr("字幕翻译渠道"),
+    tr("ByteDance VolcEngine"): {
+        "category": tr("Subtitle Translation Channels"),
         "fields": [
             {
                 "key": "zijiehuoshan_key",
-                "label": tr("SK 密钥"),
+                "label": tr("SK Key"),
                 "type": "text",
                 "default": "",
             },
             {
                 "key": "zijiehuoshan_model",
-                "label": tr("推理接入点"),
+                "label": tr("Inference Endpoint"),
                 "type": "text",
                 "default": "",
-                "placeholder": tr("输入接入点名称"),
+                "placeholder": tr("Enter endpoint name"),
             },
         ],
     },
-    tr("MiniMax 翻译"): {
-        "category": tr("字幕翻译渠道"),
+    tr("MiniMax Translation"): {
+        "category": tr("Subtitle Translation Channels"),
         "fields": [
             {
                 "key": "minimax_key",
-                "label": tr("SK 密钥"),
+                "label": tr("SK Key"),
                 "type": "text",
                 "default": "",
             },
@@ -488,102 +491,102 @@ CHANNEL_SETTINGS = {
             },
             {
                 "key": "minimax_model",
-                "label": tr("模型"),
+                "label": tr("Model"),
                 "type": "text",
                 "default": "MiniMax-M3",
-                "placeholder": tr("输入模型名称"),
+                "placeholder": tr("Enter model name"),
             },
             {
                 "key": "minimax_max_tokens",
-                "label": tr("最大输出 Token"),
+                "label": tr("Max Output Tokens"),
                 "type": "text",
                 "default": "8192",
             },
         ],
     },
-    tr("智谱 AI 翻译"): {
-        "category": tr("字幕翻译渠道"),
+    tr("Zhipu AI Translation"): {
+        "category": tr("Subtitle Translation Channels"),
         "fields": [
-            {"key": "zhipu_key", "label": tr("SK 密钥"), "type": "text", "default": ""},
+            {"key": "zhipu_key", "label": tr("SK Key"), "type": "text", "default": ""},
             {
                 "key": "zhipu_model",
-                "label": tr("模型"),
+                "label": tr("Model"),
                 "type": "text",
                 "default": "glm-4-flash",
-                "placeholder": tr("输入模型名称"),
+                "placeholder": tr("Enter model name"),
             },
             {
                 "key": "zhipu_max_token",
-                "label": tr("最大输出 Token"),
+                "label": tr("Max Output Tokens"),
                 "type": "text",
                 "default": "8192",
             },
         ],
     },
-    tr("硅基流动 (SiliconFlow)"): {
-        "category": tr("字幕翻译渠道"),
+    tr("SiliconFlow"): {
+        "category": tr("Subtitle Translation Channels"),
         "fields": [
-            {"key": "guiji_key", "label": tr("SK 密钥"), "type": "text", "default": ""},
+            {"key": "guiji_key", "label": tr("SK Key"), "type": "text", "default": ""},
             {
                 "key": "guiji_model",
-                "label": tr("模型"),
+                "label": tr("Model"),
                 "type": "text",
                 "default": "Qwen/Qwen3-32B",
-                "placeholder": tr("输入模型名称"),
+                "placeholder": tr("Enter model name"),
             },
             {
                 "key": "guiji_max_token",
-                "label": tr("最大输出 Token"),
+                "label": tr("Max Output Tokens"),
                 "type": "text",
                 "default": "8192",
             },
         ],
     },
-    tr("OpenRouter 翻译"): {
-        "category": tr("字幕翻译渠道"),
+    tr("OpenRouter Translation"): {
+        "category": tr("Subtitle Translation Channels"),
         "fields": [
             {
                 "key": "openrouter_key",
-                "label": tr("SK 密钥"),
+                "label": tr("SK Key"),
                 "type": "text",
                 "default": "",
             },
             {
                 "key": "openrouter_model",
-                "label": tr("模型"),
+                "label": tr("Model"),
                 "type": "text",
                 "default": "",
-                "placeholder": tr("输入模型名称"),
+                "placeholder": tr("Enter model name"),
             },
             {
                 "key": "openrouter_max_token",
-                "label": tr("最大输出 Token"),
+                "label": tr("Max Output Tokens"),
                 "type": "text",
                 "default": "8192",
             },
         ],
     },
-    tr("API Route 翻译"): {
-        "category": tr("字幕翻译渠道"),
+    tr("API Route Translation"): {
+        "category": tr("Subtitle Translation Channels"),
         "fields": [
             {"key": "api_route_key", "label": "API Key", "type": "text", "default": ""},
             {
                 "key": "api_route_model",
-                "label": tr("模型"),
+                "label": tr("Model"),
                 "type": "text",
                 "default": "gpt-5.4-mini",
-                "placeholder": tr("输入模型名称"),
+                "placeholder": tr("Enter model name"),
             },
             {
                 "key": "api_route_max_token",
-                "label": tr("最大输出 Token"),
+                "label": tr("Max Output Tokens"),
                 "type": "text",
                 "default": "8192",
             },
         ],
     },
-    tr("Cheaper Inference 翻译"): {
-        "category": tr("字幕翻译渠道"),
+    tr("Cheaper Inference Translation"): {
+        "category": tr("Subtitle Translation Channels"),
         "fields": [
             {
                 "key": "cheaperinference_key",
@@ -593,65 +596,65 @@ CHANNEL_SETTINGS = {
             },
             {
                 "key": "cheaperinference_model",
-                "label": tr("模型"),
+                "label": tr("Model"),
                 "type": "text",
                 "default": "gpt-5.4-mini",
-                "placeholder": tr("输入模型名称"),
+                "placeholder": tr("Enter model name"),
             },
             {
                 "key": "cheaperinference_max_token",
-                "label": tr("最大输出 Token"),
+                "label": tr("Max Output Tokens"),
                 "type": "text",
                 "default": "8192",
             },
         ],
     },
-    tr("Infistar 翻译"): {
-        "category": tr("字幕翻译渠道"),
+    tr("Infistar Translation"): {
+        "category": tr("Subtitle Translation Channels"),
         "fields": [
             {"key": "infistar_key", "label": "API Key", "type": "text", "default": ""},
             {
                 "key": "infistar_model",
-                "label": tr("模型"),
+                "label": tr("Model"),
                 "type": "text",
                 "default": "gpt-5.4-mini",
-                "placeholder": tr("输入模型名称"),
+                "placeholder": tr("Enter model name"),
             },
             {
                 "key": "infistar_max_token",
-                "label": tr("最大输出 Token"),
+                "label": tr("Max Output Tokens"),
                 "type": "text",
                 "default": "8192",
             },
         ],
     },
     tr("Atlas Cloud 翻译"): {
-        "category": tr("字幕翻译渠道"),
+        "category": tr("Subtitle Translation Channels"),
         "fields": [
             {"key": "atlascloud_key", "label": "API Key", "type": "text", "default": ""},
             {"key": "atlascloud_model", "label": "模型", "type": "text", "default": "deepseek-ai/deepseek-v4-flash", "placeholder": "输入模型名称"},
             {"key": "atlascloud_max_token", "label": "最大输出 Token", "type": "text", "default": "8192"},
         ],
     },
-    ("小米 AI 翻译"): {
-        "category": tr("字幕翻译渠道"),
+    tr("Xiaomi AI Translation"): {
+        "category": tr("Subtitle Translation Channels"),
         "fields": [
             {
                 "key": "xiaomi_key",
-                "label": tr("小米 Key"),
+                "label": tr("Xiaomi Key"),
                 "type": "text",
                 "default": "",
             },
             {
                 "key": "xiaomi_model",
-                "label": tr("模型"),
+                "label": tr("Model"),
                 "type": "text",
                 "default": "mimo-v2.5-pro",
-                "placeholder": tr("输入模型名称"),
+                "placeholder": tr("Enter model name"),
             },
             {
                 "key": "xiaomi_maxtoken",
-                "label": tr("最大 Token"),
+                "label": tr("Max Tokens"),
                 "type": "text",
                 "default": "8192",
             },
@@ -659,32 +662,32 @@ CHANNEL_SETTINGS = {
     },
     # === 语音识别渠道 ===
     "OpenAI ASR": {
-        "category": tr("语音识别渠道"),
+        "category": tr("ASR Channels"),
         "fields": [
             {
                 "key": "openairecognapi_url",
                 "label": "API URL",
                 "type": "text",
                 "default": "",
-                "placeholder": tr("留空使用官方API"),
+                "placeholder": tr("Leave empty to use official API"),
             },
             {
                 "key": "openairecognapi_key",
-                "label": tr("SK 密钥"),
+                "label": tr("SK Key"),
                 "type": "text",
                 "default": "",
             },
             {
                 "key": "openairecognapi_model",
-                "label": tr("模型"),
+                "label": tr("Model"),
                 "type": "text",
                 "default": "whisper-1",
-                "placeholder": tr("输入模型名称"),
+                "placeholder": tr("Enter model name"),
             },
         ],
     },
     "Deepgram ASR": {
-        "category": tr("语音识别渠道"),
+        "category": tr("ASR Channels"),
         "fields": [
             {
                 "key": "deepgram_apikey",
@@ -695,13 +698,13 @@ CHANNEL_SETTINGS = {
         ],
     },
     "Audexum ASR": {
-        "category": tr("语音识别渠道"),
+        "category": tr("ASR Channels"),
         "fields": [
             {"key": "audexum_key", "label": "API Key", "type": "text", "default": ""},
         ],
     },
     "Parakeet ASR": {
-        "category": tr("语音识别渠道"),
+        "category": tr("ASR Channels"),
         "fields": [
             {
                 "key": "parakeet_address",
@@ -711,8 +714,8 @@ CHANNEL_SETTINGS = {
             },
         ],
     },
-    tr("字节语音识别"): {
-        "category": tr("语音识别渠道"),
+    tr("ByteDance ASR"): {
+        "category": tr("ASR Channels"),
         "fields": [
             {
                 "key": "zijierecognmodel_appid",
@@ -730,32 +733,32 @@ CHANNEL_SETTINGS = {
     },
     # === 配音渠道 ===
     "OpenAI TTS": {
-        "category": tr("配音渠道"),
+        "category": tr("TTS Channel"),
         "fields": [
             {
                 "key": "openaitts_api",
                 "label": "API URL",
                 "type": "text",
                 "default": "",
-                "placeholder": tr("留空使用官方API"),
+                "placeholder": tr("Leave empty to use official API"),
             },
             {
                 "key": "openaitts_key",
-                "label": tr("SK 密钥"),
+                "label": tr("SK Key"),
                 "type": "text",
                 "default": "",
             },
             {
                 "key": "openaitts_model",
-                "label": tr("模型"),
+                "label": tr("Model"),
                 "type": "text",
                 "default": "tts-1",
-                "placeholder": tr("输入模型名称"),
+                "placeholder": tr("Enter model name"),
             },
         ],
     },
     "Azure TTS": {
-        "category": tr("配音渠道"),
+        "category": tr("TTS Channel"),
         "fields": [
             {
                 "key": "azure_speech_key",
@@ -768,12 +771,12 @@ CHANNEL_SETTINGS = {
                 "label": "Region / URL",
                 "type": "text",
                 "default": "eastasia",
-                "placeholder": tr("如 eastasia 或完整URL"),
+                "placeholder": tr("e.g. eastasia or full URL"),
             },
         ],
     },
     "ElevenLabs TTS": {
-        "category": tr("配音渠道"),
+        "category": tr("TTS Channel"),
         "fields": [
             {
                 "key": "elevenlabstts_key",
@@ -784,7 +787,7 @@ CHANNEL_SETTINGS = {
         ],
     },
     "GPT-SoVITS": {
-        "category": tr("配音渠道"),
+        "category": tr("TTS Channel"),
         "fields": [
             {
                 "key": "gptsovits_url",
@@ -795,7 +798,7 @@ CHANNEL_SETTINGS = {
         ],
     },
     "Spark / Index / VoxCPM": {
-        "category": tr("配音渠道"),
+        "category": tr("TTS Channel"),
         "fields": [
             {
                 "key": "sparktts_url",
@@ -818,7 +821,7 @@ CHANNEL_SETTINGS = {
         ],
     },
     "CosyVoice TTS": {
-        "category": tr("配音渠道"),
+        "category": tr("TTS Channel"),
         "fields": [
             {
                 "key": "cosyvoice_url",
@@ -828,43 +831,43 @@ CHANNEL_SETTINGS = {
             },
             {
                 "key": "cosyvoice_instruct_text",
-                "label": tr("Prompt 提示词"),
+                "label": tr("Prompt Text"),
                 "type": "text",
                 "default": "",
             },
         ],
     },
-    tr("阿里百炼 TTS (Qwen-TTS)"): {
-        "category": tr("配音渠道"),
+    tr("Alibaba Bailian TTS (Qwen-TTS)"): {
+        "category": tr("TTS Channel"),
         "fields": [
             {
                 "key": "qwentts_key",
-                "label": tr("百炼 SK"),
+                "label": tr("Bailian SK"),
                 "type": "text",
                 "default": "",
             },
             {
                 "key": "qwentts_model",
-                "label": tr("模型"),
+                "label": tr("Model"),
                 "type": "text",
                 "default": "qwen3-tts-flash",
-                "placeholder": tr("输入模型名称"),
+                "placeholder": tr("Enter model name"),
             },
         ],
     },
-    tr("Qwen-TTS 本地"): {
-        "category": tr("配音渠道"),
+    tr("Qwen-TTS Local"): {
+        "category": tr("TTS Channel"),
         "fields": [
             {
                 "key": "qwenttslocal_prompt",
-                "label": tr("自定义语音提示词"),
+                "label": tr("Custom Voice Prompt"),
                 "type": "text",
                 "default": "",
             },
         ],
     },
-    tr("豆包语音合成 2.0"): {
-        "category": tr("配音渠道"),
+    tr("Doubao TTS 2.0"): {
+        "category": tr("TTS Channel"),
         "fields": [
             {"key": "doubao2_appid", "label": "App ID", "type": "text", "default": ""},
             {
@@ -876,11 +879,11 @@ CHANNEL_SETTINGS = {
         ],
     },
     "Minimaxi TTS": {
-        "category": tr("配音渠道"),
+        "category": tr("TTS Channel"),
         "fields": [
             {
                 "key": "minimaxi_apikey",
-                "label": tr("SK 密钥"),
+                "label": tr("SK Key"),
                 "type": "text",
                 "default": "",
             },
@@ -893,22 +896,22 @@ CHANNEL_SETTINGS = {
         ],
     },
     "X.AI TTS": {
-        "category": tr("配音渠道"),
+        "category": tr("TTS Channel"),
         "fields": [
             {
                 "key": "xaitts_key",
-                "label": tr("SK 密钥"),
+                "label": tr("SK Key"),
                 "type": "text",
                 "default": "",
             },
         ],
     },
-    tr("小米 TTS"): {
-        "category": tr("配音渠道"),
+    tr("Xiaomi TTS"): {
+        "category": tr("TTS Channel"),
         "fields": [
             {
                 "key": "xiaomi_key",
-                "label": tr("小米 Key"),
+                "label": tr("Xiaomi Key"),
                 "type": "text",
                 "default": "",
             },
@@ -925,16 +928,16 @@ def build_ass_editor():
 
     style = _load_ass_style()
 
-    with gr.Accordion(tr("🎨 硬字幕样式编辑"), open=False):
-        gr.Markdown(tr("修改后点击「保存样式」，样式将应用于所有嵌入硬字幕的任务。"))
+    with gr.Accordion(tr("Hard Subtitle Style Editor"), open=False):
+        gr.Markdown(tr("Click 'Save Style' after modifying, style will apply to all tasks with embedded hard subtitles."))
         with gr.Tabs():
-            with gr.Tab(tr("主字幕")):
+            with gr.Tab(tr("Primary Subtitle")):
                 with gr.Row():
                     ass_fontname = gr.Textbox(
-                        label=tr("字体名称"), value=style.get("Fontname", "Arial")
+                        label=tr("Font Name"), value=style.get("Fontname", "Arial")
                     )
                     ass_fontsize = gr.Slider(
-                        label=tr("字体大小"),
+                        label=tr("Font Size"),
                         minimum=1,
                         maximum=200,
                         value=style.get("Fontsize", 16),
@@ -942,42 +945,42 @@ def build_ass_editor():
                     )
                 with gr.Row():
                     ass_primary_color = gr.ColorPicker(
-                        label=tr("主颜色"),
+                        label=tr("Primary Color"),
                         value=_parse_ass_color(
                             style.get("PrimaryColour", "&H00FFFFFF&")
                         ),
                     )
                     ass_outline_color = gr.ColorPicker(
-                        label=tr("描边颜色"),
+                        label=tr("Outline Color"),
                         value=_parse_ass_color(
                             style.get("OutlineColour", "&H00000000&")
                         ),
                     )
                     ass_back_color = gr.ColorPicker(
-                        label=tr("背景颜色"),
+                        label=tr("Background Color"),
                         value=_parse_ass_color(style.get("BackColour", "&H00000000&")),
                     )
                 with gr.Row():
                     ass_bold = gr.Checkbox(
-                        label=tr("粗体"), value=bool(style.get("Bold", 0))
+                        label=tr("Bold"), value=bool(style.get("Bold", 0))
                     )
                     ass_italic = gr.Checkbox(
-                        label=tr("斜体"), value=bool(style.get("Italic", 0))
+                        label=tr("Italic"), value=bool(style.get("Italic", 0))
                     )
                     ass_underline = gr.Checkbox(
-                        label=tr("下划线"), value=bool(style.get("Underline", 0))
+                        label=tr("Underline"), value=bool(style.get("Underline", 0))
                     )
                     ass_strikeout = gr.Checkbox(
-                        label=tr("删除线"), value=bool(style.get("StrikeOut", 0))
+                        label=tr("Strikeout"), value=bool(style.get("StrikeOut", 0))
                     )
-            with gr.Tab(tr("底部字幕（双语时）")):
+            with gr.Tab(tr("Bottom Subtitle (Bilingual)")):
                 with gr.Row():
                     ass_bottom_fontname = gr.Textbox(
-                        label=tr("字体名称"),
+                        label=tr("Font Name"),
                         value=style.get("Bottom_Fontname", "Arial"),
                     )
                     ass_bottom_fontsize = gr.Slider(
-                        label=tr("字体大小"),
+                        label=tr("Font Size"),
                         minimum=1,
                         maximum=200,
                         value=style.get("Bottom_Fontsize", 16),
@@ -985,48 +988,48 @@ def build_ass_editor():
                     )
                 with gr.Row():
                     ass_bottom_primary_color = gr.ColorPicker(
-                        label=tr("主颜色"),
+                        label=tr("Primary Color"),
                         value=_parse_ass_color(
                             style.get("Bottom_PrimaryColour", "&H00FFFFFF&")
                         ),
                     )
                     ass_bottom_outline_color = gr.ColorPicker(
-                        label=tr("描边颜色"),
+                        label=tr("Outline Color"),
                         value=_parse_ass_color(
                             style.get("Bottom_OutlineColour", "&H00000000&")
                         ),
                     )
                     ass_bottom_back_color = gr.ColorPicker(
-                        label=tr("背景颜色"),
+                        label=tr("Background Color"),
                         value=_parse_ass_color(
                             style.get("Bottom_BackColour", "&H00000000&")
                         ),
                     )
                 with gr.Row():
                     ass_bottom_bold = gr.Checkbox(
-                        label=tr("粗体"), value=bool(style.get("Bottom_Bold", 0))
+                        label=tr("Bold"), value=bool(style.get("Bottom_Bold", 0))
                     )
                     ass_bottom_italic = gr.Checkbox(
-                        label=tr("斜体"), value=bool(style.get("Bottom_Italic", 0))
+                        label=tr("Italic"), value=bool(style.get("Bottom_Italic", 0))
                     )
-            with gr.Tab(tr("全局样式")):
+            with gr.Tab(tr("Global Style")):
                 with gr.Row():
                     ass_border_style = gr.Dropdown(
-                        label=tr("边框样式"),
-                        choices=[tr("描边"), tr("不透明背景")],
-                        value=tr("描边")
+                        label=tr("Border Style"),
+                        choices=[tr("Outline"), tr("Opaque Background")],
+                        value=tr("Outline")
                         if style.get("BorderStyle", 1) == 1
-                        else tr("不透明背景"),
+                        else tr("Opaque Background"),
                     )
                     ass_outline = gr.Slider(
-                        label=tr("描边粗细"),
+                        label=tr("Outline Width"),
                         minimum=0.0,
                         maximum=10.0,
                         value=style.get("Outline", 0.5),
                         step=0.1,
                     )
                     ass_shadow = gr.Slider(
-                        label=tr("阴影"),
+                        label=tr("Shadow"),
                         minimum=0.0,
                         maximum=10.0,
                         value=style.get("Shadow", 0.5),
@@ -1034,28 +1037,28 @@ def build_ass_editor():
                     )
                 with gr.Row():
                     ass_scale_x = gr.Slider(
-                        label=tr("水平缩放 %"),
+                        label=tr("Scale X %"),
                         minimum=1,
                         maximum=1000,
                         value=style.get("ScaleX", 100),
                         step=1,
                     )
                     ass_scale_y = gr.Slider(
-                        label=tr("垂直缩放 %"),
+                        label=tr("Scale Y %"),
                         minimum=1,
                         maximum=1000,
                         value=style.get("ScaleY", 100),
                         step=1,
                     )
                     ass_spacing = gr.Slider(
-                        label=tr("字间距"),
+                        label=tr("Letter Spacing"),
                         minimum=-100,
                         maximum=100,
                         value=style.get("Spacing", 0),
                         step=1,
                     )
                     ass_angle = gr.Slider(
-                        label=tr("旋转角度"),
+                        label=tr("Rotation Angle"),
                         minimum=-360,
                         maximum=360,
                         value=style.get("Angle", 0),
@@ -1063,55 +1066,55 @@ def build_ass_editor():
                     )
                 with gr.Row():
                     ass_margin_l = gr.Slider(
-                        label=tr("左边距"),
+                        label=tr("Left Margin"),
                         minimum=0,
                         maximum=1000,
                         value=style.get("MarginL", 10),
                         step=1,
                     )
                     ass_margin_r = gr.Slider(
-                        label=tr("右边距"),
+                        label=tr("Right Margin"),
                         minimum=0,
                         maximum=1000,
                         value=style.get("MarginR", 10),
                         step=1,
                     )
                     ass_margin_v = gr.Slider(
-                        label=tr("垂直边距"),
+                        label=tr("Vertical Margin"),
                         minimum=0,
                         maximum=1000,
                         value=style.get("MarginV", 10),
                         step=1,
                     )
                 ass_alignment = gr.Dropdown(
-                    label=tr("对齐位置"),
+                    label=tr("Alignment"),
                     choices=[
-                        tr("左下"),
-                        tr("中下"),
-                        tr("右下"),
-                        tr("左中"),
-                        tr("正中"),
-                        tr("右中"),
-                        tr("左上"),
-                        tr("中上"),
-                        tr("右上"),
+                        tr("Bottom Left"),
+                        tr("Bottom Center"),
+                        tr("Bottom Right"),
+                        tr("Middle Left"),
+                        tr("Center"),
+                        tr("Middle Right"),
+                        tr("Top Left"),
+                        tr("Top Center"),
+                        tr("Top Right"),
                     ],
                     value={
-                        1: tr("左下"),
-                        2: tr("中下"),
-                        3: tr("右下"),
-                        4: tr("左中"),
-                        5: tr("正中"),
-                        6: tr("右中"),
-                        7: tr("左上"),
-                        8: tr("中上"),
-                        9: tr("右上"),
-                    }.get(style.get("Alignment", 2), tr("中下")),
+                        1: tr("Bottom Left"),
+                        2: tr("Bottom Center"),
+                        3: tr("Bottom Right"),
+                        4: tr("Middle Left"),
+                        5: tr("Center"),
+                        6: tr("Middle Right"),
+                        7: tr("Top Left"),
+                        8: tr("Top Center"),
+                        9: tr("Top Right"),
+                    }.get(style.get("Alignment", 2), tr("Bottom Center")),
                 )
         with gr.Row():
-            ass_save_btn = gr.Button(tr("💾 保存样式"), variant="primary")
-            ass_reset_btn = gr.Button(tr("🔄 恢复默认"))
-            ass_status = gr.Textbox(label=tr("状态"), interactive=False, visible=True)
+            ass_save_btn = gr.Button(tr("Save Style"), variant="primary")
+            ass_reset_btn = gr.Button(tr("Restore Default"))
+            ass_status = gr.Textbox(label=tr("Status"), interactive=False, visible=True)
 
         def save_ass_style(
             fontname,
@@ -1143,15 +1146,15 @@ def build_ass_editor():
             alignment,
         ):
             am = {
-                tr("左下"): 1,
-                tr("中下"): 2,
-                tr("右下"): 3,
-                tr("左中"): 4,
-                tr("正中"): 5,
-                tr("右中"): 6,
-                tr("左上"): 7,
-                tr("中上"): 8,
-                tr("右上"): 9,
+                tr("Bottom Left"): 1,
+                tr("Bottom Center"): 2,
+                tr("Bottom Right"): 3,
+                tr("Middle Left"): 4,
+                tr("Center"): 5,
+                tr("Middle Right"): 6,
+                tr("Top Left"): 7,
+                tr("Top Center"): 8,
+                tr("Top Right"): 9,
             }
             _save_ass_style(
                 {
@@ -1178,7 +1181,7 @@ def build_ass_editor():
                     "ScaleY": int(scale_y),
                     "Spacing": int(spacing),
                     "Angle": int(angle),
-                    "BorderStyle": 1 if border_style == tr("描边") else 3,
+                    "BorderStyle": 1 if border_style == tr("Outline") else 3,
                     "Outline": float(outline),
                     "Shadow": float(shadow),
                     "Alignment": am.get(alignment, 2),
@@ -1188,7 +1191,7 @@ def build_ass_editor():
                     "Encoding": 1,
                 }
             )
-            return tr("✅ 样式已保存")
+            return tr("Style saved")
 
         def reset_ass_style():
             _save_ass_style(DEFAULT_ASS_STYLE.copy())
@@ -1210,7 +1213,7 @@ def build_ass_editor():
                 _parse_ass_color(s["Bottom_BackColour"]),
                 bool(s["Bottom_Bold"]),
                 bool(s["Bottom_Italic"]),
-                tr("描边") if s["BorderStyle"] == 1 else tr("不透明背景"),
+                tr("Outline") if s["BorderStyle"] == 1 else tr("Opaque Background"),
                 s["Outline"],
                 s["Shadow"],
                 s["ScaleX"],
@@ -1221,17 +1224,17 @@ def build_ass_editor():
                 s["MarginR"],
                 s["MarginV"],
                 {
-                    1: tr("左下"),
-                    2: tr("中下"),
-                    3: tr("右下"),
-                    4: tr("左中"),
-                    5: tr("正中"),
-                    6: tr("右中"),
-                    7: tr("左上"),
-                    8: tr("中上"),
-                    9: tr("右上"),
-                }.get(s["Alignment"], tr("中下")),
-                tr("✅ 已恢复默认样式"),
+                    1: tr("Bottom Left"),
+                    2: tr("Bottom Center"),
+                    3: tr("Bottom Right"),
+                    4: tr("Middle Left"),
+                    5: tr("Center"),
+                    6: tr("Middle Right"),
+                    7: tr("Top Left"),
+                    8: tr("Top Center"),
+                    9: tr("Top Right"),
+                }.get(s["Alignment"], tr("Bottom Center")),
+                tr("Restored default style"),
             )
 
         ass_save_btn.click(
@@ -1319,10 +1322,10 @@ def build_channel_settings():
             categories[cat] = []
         categories[cat].append((name, cfg))
 
-    gr.Markdown(tr("### 渠道设置"))
+    gr.Markdown(tr("### Channel Settings"))
     gr.Markdown(
         tr(
-            "配置各渠道的 API 地址、SK 密钥等信息。**保存后与桌面版 (sp.exe) 通用**，配置文件存储在 `videotrans/params.json` 中。"
+            "Configure API URLs and keys for channels. **Saved settings are shared with desktop version (sp.exe)** in `videotrans/params.json`."
         )
     )
 
@@ -1342,7 +1345,7 @@ def build_channel_settings():
                             )
                             fields.append((f["key"], tb))
 
-                        save_btn = gr.Button(tr("💾 保存"), size="sm")
+                        save_btn = gr.Button(tr("Save"), size="sm")
                         status = gr.Textbox(
                             label="", interactive=False, visible=True, show_label=False
                         )
@@ -1354,7 +1357,7 @@ def build_channel_settings():
                                 for k, v in zip(field_keys, values):
                                     data[k] = v
                                 _save_params(data)
-                                return tr("✅ 已保存")
+                                return tr("Saved")
 
                             return handler
 
@@ -1367,32 +1370,32 @@ def build_channel_settings():
                         )
 
         # === 参考音频 Tab ===
-        with gr.Tab(tr("设置参考音频")):
-            gr.Markdown(tr("### 声音克隆参考音频设置"))
+        with gr.Tab(tr("Set Reference Audio")):
+            gr.Markdown(tr("### Voice Clone Reference Audio Settings"))
             gr.Markdown(
                 tr(
-                    "配置声音克隆（clone）使用的参考音频。每行一条，格式为：`文件名.wav#音频中的说话文本`\n- 音频文件需放在 `{}/f5-tts/` 目录下\n- 文件格式必须为 wav\n- 每行用 `#` 分隔文件名和对应文本",
+                    "Configure reference audio for voice cloning. One per line: `filename.wav#spoken text`\n- Audio files must be placed in `{}/f5-tts/`\n- File format must be wav\n- Use `#` to separate filename and text",
                     ROOT_DIR,
                 )
             )
 
             ref_audio_text = gr.Textbox(
-                label=tr("参考音频列表"),
+                label=tr("Reference Audio List"),
                 value=str(_safe_get("f5tts_role", "")),
                 placeholder=tr(
-                    "myaudio1.wav#你说四大皆空，却为何紧闭双眼\nmyaudio2.wav#Hello, this is a test audio"
+                    "myaudio1.wav#You say all is void, yet why keep your eyes closed\nmyaudio2.wav#Hello, this is a test audio"
                 ),
                 lines=8,
                 interactive=True,
             )
 
-            ref_audio_save = gr.Button(tr("💾 保存参考音频"), variant="primary")
+            ref_audio_save = gr.Button(tr("Save Reference Audio"), variant="primary")
             ref_audio_status = gr.Markdown("", visible=False)
 
             def save_ref_audio(text):
                 text = text.strip()
                 if not text:
-                    return gr.Markdown(tr("⚠️ 请输入参考音频信息"), visible=True)
+                    return gr.Markdown(tr("Please enter reference audio info"), visible=True)
 
                 lines = text.split("\n")
                 errors = []
@@ -1403,7 +1406,7 @@ def build_channel_settings():
                     parts = line.split("#")
                     if len(parts) != 2:
                         errors.append(
-                            tr("第 {} 行格式错误，需用 # 分隔文件名和文本", i + 1)
+                            tr("Line {} format error: must separate filename and text with #", i + 1)
                         )
                         continue
 
@@ -1417,7 +1420,7 @@ def build_channel_settings():
                     ):
                         errors.append(
                             tr(
-                                "第 {} 行：文件 `{}` 在 f5-tts/ 目录下不存在",
+                                "Line {}: file `{}` does not exist in f5-tts/",
                                 i + 1,
                                 filename,
                             )
@@ -1433,12 +1436,12 @@ def build_channel_settings():
 
                 if errors:
                     return gr.Markdown(
-                        tr("⚠️ 保存失败：\n") + "\n".join(errors), visible=True
+                        tr("Save failed:\n") + "\n".join(errors), visible=True
                     )
 
                 role_text = "\n".join(line for line in lines if line.strip())
                 _save_params({"f5tts_role": role_text})
-                return gr.Markdown(tr("✅ 参考音频已保存"), visible=True)
+                return gr.Markdown(tr("Reference audio saved"), visible=True)
 
             ref_audio_save.click(
                 fn=save_ref_audio,
@@ -1526,7 +1529,7 @@ _prompt_keys_list = [
     "initial_prompt_hi",
 ]
 _prompt_labels = {
-    k: tr("whisper {} 提示词", k.replace("initial_prompt_", ""))
+    k: tr("whisper {} prompt", k.replace("initial_prompt_", ""))
     for k in _prompt_keys_list
 }
 
@@ -1575,7 +1578,7 @@ def _save_section(section_key, keys):
 
     with gr.Row():
         save_btn = gr.Button(
-            tr("💾 保存 {}", ADVANCED_SECTION_TITLES.get(section_key, section_key)),
+            tr("Save {}", ADVANCED_SECTION_TITLES.get(section_key, section_key)),
             variant="primary",
             size="sm",
         )
@@ -1587,7 +1590,7 @@ def _save_section(section_key, keys):
             for k, v in zip(k_list, values):
                 data[k] = str(v)
             _save_settings(data)
-            return gr.Markdown(tr("✅ 已保存"), visible=True)
+            return gr.Markdown(tr("Saved"), visible=True)
 
         return handler
 
@@ -1600,13 +1603,13 @@ def _save_section(section_key, keys):
 # 高级选项设置面板（紧凑网格布局）
 # ---------------------------------------------------------------------------
 ADVANCED_SECTION_TITLES = {
-    "common": tr("通用设置"),
-    "video": tr("视频输出控制"),
-    "whisper": tr("语音识别参数"),
-    "trans": tr("字幕翻译调整"),
-    "dubbing": tr("字幕配音调整"),
-    "justify": tr("字幕声音画面对齐"),
-    "prompt_init": tr("Whisper模型提示词"),
+    "common": tr("General Settings"),
+    "video": tr("Video Output Control"),
+    "whisper": tr("ASR Parameters"),
+    "trans": tr("Translation Settings"),
+    "dubbing": tr("Dubbing Settings"),
+    "justify": tr("Alignment Settings"),
+    "prompt_init": tr("Whisper Model Prompts"),
 }
 
 
@@ -1615,28 +1618,28 @@ def build_advanced_settings():
 
     gr.Markdown(
         tr(
-            "配置全局高级参数。**保存后与桌面版 (sp.exe) 通用**，配置文件存储在 `videotrans/cfg.json` 中。\n⚠️ 部分参数修改后需要**重启软件**才能生效。"
+            "Configure global advanced parameters. **Saved settings are shared with desktop version (sp.exe)** in `videotrans/cfg.json`.\nNote: Some parameters require restarting software to take effect."
         )
     )
 
     # ---- 通用设置 ----
-    with gr.Accordion(tr("📋 通用设置"), open=True):
+    with gr.Accordion(tr("General Settings Panel"), open=True):
         with gr.Row():
-            _w("lang", tr("软件界面语言"), tr("设置后需重启"))
-            _w("countdown_sec", tr("单视频暂停倒计时"), tr("设为0跳过编辑窗口"))
-            _w("retry_nums", tr("失败后重试次数"), "")
+            _w("lang", tr("UI Language"), tr("Restart required after change"))
+            _w("countdown_sec", tr("Single Video Pause Countdown"), tr("Set to 0 to skip edit window"))
+            _w("retry_nums", tr("Retry Count on Failure"), "")
         with gr.Row():
-            _w("llm_chunk_size", tr("LLM断句每批字幕行数"), tr("默认20"))
-            _w("llm_ai_type", tr("LLM断句AI渠道"), "chatgpt/deepseek")
-            _w("batch_nums", tr("批量每批数量"), tr("0=不限制"))
+            _w("llm_chunk_size", tr("LLM Sentence Split Batch Size"), tr("Default 20"))
+            _w("llm_ai_type", tr("LLM Sentence Split AI Channel"), "chatgpt/deepseek")
+            _w("batch_nums", tr("Batch Processing Count"), tr("0 = Unlimited"))
         with gr.Row():
-            _w("dont_notify", tr("禁用桌面通知"), "")
-            _w("show_more_settings", tr("主界面显示所有参数?"), "")
-            _w("homedir", tr("独立功能输出目录"), "")
+            _w("dont_notify", tr("Disable Desktop Notifications"), "")
+            _w("show_more_settings", tr("Show All Parameters on Main UI?"), "")
+            _w("homedir", tr("Output Directory for Standalone Tools"), "")
         with gr.Row():
-            _w("process_max", tr("CPU任务数[重启]"), tr("不超过cpu核数"))
-            _w("process_max_gpu", tr("GPU任务数[重启]"), tr("多卡或显存>24G才>1"))
-            _w("multi_gpus", tr("多显卡模式[重启]"), "")
+            _w("process_max", tr("CPU Tasks [Restart]"), tr("Do not exceed CPU cores"))
+            _w("process_max_gpu", tr("GPU Tasks [Restart]"), tr(">1 only for multi-GPU or VRAM > 24G"))
+            _w("multi_gpus", tr("Multi-GPU Mode [Restart]"), "")
         _save_section(
             "common",
             [
@@ -1656,18 +1659,18 @@ def build_advanced_settings():
         )
 
     # ---- 视频输出控制 ----
-    with gr.Accordion(tr("📋 视频输出控制"), open=False):
+    with gr.Accordion(tr("Video Output Control Panel"), open=False):
         with gr.Row():
-            _w("crf", tr("视频质量(0=无损,51=差)"), "")
-            _w("preset", tr("压缩率"), "ultrafast→veryslow")
-            _w("video_codec", tr("264/265编码"), "")
+            _w("crf", tr("Video Quality (0=lossless, 51=worst)"), "")
+            _w("preset", tr("Preset Compression"), "ultrafast→veryslow")
+            _w("video_codec", tr("H.264/H.265 Codec"), "")
         with gr.Row():
-            _w("out_video_ext", tr("输出格式"), "mp4/mkv")
-            _w("fps_mode", tr("帧率模式"), "vfr/cfr")
-            _w("force_lib", tr("强制软编码?"), "")
+            _w("out_video_ext", tr("Output Format"), "mp4/mkv")
+            _w("fps_mode", tr("Frame Rate Mode"), "vfr/cfr")
+            _w("force_lib", tr("Force Software Encoding?"), "")
         with gr.Row():
-            _w("hw_decode", tr("cuda硬解码"), "")
-            _w("ffmpeg_cmd", tr("自定义ffmpeg参数"), "")
+            _w("hw_decode", tr("CUDA Hardware Decoding"), "")
+            _w("ffmpeg_cmd", tr("Custom FFmpeg Parameters"), "")
         _save_section(
             "video",
             [
@@ -1683,42 +1686,42 @@ def build_advanced_settings():
         )
 
     # ---- 语音识别参数 ----
-    with gr.Accordion(tr("📋 语音识别参数"), open=False):
+    with gr.Accordion(tr("ASR Parameters Panel"), open=False):
         with gr.Row():
-            _w("vad_type", tr("选择VAD"), "tenvad/silero")
-            _w("threshold", tr("语音阈值"), "")
-            _w("no_speech_threshold", tr("非语音阈值"), "")
+            _w("vad_type", tr("Select VAD"), "tenvad/silero")
+            _w("threshold", tr("Speech Threshold"), "")
+            _w("no_speech_threshold", tr("Non-speech Threshold"), "")
         with gr.Row():
-            _w("max_speech_duration_s", tr("最长语音(秒)"), "")
-            _w("min_speech_duration_ms", tr("最短语音(毫秒)"), "")
-            _w("min_silence_duration_ms", tr("静音分割(毫秒)"), "")
+            _w("max_speech_duration_s", tr("Max Speech Duration (s)"), "")
+            _w("min_speech_duration_ms", tr("Min Speech Duration (ms)"), "")
+            _w("min_silence_duration_ms", tr("Silence Split (ms)"), "")
         with gr.Row():
-            _w("max_speech_duration_s2", tr("二次识别最长(秒)"), "")
-            _w("min_speech_duration_ms2", tr("二次识别最短(毫秒)"), "")
-            _w("merge_short_sub", tr("合并过短字幕"), "")
+            _w("max_speech_duration_s2", tr("Second Pass Max Duration (s)"), "")
+            _w("min_speech_duration_ms2", tr("Second Pass Min Duration (ms)"), "")
+            _w("merge_short_sub", tr("Merge Short Subtitles"), "")
         with gr.Row():
-            _w("whisper_prepare", tr("Whisper预分割?"), tr("clone配音时选中"))
-            _w("speaker_type", tr("说话人分离模型"), tr("内置/pyannote"))
-            _w("hf_token", "Huggingface token", tr("pyannote需要"))
+            _w("whisper_prepare", tr("Whisper Pre-segmentation?"), tr("Check when cloning voice"))
+            _w("speaker_type", tr("Speaker Diarization Model"), tr("Built-in / pyannote"))
+            _w("hf_token", "Huggingface token", tr("Required for pyannote"))
         with gr.Row():
-            _w("cuda_com_type", tr("计算数据类型"), "int8/float16/float32")
+            _w("cuda_com_type", tr("Compute Data Type"), "int8/float16/float32")
             _w("beam_size", "beam_size", "1-5")
             _w("best_of", "best_of", "1-5")
         with gr.Row():
-            _w("condition_on_previous_text", tr("上下文感知"), "")
-            _w("repetition_penalty", tr("重复惩罚"), "")
-            _w("compression_ratio_threshold", tr("文本压缩率"), "")
+            _w("condition_on_previous_text", tr("Condition on Previous Text"), "")
+            _w("repetition_penalty", tr("Repetition Penalty"), "")
+            _w("compression_ratio_threshold", tr("Compression Ratio Threshold"), "")
         with gr.Row():
-            _w("temperature", tr("采样温度"), "")
-            _w("hotwords", tr("热词"), tr("逗号分隔"))
-            _w("gemini_recogn_chunk", tr("Gemini切片数"), "")
+            _w("temperature", tr("Sampling Temperature"), "")
+            _w("hotwords", tr("Hotwords"), tr("Comma-separated"))
+            _w("gemini_recogn_chunk", tr("Gemini Chunk Count"), "")
         with gr.Row():
-            _w("zh_hant_s", tr("繁体转简体"), "")
-            _w("del_end_punc", tr("删除末尾标点"), "")
+            _w("zh_hant_s", tr("Traditional to Simplified Chinese"), "")
+            _w("del_end_punc", tr("Remove Trailing Punctuation"), "")
         with gr.Row():
-            _w("model_list", tr("faster-whisper模型"), tr("逗号分隔"), area=True)
+            _w("model_list", tr("faster-whisper Models"), tr("Comma-separated"), area=True)
         with gr.Row():
-            _w("Whisper_cpp_models", tr("whisper.cpp模型"), tr("逗号分隔"), area=True)
+            _w("Whisper_cpp_models", tr("whisper.cpp Models"), tr("Comma-separated"), area=True)
         _save_section(
             "whisper",
             [
@@ -1751,15 +1754,15 @@ def build_advanced_settings():
         )
 
     # ---- 字幕翻译调整 ----
-    with gr.Accordion(tr("📋 字幕翻译调整"), open=False):
+    with gr.Accordion(tr("Translation Settings Panel"), open=False):
         with gr.Row():
-            _w("trans_thread", tr("传统翻译每批行数"), "")
-            _w("aitrans_thread", tr("AI翻译每批行数"), "")
-            _w("aitrans_temperature", tr("AI温度值"), tr("默认1.0"))
+            _w("trans_thread", tr("Standard Translation Batch Lines"), "")
+            _w("aitrans_thread", tr("AI Translation Batch Lines"), "")
+            _w("aitrans_temperature", tr("AI Temperature"), tr("Default 1.0"))
         with gr.Row():
-            _w("translation_wait", tr("翻译后暂停秒"), "")
-            _w("aisendsrt", tr("发送完整字幕"), "")
-            _w("aitrans_context", tr("一次性翻译所有行"), tr("需超长上下文模型"))
+            _w("translation_wait", tr("Pause Seconds After Translation"), "")
+            _w("aisendsrt", tr("Send Full Subtitles"), "")
+            _w("aitrans_context", tr("Translate All Lines at Once"), tr("Requires ultra-long context model"))
         _save_section(
             "trans",
             [
@@ -1773,25 +1776,25 @@ def build_advanced_settings():
         )
 
     # ---- 字幕配音调整 ----
-    with gr.Accordion(tr("📋 字幕配音调整"), open=False):
+    with gr.Accordion(tr("Dubbing Settings Panel"), open=False):
         with gr.Row():
-            _w("dubbing_thread", tr("并发配音线程数"), "")
-            _w("dubbing_wait", tr("配音后暂停秒"), "")
-            _w("remove_dubb_silence", tr("移除配音前后静音"), "")
+            _w("dubbing_thread", tr("Concurrent Dubbing Threads"), "")
+            _w("dubbing_wait", tr("Pause Seconds After Dubbing"), "")
+            _w("remove_dubb_silence", tr("Remove Silence Around Dubbing"), "")
         with gr.Row():
-            _w("save_segment_audio", tr("保留每行配音文件"), "")
-            _w("normal_text", tr("文本规范化"), "")
-            _w("chattts_voice", tr("ChatTTS音色值"), "")
+            _w("save_segment_audio", tr("Keep Segment Audio Files"), "")
+            _w("normal_text", tr("Text Normalization"), "")
+            _w("chattts_voice", tr("ChatTTS Voice Timbre"), "")
         with gr.Row():
             _w(
                 "edgetts_max_concurrent_tasks",
-                tr("EdgeTTS并发数"),
-                tr("越大越快但可能限流"),
+                tr("EdgeTTS Concurrency"),
+                tr("Higher is faster but may rate-limit"),
             )
-            _w("edgetts_retry_nums", tr("EdgeTTS重试次数"), "")
-            _w("noise_separate_nums", tr("人声分离线程数"), "")
+            _w("edgetts_retry_nums", tr("EdgeTTS Retries"), "")
+            _w("noise_separate_nums", tr("Vocal Separation Threads"), "")
         with gr.Row():
-            _w("uvr_models", tr("分离背景声模型"), "")
+            _w("uvr_models", tr("Vocal Separation Model"), "")
         _save_section(
             "dubbing",
             [
@@ -1809,20 +1812,20 @@ def build_advanced_settings():
         )
 
     # ---- 字幕声音画面对齐 ----
-    with gr.Accordion(tr("📋 字幕声音画面对齐"), open=False):
+    with gr.Accordion(tr("Alignment Settings Panel"), open=False):
         with gr.Row():
-            _w("max_audio_speed_rate", tr("音频加速最大倍数"), tr("默认100"))
-            _w("max_video_pts_rate", tr("视频慢放最大倍数"), tr("默认10，≤10"))
+            _w("max_audio_speed_rate", tr("Max Audio Speedup Rate"), tr("Default 100"))
+            _w("max_video_pts_rate", tr("Max Video Slowdown Rate"), tr("Default 10, <=10"))
         with gr.Row():
-            _w("cjk_len", tr("中日韩字幕单行字符数"), "")
-            _w("other_len", tr("其他语言字幕单行字符数"), "")
+            _w("cjk_len", tr("CJK Max Characters Per Line"), "")
+            _w("other_len", tr("Other Languages Max Characters Per Line"), "")
         _save_section(
             "justify",
             ["max_audio_speed_rate", "max_video_pts_rate", "cjk_len", "other_len"],
         )
 
     # ---- Whisper模型提示词 ----
-    with gr.Accordion(tr("📋 Whisper模型提示词"), open=False):
+    with gr.Accordion(tr("Whisper Model Prompts Panel"), open=False):
         for i in range(0, len(_prompt_keys_list), 3):
             with gr.Row():
                 for k in _prompt_keys_list[i : i + 3]:
@@ -1839,19 +1842,19 @@ def build_ui():
     with gr.Blocks(title="pyVideoTrans WebUI") as app:
         gr.Markdown(
             tr("""
-# pyVideoTrans 视频翻译 WebUI
-> [该界面仅实现部分功能，完整功能请使用桌面软件版(sp.exe 或 sp.py)](https://pyvideotrans.com)
+# pyVideoTrans Video Translation WebUI
+> [This interface only implements partial features. For full features, please use the desktop app (sp.exe or sp.py)](https://pyvideotrans.com)
 >
->  [使用文档](https://pyvideotrans.com) |
->  [开源地址](https://github.com/jianchang512/pyvideotrans) |
->  [遇到问题](https://bbs.pyvideotrans.com)
+>  [Documentation](https://pyvideotrans.com) |
+>  [Open Source](https://github.com/jianchang512/pyvideotrans) |
+>  [Help & Issues](https://bbs.pyvideotrans.com)
 ----
         """)
         )
 
         with gr.Tabs():
             # === Tab 1: 视频翻译 ===
-            with gr.Tab(tr("🎬 视频翻译"), id="translate"):
+            with gr.Tab(tr("Video Translation"), id="translate"):
                 prev_recogn = gr.State(value=RECOGN_NAMES[DEFAULT_RECOGN])
                 prev_translate = gr.State(value=TRANSLATE_NAMES[DEFAULT_TRANSLATE])
                 prev_tts = gr.State(value=TTS_NAMES[DEFAULT_TTS])
@@ -1859,7 +1862,7 @@ def build_ui():
                 with gr.Row():
                     with gr.Column(scale=3):
                         input_file = gr.Video(
-                            label=tr("选择视频文件"), interactive=True
+                            label=tr("Select Video File"), interactive=True
                         )
 
                         recogn_choice = gr.Dropdown(
@@ -1869,13 +1872,13 @@ def build_ui():
                                 if str(_user_params.get("recogn_type", "")).isdigit()
                                 else DEFAULT_RECOGN
                             ],
-                            label=tr("识别渠道"),
+                            label=tr("ASR Channel"),
                             interactive=True,
                         )
                         model_choice = gr.Dropdown(
                             choices=FASTER_MODEL_NAMES,
                             value=_user_params.get("model_name", DEFAULT_MODEL),
-                            label=tr("模型"),
+                            label=tr("Model"),
                             interactive=True,
                         )
 
@@ -1890,7 +1893,7 @@ def build_ui():
                                 if str(_user_params.get("translate_type", "")).isdigit()
                                 else DEFAULT_TRANSLATE
                             ],
-                            label=tr("翻译渠道"),
+                            label=tr("Translation Channel"),
                             interactive=True,
                         )
                         source_lang = gr.Dropdown(
@@ -1898,7 +1901,7 @@ def build_ui():
                             value=_lang_code_from_display(
                                 _user_params.get("source_language", DEFAULT_SOURCE_LANG)
                             ),
-                            label=tr("发音语言（源语言）"),
+                            label=tr("Source Language"),
                             interactive=True,
                         )
                         target_lang = gr.Dropdown(
@@ -1906,7 +1909,7 @@ def build_ui():
                             value=_lang_code_from_display(
                                 _user_params.get("target_language", DEFAULT_TARGET_LANG)
                             ),
-                            label=tr("目标语言"),
+                            label=tr("Target Language"),
                             interactive=True,
                         )
 
@@ -1917,7 +1920,7 @@ def build_ui():
                                 if str(_user_params.get("tts_type", "")).isdigit()
                                 else DEFAULT_TTS
                             ],
-                            label=tr("配音渠道"),
+                            label=tr("TTS Channel"),
                             interactive=True,
                         )
                         # 根据已加载的TTS渠道和目标语言预填充角色列表
@@ -1951,16 +1954,16 @@ def build_ui():
                         voice_role = gr.Dropdown(
                             choices=_init_roles,
                             value=_init_role_val,
-                            label=tr("配音角色"),
+                            label=tr("Voice Role"),
                             interactive=True,
                         )
 
                         with gr.Row():
                             voice_autorate = gr.Checkbox(
-                                label=tr("配音加速"), value=True
+                                label=tr("Audio Speedup"), value=True
                             )
                             video_autorate = gr.Checkbox(
-                                label=tr("视频慢速"), value=False
+                                label=tr("Video Slowdown"), value=False
                             )
                         with gr.Row():
                             voice_rate = gr.Slider(
@@ -1972,7 +1975,7 @@ def build_ui():
                                     )
                                 ),
                                 step=1,
-                                label=tr("配音语速 (%)"),
+                                label=tr("Voice Speed (%)"),
                             )
                             volume_rate = gr.Slider(
                                 minimum=-95,
@@ -1983,7 +1986,7 @@ def build_ui():
                                     )
                                 ),
                                 step=1,
-                                label=tr("音量调整 (%)"),
+                                label=tr("Volume (%)"),
                             )
                             pitch_rate = gr.Slider(
                                 minimum=-100,
@@ -1994,7 +1997,7 @@ def build_ui():
                                     )
                                 ),
                                 step=1,
-                                label=tr("音调 (Hz)"),
+                                label=tr("Pitch (Hz)"),
                             )
                         subtitle_type = gr.Dropdown(
                             choices=list(SUBTITLE_TYPES.keys()),
@@ -2005,34 +2008,34 @@ def build_ui():
                                 < len(SUBTITLE_TYPES)
                                 else 1
                             ],
-                            label=tr("字幕嵌入类型"),
+                            label=tr("Subtitle Embedding Type"),
                             interactive=True,
                         )
                         build_ass_editor()
 
-                        with gr.Accordion(tr("📋 更多设置"), open=False):
+                        with gr.Accordion(tr("More Settings"), open=False):
                             with gr.Row():
                                 remove_noise = gr.Checkbox(
-                                    label=tr("降噪"), value=False
+                                    label=tr("Noise Reduction"), value=False
                                 )
                                 fix_punc = gr.Dropdown(
                                     choices=list(PUNC_OPTIONS.keys()),
-                                    value=tr("默认标点"),
-                                    label=tr("标点处理"),
+                                    value=tr("Default punctuation"),
+                                    label=tr("Punctuation Processing"),
                                     interactive=True,
                                 )
                             with gr.Row():
                                 is_separate = gr.Checkbox(
-                                    label=tr("分离人声背景声"), value=False
+                                    label=tr("Separate Vocals and BGM"), value=False
                                 )
                                 embed_bgm = gr.Checkbox(
-                                    label=tr("重新嵌入背景声"), value=True
+                                    label=tr("Re-embed Background Audio"), value=True
                                 )
                             with gr.Row():
                                 loop_bgm = gr.Dropdown(
                                     choices=list(LOOP_BGM_OPTIONS.keys()),
-                                    value=tr("背景音截断"),
-                                    label=tr("背景音处理"),
+                                    value=tr("Truncate background audio"),
+                                    label=tr("Background Audio Processing"),
                                     interactive=True,
                                 )
                                 backaudio_volume = gr.Slider(
@@ -2045,27 +2048,27 @@ def build_ui():
                                         )
                                     ),
                                     step=0.1,
-                                    label=tr("背景音量"),
+                                    label=tr("Background Audio Volume"),
                                 )
 
                         cuda_accel = gr.Checkbox(
-                            label=tr("启用 CUDA 加速"), value=False
+                            label=tr("Enable CUDA Acceleration"), value=False
                         )
                         channel_warning = gr.Markdown("", visible=False)
 
                         start_btn = gr.Button(
-                            tr("🚀 开始执行"), variant="primary", size="lg"
+                            tr("Start"), variant="primary", size="lg"
                         )
 
                     with gr.Column(scale=2):
                         log_output = gr.Textbox(
-                            label=tr("执行日志"), lines=20, interactive=False
+                            label=tr("Execution Log"), lines=20, interactive=False
                         )
                         video_preview = gr.Video(
-                            label=tr("视频预览"), interactive=False
+                            label=tr("Video Preview"), interactive=False
                         )
                         result_files = gr.File(
-                            label=tr("输出文件（点击下载）"), interactive=False
+                            label=tr("Output Files (Click to Download)"), interactive=False
                         )
 
                 # 渠道验证并更新模型列表
@@ -2074,7 +2077,7 @@ def build_ui():
 
                     _rs = recognition.is_input_api(recogn_type=idx, return_str=True)
                     if _rs is not True:
-                        msg = tr("渠道「{}」暂不可用，已自动回退").format(choice)
+                        msg = tr("Channel '{}' is currently unavailable and has been rolled back").format(choice)
                         gr.Warning(msg)
                         return prev, f"⚠️ {msg}", gr.update()
 
@@ -2122,7 +2125,7 @@ def build_ui():
                         translate_type=idx, return_str=True
                     )
                     if _rs is not True:
-                        msg = tr("渠道「{}」暂不可用，已自动回退").format(choice)
+                        msg = tr("Channel '{}' is currently unavailable and has been rolled back").format(choice)
                         gr.Warning(msg)
                         return prev, f"⚠️ {msg}"
                     return choice, ""
@@ -2132,7 +2135,7 @@ def build_ui():
                     warning = ""
                     _rs = tts.is_input_api(tts_type=idx, return_str=True)
                     if _rs is not True:
-                        msg = tr("渠道「{}」暂不可用，已自动回退").format(choice)
+                        msg = tr("Channel '{}' is currently unavailable and has been rolled back").format(choice)
                         gr.Warning(msg)
                         choice = prev
                         warning = f"⚠️ {msg}"
@@ -2184,8 +2187,8 @@ def build_ui():
                 )
 
                 # 执行翻译
-                _BTN_RUNNING = gr.update(value=tr("⏳ 执行中..."), interactive=False)
-                _BTN_IDLE = gr.update(value=tr("🚀 开始执行"), interactive=True)
+                _BTN_RUNNING = gr.update(value=tr("Processing..."), interactive=False)
+                _BTN_IDLE = gr.update(value=tr("Start"), interactive=True)
 
                 def run_translation(
                     file_path,
@@ -2212,7 +2215,7 @@ def build_ui():
                 ):
                     print(f"{file_path=}")
                     if not file_path:
-                        yield tr("❌ 请先选择一个视频或音频文件"), None, [], _BTN_IDLE
+                        yield tr("Please select a video or audio file first"), None, [], _BTN_IDLE
                         return
                     app_cfg.current_status = "ing"
                     # 清空上次的日志、预览和输出，显示执行中状态
@@ -2265,7 +2268,7 @@ def build_ui():
                         }
                         common_params.update(asdict(_file_obj))
                         yield (
-                            log(tr("源文件: {}", Path(file_path).name)),
+                            log(tr("Source File: {}", Path(file_path).name)),
                             None,
                             [],
                             _BTN_RUNNING,
@@ -2306,7 +2309,7 @@ def build_ui():
                         yield (
                             log(
                                 tr(
-                                    "识别: {}  翻译: {}  配音: {}",
+                                    "ASR: {}  Translation: {}  TTS: {}",
                                     RECOGN_NAMES[recogn_idx],
                                     TRANSLATE_NAMES[translate_idx],
                                     TTS_NAMES[tts_idx],
@@ -2319,7 +2322,7 @@ def build_ui():
                         yield (
                             log(
                                 tr(
-                                    "语言: {} → {}  角色: {}",
+                                    "Language: {} -> {}  Role: {}",
                                     source_code,
                                     target_code,
                                     voice_role_name,
@@ -2331,36 +2334,36 @@ def build_ui():
                         )
                         yield log(""), None, [], _BTN_RUNNING
 
-                        yield log(tr("▶ 开始执行视频翻译...")), None, [], _BTN_RUNNING
+                        yield log(tr("Starting video translation...")), None, [], _BTN_RUNNING
                         from videotrans.task.trans_create import TransCreate
                         from videotrans.task.taskcfg import TaskCfgVTT
 
                         trk = TransCreate(cfg=TaskCfgVTT(**params_dict))
 
                         stages = [
-                            (tr("阶段 1/8: 预处理..."), "prepare", tr("预处理完成")),
-                            (tr("阶段 2/8: 语音识别..."), "recogn", tr("语音识别完成")),
+                            (tr("Stage 1/8: Preprocessing..."), "prepare", tr("Preprocessing completed")),
+                            (tr("Stage 2/8: Speech recognition..."), "recogn", tr("Speech recognition completed")),
                             (
-                                tr("阶段 3/8: 说话人分离..."),
+                                tr("Stage 3/8: Speaker diarization..."),
                                 "diariz",
-                                tr("说话人分离完成"),
+                                tr("Speaker diarization completed"),
                             ),
-                            (tr("阶段 4/8: 字幕翻译..."), "trans", tr("字幕翻译完成")),
+                            (tr("Stage 4/8: Subtitle translation..."), "trans", tr("Subtitle translation completed")),
                             (
-                                tr("阶段 5/8: 配音生成..."),
+                                tr("Stage 5/8: Dubbing generation..."),
                                 "dubbing",
-                                tr("配音生成完成"),
+                                tr("Dubbing generation completed"),
                             ),
-                            (tr("阶段 6/8: 音画对齐..."), "align", tr("音画对齐完成")),
+                            (tr("Stage 6/8: Audio-video alignment..."), "align", tr("Audio-video alignment completed")),
                             (
-                                tr("阶段 7/8: 二次识别..."),
+                                tr("Stage 7/8: Second-pass recognition..."),
                                 "recogn2pass",
-                                tr("二次识别完成"),
+                                tr("Second-pass recognition completed"),
                             ),
                             (
-                                tr("阶段 8/8: 最终合成..."),
+                                tr("Stage 8/8: Final assembly..."),
                                 "assembling",
-                                tr("最终合成完成"),
+                                tr("Final assembly completed"),
                             ),
                         ]
                         for stage_name, method, done_msg in stages:
@@ -2370,8 +2373,8 @@ def build_ui():
                                 yield log(f"✓ {done_msg}"), None, [], _BTN_RUNNING
 
                         trk.task_done()
-                        yield log(tr("✓ 视频合成完成")), None, [], _BTN_RUNNING
-                        yield log(tr("✅ 全部任务执行完毕！")), None, [], _BTN_RUNNING
+                        yield log(tr("Video synthesis completed")), None, [], _BTN_RUNNING
+                        yield log(tr("All tasks completed!")), None, [], _BTN_RUNNING
 
                         output_files, video_preview_path = [], None
 
@@ -2413,7 +2416,7 @@ def build_ui():
                             output_files.append(str(log_file))
 
                         yield (
-                            log(tr("输出目录: {}", _target_dir)),
+                            log(tr("Output Directory: {}", _target_dir)),
                             video_preview_path,
                             output_files,
                             _BTN_IDLE,
@@ -2422,7 +2425,7 @@ def build_ui():
                     except Exception as e:
                         tb = traceback.format_exc()
                         yield (
-                            log(tr("❌ 执行出错: {}\n\n{}", str(e), tb)),
+                            log(tr("Execution error: {}\n\n{}", str(e), tb)),
                             None,
                             [],
                             _BTN_IDLE,
@@ -2457,11 +2460,11 @@ def build_ui():
                 )
 
             # === Tab 2: 渠道设置 ===
-            with gr.Tab(tr("⚙️ 渠道设置"), id="settings"):
+            with gr.Tab(tr("Channel Settings"), id="settings"):
                 build_channel_settings()
 
             # === Tab 3: 高级选项 ===
-            with gr.Tab(tr("🔧 高级选项"), id="advanced"):
+            with gr.Tab(tr("Advanced Options"), id="advanced"):
                 build_advanced_settings()
 
     return app
@@ -2502,4 +2505,4 @@ if __name__ == "__main__":
         import traceback
 
         traceback.print_exc()
-        print(tr("\n❌ 启动失败: {}", e))
+        print(tr("\nLaunch failed: {}", e))
