@@ -34,7 +34,7 @@ from videotrans.configure import config
 config.init_run()
 
 from videotrans.configure.config import ROOT_DIR, TEMP_DIR, app_cfg, params, settings
-from videotrans.configure.constants import FASTER_MODELS_DICT, DEEPGRAM_MODEL, Openai_Whisper_Models, FUNASR_MODEL
+from videotrans.configure.constants import FASTER_MODELS_DICT, DEEPGRAM_ASR_MODELS, OPENAI_WHISPER_MODELS, FUN_ASR_MODELS
 from videotrans import recognition, translator, tts
 from videotrans.util import tools
 from videotrans.util.gpus import getset_gpu
@@ -1037,21 +1037,21 @@ def build_ui():
                     print(f'{idx=}')
                     print(f'{recognition.Whisper_CPP=}')
                     if idx in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL, recognition.WHISPERX_API]:
-                        models = settings.WHISPER_MODEL_LIST
+                        models = settings.WHISPER_MODELS
                     elif idx == recognition.OPENAI_WHISPER:
-                        models = Openai_Whisper_Models.split(',')
+                        models = OPENAI_WHISPER_MODELS.split(',')
                     elif idx == recognition.Deepgram:
-                        models = DEEPGRAM_MODEL
+                        models = DEEPGRAM_ASR_MODELS
                     elif idx == recognition.Whisper_CPP:
-                        models = settings.Whisper_CPP_MODEL_LIST
+                        models = settings.WHISPER_CPP_MODELS
                     elif idx == recognition.WHISPER_NET:
-                        models = settings.Whisper_NET_MODEL_LIST
+                        models = settings.WHISPER_NET_MODELS
                     elif idx == recognition.QWENASR:
                         models = ['1.7B', '0.6B']
                     elif idx == recognition.HUGGINGFACE_ASR:
                         models = list(recognition.HUGGINGFACE_ASR_MODELS.keys())
                     elif idx == recognition.FUNASR_CN:
-                        models = FUNASR_MODEL
+                        models = FUN_ASR_MODELS
                     else:
                         models = FASTER_MODEL_NAMES
                         disabled = True
