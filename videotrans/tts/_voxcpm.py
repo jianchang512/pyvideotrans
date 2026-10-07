@@ -11,8 +11,8 @@ from videotrans.util.help_misc import vail_file
 @dataclass(repr=False)
 class VoxCPMTTS(GradioBase):
     def __post_init__(self):
-        super().__post_init__()
         self.ainame = "voxcpmtts"
+        super().__post_init__()
 
     def _run(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:
         if vail_file(data_item['filename']):return

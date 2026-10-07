@@ -15,8 +15,8 @@ REAL_USE=METHOD_TEXT_EN
 @dataclass(repr=False)
 class IndexTTS(GradioBase):
     def __post_init__(self):
-        super().__post_init__()
         self.ainame = "indextts"
+        super().__post_init__()
 
 
     def _run(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:
