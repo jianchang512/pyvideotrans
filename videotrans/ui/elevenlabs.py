@@ -42,13 +42,13 @@ class Ui_elevenlabs(QDialog):
         self.label2.setMinimumSize(QtCore.QSize(100, 35))
         self.label2.setObjectName("label2")
 
-        self.elevenlabstts_models = QtWidgets.QComboBox()
-        self.elevenlabstts_models.setMinimumSize(QtCore.QSize(210, 35))
-        self.elevenlabstts_models.setObjectName("elevenlabstts_models")
-        self.elevenlabstts_models.addItems(ELEVENLABS_TTS_MODELS.split(','))
+        self.elevenlabstts_model = QtWidgets.QComboBox()
+        self.elevenlabstts_model.setMinimumSize(QtCore.QSize(210, 35))
+        self.elevenlabstts_model.setObjectName("elevenlabstts_model")
+        self.elevenlabstts_model.addItems(ELEVENLABS_TTS_MODELS.split(','))
 
         self.formLayout_3.addWidget(self.label2)
-        self.formLayout_3.addWidget(self.elevenlabstts_models)
+        self.formLayout_3.addWidget(self.elevenlabstts_model)
 
         self.verticalLayout.addLayout(self.formLayout_2)
         self.verticalLayout.addLayout(self.formLayout_3)

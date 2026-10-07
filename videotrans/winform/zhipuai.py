@@ -16,27 +16,27 @@ def openwin():
     feed = make_feed_translator(winobj, "test")
 
     def test():
-        key = winobj.zhipu_key.text().strip()
+        key = winobj.zhipuai_key.text().strip()
         if not key:
             return show_error(tr("Please input Secret"))
-        params["zhipu_key"] = key
-        params["zhipu_model"] = winobj.zhipu_model.currentText()
-        params["zhipu_max_token"] = winobj.max_token.text().strip()
-        params["zhipu_thinking"] = winobj.zhipu_thinking.isChecked()
+        params["zhipuai_key"] = key
+        params["zhipuai_model"] = winobj.zhipuai_model.currentText()
+        params["zhipuai_max_token"] = winobj.max_token.text().strip()
+        params["zhipuai_thinking"] = winobj.zhipuai_thinking.isChecked()
         winobj.test.setText(tr("Testing..."))
         task = TestSrtTrans(parent=winobj, translator_type=translator.ZHIPUAI_INDEX)
         task.uito.connect(feed)
         task.start()
 
     def save():
-        params["zhipu_key"] = winobj.zhipu_key.text().strip()
-        params["zhipu_model"] = winobj.zhipu_model.currentText()
-        params["zhipu_max_token"] = winobj.max_token.text().strip()
-        params["zhipu_thinking"] = winobj.zhipu_thinking.isChecked()
+        params["zhipuai_key"] = winobj.zhipuai_key.text().strip()
+        params["zhipuai_model"] = winobj.zhipuai_model.currentText()
+        params["zhipuai_max_token"] = winobj.max_token.text().strip()
+        params["zhipuai_thinking"] = winobj.zhipuai_thinking.isChecked()
         params.save()
         winobj.close()
 
     winobj.set.clicked.connect(save)
-    winobj.edit_allmodels.textChanged.connect(make_setallmodels(winobj, 'zhipu_model', 'zhipuai_model'))
+    winobj.edit_allmodels.textChanged.connect(make_setallmodels(winobj, 'zhipuai_model', 'zhipuai_model'))
     winobj.test.clicked.connect(test)
     return winobj

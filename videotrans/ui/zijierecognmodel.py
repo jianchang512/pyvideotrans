@@ -55,10 +55,10 @@ class Ui_zijierecognmodel(QDialog):
         self.label_2.setObjectName("label_2")
         self.formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label_2)
 
-        self.zijierecognmodel_token = QtWidgets.QLineEdit()
-        self.zijierecognmodel_token.setMinimumSize(QtCore.QSize(0, 35))
-        self.zijierecognmodel_token.setObjectName("zijierecognmodel_token")
-        self.formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.zijierecognmodel_token)
+        self.zijierecognmodel_key = QtWidgets.QLineEdit()
+        self.zijierecognmodel_key.setMinimumSize(QtCore.QSize(0, 35))
+        self.zijierecognmodel_key.setObjectName("zijierecognmodel_key")
+        self.formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.zijierecognmodel_key)
         self.verticalLayout.addLayout(self.formLayout)
 
 
@@ -89,7 +89,7 @@ class Ui_zijierecognmodel(QDialog):
         QtCore.QMetaObject.connectSlotsByName(form)
     def update_ui(self):
         self.zijierecognmodel_appid.setText(str(params.get("zijierecognmodel_appid",'')))
-        self.zijierecognmodel_token.setText(str(params.get("zijierecognmodel_token",'')))
+        self.zijierecognmodel_key.setText(str(params.get("zijierecognmodel_key",'')))
 
     def retranslateUi(self, form):
         form.setWindowTitle(tr('VolcEngine STT'))

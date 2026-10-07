@@ -44,11 +44,11 @@ class Ui_tencent(QDialog):
         self.label_2.setSizeIncrement(QtCore.QSize(0, 35))
         self.label_2.setObjectName("label_2")
         self.formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label_2)
-        self.tencent_SecretKey = QtWidgets.QLineEdit()
+        self.tencent_key = QtWidgets.QLineEdit()
 
-        self.tencent_SecretKey.setMinimumSize(QtCore.QSize(0, 35))
-        self.tencent_SecretKey.setObjectName("tencent_SecretKey")
-        self.formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.tencent_SecretKey)
+        self.tencent_key.setMinimumSize(QtCore.QSize(0, 35))
+        self.tencent_key.setObjectName("tencent_key")
+        self.formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.tencent_key)
 
         self.verticalLayout.addLayout(self.formLayout)
 

@@ -45,8 +45,8 @@ def get_model_by_type(recogn_type: int) -> List[str]:
         return constants.OPENAIRECOGNAPI_MODELS.split(',')
     if recogn_type==XIAOMIASR:
         return constants.XIAOMO_ASR_MODELS.split(',')
-    if recogn_type==ZHIPU_API:
-        return constants.ZHIPU_ASR_MODELS.split(',')
+    if recogn_type==ZHIPUAI_API:
+        return constants.ZHIPUAI_ASR_MODELS.split(',')
 
     return constants.WHISPER_MODELS.split(',')
 

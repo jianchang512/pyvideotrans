@@ -45,7 +45,7 @@ WHISPER_MODELS = "tiny,tiny.en,base,base.en,small,small.en,medium,medium.en,larg
 OPENAI_WHISPER_MODELS = "tiny,tiny.en,base,base.en,small,small.en,medium,medium.en,large-v3-turbo,large-v1,large-v2,large-v3"
 MINIMAX_ASR_MODELS = "asr-1.0"
 XIAOMO_ASR_MODELS="mimo-v2.5-asr"
-ZHIPU_ASR_MODELS="glm-asr-2512"
+ZHIPUAI_ASR_MODELS="glm-asr-2512"
 
 #---------文本模型 字幕翻译模型 =====================================
 GEMINI_MODELS = "gemini-3.8-flash,gemini-3.7-flash,gemini-3.6-flash,gemini-3.5-flash,gemini-pro-latest,gemini-flash-latest,gemini-2.5-pro,gemini-2.5-flash"

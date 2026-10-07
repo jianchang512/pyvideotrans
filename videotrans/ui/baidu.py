@@ -51,10 +51,10 @@ class Ui_baidu(QDialog):
         self.label_2.setObjectName("label_2")
         self.formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label_2)
 
-        self.baidu_miyue = QtWidgets.QLineEdit()
-        self.baidu_miyue.setMinimumSize(QtCore.QSize(210, 35))
-        self.baidu_miyue.setObjectName("baidu_miyue")
-        self.formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.baidu_miyue)
+        self.baidu_key = QtWidgets.QLineEdit()
+        self.baidu_key.setMinimumSize(QtCore.QSize(210, 35))
+        self.baidu_key.setObjectName("baidu_key")
+        self.formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.baidu_key)
         self.verticalLayout.addLayout(self.formLayout)
 
         h4 = QtWidgets.QHBoxLayout()

@@ -56,7 +56,7 @@ class Ui_zijiehuoshan(QDialog):
         
         self.huoshan_thinking = QtWidgets.QCheckBox()
         self.huoshan_thinking.setObjectName("huoshan_thinking")
-        self.huoshan_thinking.setText("Thinking")
+        self.huoshan_thinking.setText(tr('Thinking'))
         h_max_token.addWidget(label_token)
         h_max_token.addWidget(self.huoshan_max_token)
         h_max_token.addWidget(self.huoshan_thinking)

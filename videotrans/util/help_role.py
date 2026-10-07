@@ -47,7 +47,7 @@ def get_camb_role(force=False, raise_exception=False):
     return []
 
 @lru_cache
-def get_elevenlabs_role(force=False, raise_exception=False):
+def get_elevenlabs_role():
     from . import help_misc
     jsonfile = f'{ROOT_DIR}/videotrans/voicejson/elevenlabs.json'
     namelist = ["No"]
@@ -56,7 +56,6 @@ def get_elevenlabs_role(force=False, raise_exception=False):
             cache = json.loads(f.read())
             for it in cache.values():
                 namelist.append(it['name'])
-    params['elevenlabstts_role'] = namelist
     return namelist
 def update_elevenlabs_role():
     from elevenlabs import ElevenLabs
@@ -71,7 +70,6 @@ def update_elevenlabs_role():
     jsonfile = f'{ROOT_DIR}/videotrans/voicejson/elevenlabs.json'
     with open(jsonfile, 'w', encoding="utf-8") as f:
         f.write(json.dumps(result,indent=4))
-    params['elevenlabstts_role'] = namelist
     return namelist
 
 
@@ -204,7 +202,7 @@ def get_minimaxi_rolelist():
     voice_list = {}
     voice_file = ROOT_DIR + "/videotrans/voicejson/minimaxi.json"
 
-    if params.get("minimaxi_apiurl", '') == 'api.minimax.io':
+    if params.get("minimaxi_api", '') == 'api.minimax.io':
         voice_file = ROOT_DIR + "/videotrans/voicejson/minimaxiio.json"
     if help_misc.vail_file(voice_file):
         try:

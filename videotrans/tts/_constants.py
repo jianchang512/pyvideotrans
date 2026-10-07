@@ -132,8 +132,8 @@ ID_NAME_DICT = {
     DOUBAO2_TTS: ChannelProvider(tr("DouBao2"), imp="._doubao2", key_name="doubao2_access", win="doubao2"),
     QWEN_TTS: ChannelProvider(f"{tr('Ali-Bailian')}", imp="._bailian", key_name="qwenmt_key", win="bailian"),
     XIAOMI_TTS: ChannelProvider(tr('XiaoMi'), imp="._xiaomi", key_name="xiaomi_key", win="xiaomi"),
-    GLM_TTS: ChannelProvider(f'{tr("Zhipu AI")}', imp="._glmtts", key_name="zhipu_key", win="zhipuai"),
-    MINIMAXI_TTS: ChannelProvider("Minimaxi TTS", imp="._minimaxi", key_name="minimaxi_apikey", win="minimaxi"),
+    GLM_TTS: ChannelProvider(f'{tr("Zhipu AI")}', imp="._glmtts", key_name="zhipuai_key", win="zhipuai"),
+    MINIMAXI_TTS: ChannelProvider("Minimaxi TTS", imp="._minimaxi", key_name="minimaxi_key", win="minimaxi"),
 
     OPENAI_TTS: ChannelProvider("OpenAI TTS", imp="._openaitts", key_name="openaitts_key", win="openaitts"),
     GEMINI_TTS: ChannelProvider("Gemini TTS", imp="._geminitts", key_name="gemini_key", win="gemini"),
@@ -154,7 +154,7 @@ ID_NAME_DICT = {
     TTS_API: ChannelProvider(tr("Customize API"), imp="._ttsapi", key_name="ttsapi_url", win="ttsapi"),
     SILICONFLOW_API: ChannelProvider(tr("SiliconFlow"), imp="._siliconflow", key_name="siliconflow_key", win="siliconflow" ),
     OPENROUTER_API: ChannelProvider("OpenRouter.ai", imp="._openrouter", key_name="openrouter_key", win="openrouter" ),
-    DEEPGRAM_TTS: ChannelProvider("Deepgram.com", imp="._deepgram", key_name="deepgram_apikey", win="deepgram" ),
+    DEEPGRAM_TTS: ChannelProvider("Deepgram.com", imp="._deepgram", key_name="deepgram_key", win="deepgram" ),
 }
 
 # 强制保持按照每个常量值大小排序

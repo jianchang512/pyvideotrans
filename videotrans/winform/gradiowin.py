@@ -25,9 +25,9 @@ def openwin():
 
 
     def test(tts_type=tts.INDEX_TTS):
-        index_tts_version = winobj.index_tts_version.currentIndex()
+        indexttsversion = winobj.indextts_version.currentIndex()
         # 通用
-        params["index_tts_version"] = index_tts_version
+        params["indextts_version"] = indexttsversion
         params["voxcpmtts_version"] = winobj.voxcpmtts_version.currentText()
         params["voxcpmtts_url"] = winobj.voxcpmtts_url.text()
         params["firered3tts_url"] = winobj.firered3tts_url.text()
@@ -54,8 +54,8 @@ def openwin():
 
     def save():
 
-        index_tts_version = winobj.index_tts_version.currentIndex()
-        params["index_tts_version"] = index_tts_version
+        indextts_version = winobj.indextts_version.currentIndex()
+        params["indextts_version"] = indextts_version
         params["voxcpmtts_version"] = winobj.voxcpmtts_version.currentText()
         
         params["voxcpmtts_url"] = winobj.voxcpmtts_url.text()
@@ -72,7 +72,7 @@ def openwin():
     Path(ROOT_DIR + "/f5-tts").mkdir(exist_ok=True)
     winobj = get_cls(Path(__file__).stem)()
 
-    winobj.index_tts_version.setCurrentIndex(int(params.get('index_tts_version',0)))
+    winobj.indextts_version.setCurrentIndex(int(params.get('indextts_version',0)))
     winobj.voxcpmtts_version.setCurrentText(str(params.get('voxcpmtts_version','v2')))
     
     winobj.sparktts_url.setText(str(params.get('sparktts_url','')))

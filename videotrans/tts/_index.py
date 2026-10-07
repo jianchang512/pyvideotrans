@@ -29,7 +29,7 @@ class IndexTTS(GradioBase):
             "api_name": '/gen_single'
         }
         # 0=v1 1=v2 2=v2.5
-        _v=int(params.get('index_tts_version', 1))
+        _v=int(params.get('indextts_version', 1))
         if _v >0:
             kwargs['emo_control_method'] = REAL_USE
             kwargs['emo_ref_path'] = handle_file(ref_wav)

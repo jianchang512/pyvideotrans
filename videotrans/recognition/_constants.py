@@ -27,7 +27,7 @@ OPENAI_API = 12
 QWEN3ASR = 13
 XIAOMIASR = 14
 ZIJIE_RECOGN_MODEL = 15
-ZHIPU_API = 16
+ZHIPUAI_API = 16
 GEMINI_SPEECH = 17
 
 # 本地API
@@ -91,7 +91,7 @@ ID_NAME_DICT = {
     XIAOMIASR: ChannelProvider(tr("XiaoMi"), key_name="xiaomi_key", win="xiaomi", imp="._xiaomi"),
     ZIJIE_RECOGN_MODEL: ChannelProvider(tr("VolcEngine STT"), key_name="zijierecognmodel_appid", win="zijierecognmodel",
                                         imp="._zijierecognmodel"),
-    ZHIPU_API: ChannelProvider(f'{tr("Zhipu AI")} GLM-ASR', key_name="zhipu_key", win="zhipuai", imp="._glmasr"),
+    ZHIPUAI_API: ChannelProvider(f'{tr("Zhipu AI")} GLM-ASR', key_name="zhipuai_key", win="zhipuai", imp="._glmasr"),
     GEMINI_SPEECH: ChannelProvider(tr("Gemini AI"), key_name="gemini_key", win="gemini", imp="._gemini"),
 
     Faster_Whisper_XXL: ChannelProvider("Faster-Whisper-XXL.exe", imp="._xxl"),
@@ -102,7 +102,7 @@ ID_NAME_DICT = {
     AI_302: ChannelProvider("302.ai", key_name="ai302_key", win="ai302", imp="._ai302"),
     ElevenLabs: ChannelProvider("ElevenLabs.io", key_name="elevenlabstts_key", win="elevenlabs", imp="._elevenlabs"),
     GOOGLE_SPEECH: ChannelProvider(tr("Google Speech to Text"), imp="._google"),
-    Deepgram: ChannelProvider("Deepgram.com", key_name="deepgram_apikey", win="deepgram", imp="._deepgram"),
+    Deepgram: ChannelProvider("Deepgram.com", key_name="deepgram_key", win="deepgram", imp="._deepgram"),
     CAMB_ASR: ChannelProvider("CAMB.ai", key_name="camb_api_key", win="camb", imp="._camb"),
     STT_API: ChannelProvider(f"STT({tr('Local')}API)", key_name="stt_url", win="sttapi", imp="._sttapi"),
     WHISPER_NET: ChannelProvider("Whisper.NET", imp="._whispernet"),
@@ -110,7 +110,7 @@ ID_NAME_DICT = {
     SILICONFLOW_API: ChannelProvider(tr("SiliconFlow"), key_name="siliconflow_key", win="siliconflow",
                                      imp="._siliconflow"),
     OPENROUTER_API: ChannelProvider('OpenRouter.ai', key_name="openrouter_key", win="openrouter", imp="._openrouter"),
-    MINIMAX_API: ChannelProvider('Minimax AI', key_name="minimaxi_apikey", win="minimaxi", imp="._minimaxi"),
+    MINIMAX_API: ChannelProvider('Minimax AI', key_name="minimaxi_key", win="minimaxi", imp="._minimaxi"),
     AUDEXUM_API: ChannelProvider("Audexum.com", key_name="audexum_key", win="audexum", imp="._audexum"),
 
 }

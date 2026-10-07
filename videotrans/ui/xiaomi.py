@@ -52,7 +52,7 @@ class Ui_xiaomi(QDialog):
         self.xiaomi_max_token.setObjectName("xiaomi_max_token")
         
         self.xiaomi_thinking = QtWidgets.QCheckBox()
-        self.xiaomi_thinking.setText('Thinking')
+        self.xiaomi_thinking.setText(tr('Thinking'))
         
         h_token.addWidget(label_token)
         h_token.addWidget(self.xiaomi_max_token)

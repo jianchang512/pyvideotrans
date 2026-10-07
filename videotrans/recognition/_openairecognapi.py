@@ -23,7 +23,7 @@ class OpenaiAPIRecogn(BaseRecogn):
 
     def __post_init__(self):
         super().__post_init__()
-        self.api_url = params.get('openairecognapi_url', '')
+        self.api_url = params.get('openairecognapi_api', '')
 
 
     def _exec(self) -> Union[List[SrtItem], None]:

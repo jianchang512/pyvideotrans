@@ -21,7 +21,7 @@ class Baidu(BaseTrans):
         if self._exit(): return
         text = data
         salt = int(time.time())
-        strtext = f"{params.get('baidu_appid','')}{text}{salt}{params.get('baidu_miyue','')}"
+        strtext = f"{params.get('baidu_appid','')}{text}{salt}{params.get('baidu_key','')}"
         md5 = hashlib.md5()
         md5.update(strtext.encode('utf-8'))
         sign = md5.hexdigest()

@@ -36,10 +36,10 @@ class Ui_deeplx(QDialog):
         self.label.setAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignVCenter)
         self.label.setObjectName("label")
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label)
-        self.deeplx_address = QtWidgets.QLineEdit()
-        self.deeplx_address.setMinimumSize(QtCore.QSize(320, 35))
-        self.deeplx_address.setObjectName("deeplx_address")
-        self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.deeplx_address)
+        self.deeplx_api = QtWidgets.QLineEdit()
+        self.deeplx_api.setMinimumSize(QtCore.QSize(320, 35))
+        self.deeplx_api.setObjectName("deeplx_api")
+        self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.deeplx_api)
 
         self.label2 = QtWidgets.QLabel()
         self.label2.setMinimumSize(QtCore.QSize(100, 35))
@@ -85,7 +85,7 @@ class Ui_deeplx(QDialog):
         self.label2.setText(tr("SK"))
         self.deeplx_key.setPlaceholderText(
             tr("Input your deeplx key"))
-        self.deeplx_address.setPlaceholderText(
+        self.deeplx_api.setPlaceholderText(
             tr("Input your deeplx api url"))
         self.set_deeplx.setText(tr("Save"))
         self.test.setText(tr("Test"))

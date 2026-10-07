@@ -16,7 +16,7 @@ class Libre(BaseTrans):
     def __post_init__(self):
         super().__post_init__()
 
-        url = params.get('libre_address','').strip().rstrip('/')
+        url = params.get('libre_api','').strip().rstrip('/')
         if len(url)<4:
             raise StopTask(f'API URL is error: {url}')
         key = params.get('libre_key','').strip()  # Retained for logical equivalence

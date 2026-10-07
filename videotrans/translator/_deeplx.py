@@ -16,7 +16,7 @@ class DeepLX(BaseTrans):
 
     def __post_init__(self):
         super().__post_init__()
-        url = params.get('deeplx_address','').strip().rstrip('/')
+        url = params.get('deeplx_api','').strip().rstrip('/')
         if len(url)<4:
             raise StopTask(f'API URL is error: {url}')
         key = params.get('deeplx_key','').strip()

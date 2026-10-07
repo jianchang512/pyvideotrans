@@ -15,11 +15,11 @@ def openwin():
 
     def test():
         appid = winobj.baidu_appid.text().strip()
-        miyue = winobj.baidu_miyue.text().strip()
+        miyue = winobj.baidu_key.text().strip()
         if not appid or not miyue:
             return show_error(tr("Please input appid and Secret"))
         params["baidu_appid"] = appid
-        params["baidu_miyue"] = miyue
+        params["baidu_key"] = miyue
         winobj.test.setText(tr("Testing..."))
         from videotrans import translator
         task = TestSrtTrans(parent=winobj, translator_type=translator.BAIDU_INDEX)
@@ -28,14 +28,14 @@ def openwin():
 
     def save_baidu():
         params["baidu_appid"] = winobj.baidu_appid.text().strip()
-        params["baidu_miyue"] = winobj.baidu_miyue.text().strip()
+        params["baidu_key"] = winobj.baidu_key.text().strip()
         params.save()
         winobj.close()
 
     if params.get("baidu_appid", ''):
         winobj.baidu_appid.setText(str(params.get("baidu_appid", '')))
-    if params.get("baidu_miyue", ''):
-        winobj.baidu_miyue.setText(str(params.get("baidu_miyue", '')))
+    if params.get("baidu_key", ''):
+        winobj.baidu_key.setText(str(params.get("baidu_key", '')))
     winobj.set_badiu.clicked.connect(save_baidu)
     winobj.test.clicked.connect(test)
     return winobj

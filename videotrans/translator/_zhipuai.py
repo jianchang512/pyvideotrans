@@ -8,9 +8,9 @@ class ZhipuAI(OpenAICampat):
 
     def __post_init__(self):
         self.ainame ='zhipuai'
-        self.max_tokens =int(params.get('zhipu_max_token',4095))
-        self.model_name = params.get('zhipu_model', "glm-4.5-flash")
+        self.max_tokens =int(params.get('zhipuai_max_token',4095))
+        self.model_name = params.get('zhipuai_model', "glm-4.5-flash")
         self.api_url = 'https://open.bigmodel.cn/api/paas/v4/'
-        self.api_key = params.get('zhipu_key', '')
-        self.extra_body={"thinking": {"type": "enabled" if params.get('zhipu_thinking') else "disabled"}}
+        self.api_key = params.get('zhipuai_key', '')
+        self.extra_body={"thinking": {"type": "enabled" if params.get('zhipuai_thinking') else "disabled"}}
         super().__post_init__()

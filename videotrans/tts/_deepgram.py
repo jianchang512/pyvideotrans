@@ -21,7 +21,7 @@ class DeepgramTTS(BaseTTS):
         if self._exit() or not data_item.get('text', '').strip():
             return
         try:
-            deepgram = DeepgramClient(api_key=params.get('deepgram_apikey'))
+            deepgram = DeepgramClient(api_key=params.get('deepgram_key'))
             with open(data_item['filename'] + ".mp3", "wb") as f:
                 for chunk in deepgram.speak.v1.audio.generate(
                         text=data_item["text"],

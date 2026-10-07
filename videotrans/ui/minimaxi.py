@@ -87,7 +87,7 @@ class Ui_minimaxi(QDialog):
 
         self.minimaxi_thinking = QtWidgets.QCheckBox()
         self.minimaxi_thinking.setObjectName("minimaxi_thinking")
-        self.minimaxi_thinking.setText("Thinking")
+        self.minimaxi_thinking.setText(tr('Thinking'))
         h_token.addWidget(label_token)
         h_token.addWidget(self.max_token)
         h_token.addWidget(self.minimaxi_thinking)
@@ -145,8 +145,8 @@ class Ui_minimaxi(QDialog):
         self.text_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(str(allmodels_str))
 
-        self.apikey.setText(str(params.get("minimaxi_apikey",'')))
-        self.apiurl.setCurrentText(str(params.get("minimaxi_apiurl",'api.minimax.cn')))
+        self.apikey.setText(str(params.get("minimaxi_key",'')))
+        self.apiurl.setCurrentText(str(params.get("minimaxi_api",'api.minimax.cn')))
         self.emotion.setCurrentText(str(params.get("minimaxi_emotion",'')))
         self.tts_model.setCurrentText(str(params.get("minimaxi_tts_model",'')))
 

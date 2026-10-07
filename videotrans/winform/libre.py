@@ -19,7 +19,7 @@ def openwin():
         return url
 
     def test():
-        params["libre_address"] = _fix_url(winobj.address.text().strip())
+        params["libre_api"] = _fix_url(winobj.address.text().strip())
         params["libre_key"] = winobj.key.text().strip()
         winobj.test.setText(tr("Testing..."))
         task = TestSrtTrans(parent=winobj, translator_type=translator.LIBRE_INDEX)
@@ -27,12 +27,12 @@ def openwin():
         task.start()
 
     def save():
-        params["libre_address"] = _fix_url(winobj.address.text().strip())
+        params["libre_api"] = _fix_url(winobj.address.text().strip())
         params["libre_key"] = winobj.key.text().strip()
         params.save()
         winobj.close()
 
-    winobj.address.setText(str(params.get("libre_address", '')))
+    winobj.address.setText(str(params.get("libre_api", '')))
     winobj.key.setText(str(params.get("libre_key", '')))
     winobj.set.clicked.connect(save)
     winobj.test.clicked.connect(test)

@@ -24,7 +24,7 @@ class DeepL(BaseTrans):
         if self._exit(): return
         text =data.strip()
 
-        deepltranslator = deepl.Translator(params.get('deepl_authkey',''), server_url=self.api_url)
+        deepltranslator = deepl.Translator(params.get('deepl_key',''), server_url=self.api_url)
 
         target_code = self.target_code.upper()
         if target_code == 'EN':

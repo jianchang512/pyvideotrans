@@ -57,7 +57,7 @@ class Ui_siliconflow(QDialog):
         
         self.siliconflow_thinking = QtWidgets.QCheckBox()
         self.siliconflow_thinking.setObjectName("siliconflow_thinking")
-        self.siliconflow_thinking.setText("Thinking")
+        self.siliconflow_thinking.setText(tr('Thinking'))
         h_token.addWidget(self.siliconflow_thinking)
         
         v1.addLayout(h_token)

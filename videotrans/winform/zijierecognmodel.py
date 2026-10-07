@@ -17,11 +17,11 @@ def openwin():
 
     def test():
         appid = winobj.zijierecognmodel_appid.text().strip()
-        access = winobj.zijierecognmodel_token.text().strip()
+        access = winobj.zijierecognmodel_key.text().strip()
         if not appid or not access:
             return show_error(tr('Appid access and cluster are required'))
         params["zijierecognmodel_appid"] = appid
-        params["zijierecognmodel_token"] = access
+        params["zijierecognmodel_key"] = access
         task = TestSTT(parent=winobj, recogn_type=recognition.ZIJIE_RECOGN_MODEL)
         task.uito.connect(feed)
         task.start()
@@ -29,7 +29,7 @@ def openwin():
 
     def save():
         params["zijierecognmodel_appid"] = winobj.zijierecognmodel_appid.text().strip()
-        params["zijierecognmodel_token"] = winobj.zijierecognmodel_token.text().strip()
+        params["zijierecognmodel_key"] = winobj.zijierecognmodel_key.text().strip()
         params.save()
         winobj.close()
 

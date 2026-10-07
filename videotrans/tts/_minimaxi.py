@@ -19,7 +19,7 @@ class MinimaxiTTS(BaseTTS):
 
     def __post_init__(self):
         super().__post_init__()
-        self.api_url='https://'+params.get('minimaxi_apiurl','api.minimax.cn')+'/v1/t2a_v2'
+        self.api_url='https://'+params.get('minimaxi_api','api.minimax.cn')+'/v1/t2a_v2'
         rolelist=get_minimaxi_rolelist()
         self.roledict=rolelist.get(self.language.split('-')[0].lower())
         self.speed=self.get_speed()
@@ -53,7 +53,7 @@ class MinimaxiTTS(BaseTTS):
         }, ensure_ascii=False)
 
         headers = {
-            'Authorization': f"Bearer {params.get('minimaxi_apikey','')}",
+            'Authorization': f"Bearer {params.get('minimaxi_key','')}",
             'Content-Type': 'application/json'
         }
 

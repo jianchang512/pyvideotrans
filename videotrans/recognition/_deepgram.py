@@ -28,7 +28,7 @@ class DeepgramRecogn(BaseRecogn):
 
         httpx.HTTPTransport(proxy=self.proxy_str)
 
-        client = DeepgramClient(api_key=params.get('deepgram_apikey'))
+        client = DeepgramClient(api_key=params.get('deepgram_key'))
         language=self.detect_language.split('-')[0]
         options=dict(request=buffer_data,
             model=self.model_name,

@@ -66,7 +66,7 @@ class Ui_deepseek(QDialog):
 
         self.deepseek_thinking = QtWidgets.QCheckBox()
         self.deepseek_thinking.setObjectName("deepseek_thinking")
-        self.deepseek_thinking.setText("Thinking")
+        self.deepseek_thinking.setText(tr('Thinking'))
         
         h_deepseek_max_token.addWidget(label_deepseek_max_token)
         h_deepseek_max_token.addWidget(self.deepseek_max_token)

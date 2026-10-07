@@ -16,8 +16,8 @@ from videotrans.task.taskcfg import SrtItem
 class MinimaxiASR(BaseRecogn):
     def __post_init__(self):
         super().__post_init__()
-        self.api_key = params.get('minimaxi_apikey')
-        self.api_url='https://'+params.get('minimaxi_apiurl','api.minimax.cn')+'/v1/speech_to_text'
+        self.api_key = params.get('minimaxi_key')
+        self.api_url='https://'+params.get('minimaxi_api','api.minimax.cn')+'/v1/speech_to_text'
 
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO),  after=after_log(logger, logging.INFO))
     def _exec(self) -> Union[List[SrtItem], None]:

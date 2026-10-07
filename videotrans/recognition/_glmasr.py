@@ -17,7 +17,7 @@ class GLMASRRecogn(BaseRecogn):
         if self._exit(): return
         # 发送请求
         raws = self.cut_audio()
-        apikey = params.get('zhipu_key')
+        apikey = params.get('zhipuai_key')
 
         url = "https://open.bigmodel.cn/api/paas/v4/audio/transcriptions"
         err=''

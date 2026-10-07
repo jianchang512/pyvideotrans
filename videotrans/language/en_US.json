@@ -1169,6 +1169,7 @@
     "max_video_pts_rate_notice": "Maximum video slow-down rate. Default: 10 (cannot exceed 10).",
     "cjk_len_notice": "Number of characters per line for Chinese, Japanese, and Korean subtitles; more than this will result in a line break",
     "other_len_notice": "Number of words per line for subtitles in other languages; more than this will result in a line break",
-  "Initial prompt for the Whisper model for speech": "Initial prompt for the Whisper model for {} speech"
+  "Initial prompt for the Whisper model for speech": "Initial prompt for the Whisper model for {} speech",
+  "Thinking": "Thinking"
 
 }

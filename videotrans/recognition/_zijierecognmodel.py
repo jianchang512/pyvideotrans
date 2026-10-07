@@ -66,7 +66,7 @@ class ZijieRecogn(BaseRecogn):
 
         submit_url = "https://openspeech.bytedance.com/api/v3/auc/bigmodel/recognize/flash"
         appid = params.get('zijierecognmodel_appid', '')
-        token=params.get('zijierecognmodel_token', '')
+        token=params.get('zijierecognmodel_key', '')
         srt_list = []
 
 

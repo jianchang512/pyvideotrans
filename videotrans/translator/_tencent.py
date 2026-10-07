@@ -21,7 +21,7 @@ class Tencent(BaseTrans):
     def _item_task(self, data: str) -> str:
         if self._exit(): return
         cred = credential.Credential(params.get('tencent_SecretId', '').strip(),
-                                     params.get('tencent_SecretKey',''))
+                                     params.get('tencent_key',''))
         # 实例化一个http选项，可选的，没有特殊需求可以跳过
         httpProfile = HttpProfile(proxy="")
         httpProfile.endpoint = "tmt.tencentcloudapi.com"

@@ -23,8 +23,8 @@ def openwin():
         apiurl = winobj.apiurl.currentText()
         if not apikey:
             return show_error(tr("SK is required"))
-        params["minimaxi_apikey"] = apikey
-        params["minimaxi_apiurl"] = apiurl
+        params["minimaxi_key"] = apikey
+        params["minimaxi_api"] = apiurl
         params["minimaxi_tts_model"] = winobj.tts_model.currentText()
         params["minimaxi_emotion"] = winobj.emotion.currentText()
         params["minimaxi_text_model"] = winobj.text_model.currentText()
@@ -39,8 +39,8 @@ def openwin():
         set_process(text='', type="refreshtts")
 
     def save():
-        params["minimaxi_apikey"] = winobj.apikey.text().strip()
-        params["minimaxi_apiurl"] = winobj.apiurl.currentText()
+        params["minimaxi_key"] = winobj.apikey.text().strip()
+        params["minimaxi_api"] = winobj.apiurl.currentText()
         params["minimaxi_tts_model"] = winobj.tts_model.currentText()
         params["minimaxi_emotion"] = winobj.emotion.currentText()
         params["minimaxi_text_model"] = winobj.text_model.currentText()

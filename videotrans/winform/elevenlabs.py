@@ -70,14 +70,14 @@ def openwin():
 
     def save():
         params['elevenlabstts_key'] = winobj.elevenlabstts_key.text().strip()
-        params['elevenlabstts_models'] = winobj.elevenlabstts_models.currentText()
+        params['elevenlabstts_model'] = winobj.elevenlabstts_model.currentText()
         params.save()
         set_process(text='', type="refreshtts")
         set_process(text='', type="refreshmodel_list")
         winobj.close()
 
     winobj.elevenlabstts_key.setText(str(params.get('elevenlabstts_key','')))
-    winobj.elevenlabstts_models.setCurrentText(params.get('elevenlabstts_models',''))
+    winobj.elevenlabstts_model.setCurrentText(params.get('elevenlabstts_model',''))
     winobj.set.clicked.connect(save)
     winobj.test.clicked.connect(test)
     winobj.update_btn.clicked.connect(_update)

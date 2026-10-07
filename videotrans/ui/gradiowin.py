@@ -31,11 +31,11 @@ class Ui_gradiowin(QDialog):
         h1indextts_url.addWidget(self.indextts_urllabel)
         h1indextts_url.addWidget(self.indextts_url)
         self.indextts_urltest = QPushButton(tr("Test"))        
-        self.index_tts_version = QtWidgets.QComboBox()
-        self.index_tts_version.addItems([' V1 ',' V2 ',' V2.5 '])
-        self.index_tts_version.setToolTip(tr("When using Index-TTS, select v1 or v2."))
+        self.indextts_version = QtWidgets.QComboBox()
+        self.indextts_version.addItems([' V1 ',' V2 ',' V2.5 '])
+        self.indextts_version.setToolTip(tr("When using Index-TTS, select v1 or v2."))
 
-        h1indextts_url.addWidget(self.index_tts_version)
+        h1indextts_url.addWidget(self.indextts_version)
         h1indextts_url.addWidget(self.indextts_urltest)
 
         v1.addLayout(h1indextts_url)

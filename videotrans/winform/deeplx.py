@@ -18,7 +18,7 @@ def openwin():
         return url
 
     def test():
-        params["deeplx_address"] = _fix_url(winobj.deeplx_address.text().strip())
+        params["deeplx_api"] = _fix_url(winobj.deeplx_api.text().strip())
         params["deeplx_key"] = winobj.deeplx_key.text().strip()
         winobj.test.setText(tr("Testing..."))
         from videotrans import translator
@@ -27,12 +27,12 @@ def openwin():
         task.start()
 
     def save():
-        params["deeplx_address"] = _fix_url(winobj.deeplx_address.text().strip())
+        params["deeplx_api"] = _fix_url(winobj.deeplx_api.text().strip())
         params["deeplx_key"] = winobj.deeplx_key.text().strip()
         params.save()
         winobj.close()
 
-    winobj.deeplx_address.setText(str(params.get("deeplx_address", '')))
+    winobj.deeplx_api.setText(str(params.get("deeplx_api", '')))
     winobj.deeplx_key.setText(str(params.get("deeplx_key", '')))
     winobj.set_deeplx.clicked.connect(save)
     winobj.test.clicked.connect(test)

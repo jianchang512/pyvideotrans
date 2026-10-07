@@ -28,11 +28,11 @@ class Ui_openairecognapi(QDialog):
         self.label = QtWidgets.QLabel()
         self.label.setMinimumSize(QtCore.QSize(0, 35))
         self.label.setObjectName("label")
-        self.openairecognapi_url = QtWidgets.QLineEdit()
-        self.openairecognapi_url.setMinimumSize(QtCore.QSize(0, 35))
-        self.openairecognapi_url.setObjectName("openairecognapi_url")
+        self.openairecognapi_api = QtWidgets.QLineEdit()
+        self.openairecognapi_api.setMinimumSize(QtCore.QSize(0, 35))
+        self.openairecognapi_api.setObjectName("openairecognapi_api")
         h1.addWidget(self.label)
-        h1.addWidget(self.openairecognapi_url)
+        h1.addWidget(self.openairecognapi_api)
         v1.addLayout(h1)
 
         self.label_2 = QtWidgets.QLabel()
@@ -107,7 +107,7 @@ class Ui_openairecognapi(QDialog):
 
         self.openairecognapi_key.setText(str(params.get("openairecognapi_key",'')))
         self.openairecognapi_prompt.setText(str(params.get("openairecognapi_prompt",'')))
-        self.openairecognapi_url.setText(str(params.get("openairecognapi_url",'')))
+        self.openairecognapi_api.setText(str(params.get("openairecognapi_api",'')))
         if params.get('openairecognapi_model','') in allmodels:
             self.openairecognapi_model.setCurrentText(str(params.get("openairecognapi_model",'')))
 
@@ -117,9 +117,9 @@ class Ui_openairecognapi(QDialog):
         self.label_3.setText(tr("Model"))
         self.set_openairecognapi.setText(tr("Save"))
         self.test_openairecognapi.setText(tr("Test"))
-        self.openairecognapi_url.setPlaceholderText(
+        self.openairecognapi_api.setPlaceholderText(
             tr("If using the official OpenAI interface, there is no need to fill it out; Fill in the third-party API here"))
-        self.openairecognapi_url.setToolTip(
+        self.openairecognapi_api.setToolTip(
             tr("If using the official OpenAI interface, there is no need to fill it out; Fill in the third-party API here"))
         self.openairecognapi_key.setPlaceholderText("Secret key")
         self.openairecognapi_key.setToolTip(
