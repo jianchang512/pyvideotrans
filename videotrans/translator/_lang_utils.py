@@ -8,7 +8,7 @@ from videotrans.configure.config import tr, params, logger
 from videotrans import winform
 from videotrans.translator._constants import (
     GOOGLE_INDEX, MICROSOFT_INDEX, M2M100_INDEX,
-    QWENMT_INDEX,
+    BAILIAN_INDEX,
     TENCENT_INDEX, BAIDU_INDEX, DEEPL_INDEX, DEEPLX_INDEX, ALI_INDEX,
     LIBRE_INDEX, TRANSAPI_INDEX, CAMB_INDEX,
     AI_TRANS_CHANNELS, ID_NAME_DICT
@@ -56,7 +56,7 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,
         index = 8
     elif translate_type == M2M100_INDEX:
         index = 10
-    elif translate_type == QWENMT_INDEX:
+    elif translate_type == BAILIAN_INDEX:
         index = 9
 
     if show_target in LANG_CODE:
@@ -175,7 +175,7 @@ def get_source_target_code(*, show_source=None, show_target=None, translate_type
         return source_list[8] if source_list else show_source, target_list[8] if target_list else show_target
 
     # qwen-mt 翻译渠道语言代码
-    if translate_type == QWENMT_INDEX:
+    if translate_type == BAILIAN_INDEX:
         return source_list[9] if source_list else None, target_list[9] if target_list else None
     if translate_type == M2M100_INDEX:
         s,t=None,None

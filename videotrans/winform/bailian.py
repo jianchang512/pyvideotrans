@@ -15,31 +15,31 @@ def openwin():
     feed = make_feed_translator(winobj, "test")
 
     def test():
-        key = winobj.qwenmt_key.text().strip()
+        key = winobj.bailian_key.text().strip()
         if not key:
             return show_error(tr("Please input Secret"))
-        params["qwenmt_key"] = key
-        params["qwenmt_spaceid"] = winobj.qwenmt_spaceid.text().strip()
-        params["qwenmt_model"] = winobj.qwenmt_model.currentText()
-        params["qwenmt_ttsmodel"] = winobj.qwenmt_ttsmodel.currentText()
-        params["qwenmt_domains"] = winobj.qwenmt_domains.text()
+        params["bailian_key"] = key
+        params["bailian_spaceid"] = winobj.bailian_spaceid.text().strip()
+        params["bailian_model"] = winobj.bailian_model.currentText()
+        params["bailian_ttsmodel"] = winobj.bailian_ttsmodel.currentText()
+        params["bailian_domains"] = winobj.bailian_domains.text()
         winobj.test.setText(tr("Testing..."))
         from videotrans import translator
-        task = TestSrtTrans(parent=winobj, translator_type=translator.QWENMT_INDEX)
+        task = TestSrtTrans(parent=winobj, translator_type=translator.BAILIAN_INDEX)
         task.uito.connect(feed)
         task.start()
 
     def save():
-        params["qwenmt_key"] = winobj.qwenmt_key.text().strip()
-        params["qwenmt_spaceid"] = winobj.qwenmt_spaceid.text().strip()
-        params["qwenmt_model"] = winobj.qwenmt_model.currentText()
-        params["qwenmt_ttsmodel"] = winobj.qwenmt_ttsmodel.currentText()
-        params["qwenmt_domains"] = winobj.qwenmt_domains.text()
+        params["bailian_key"] = winobj.bailian_key.text().strip()
+        params["bailian_spaceid"] = winobj.bailian_spaceid.text().strip()
+        params["bailian_model"] = winobj.bailian_model.currentText()
+        params["bailian_ttsmodel"] = winobj.bailian_ttsmodel.currentText()
+        params["bailian_domains"] = winobj.bailian_domains.text()
         params.save()
         winobj.close()
 
     winobj.set.clicked.connect(save)
 
-    winobj.edit_allmodels.textChanged.connect(make_setallmodels(winobj, 'qwenmt_model', 'qwenmt_model'))
+    winobj.edit_allmodels.textChanged.connect(make_setallmodels(winobj, 'bailian_model', 'bailian_model'))
     winobj.test.clicked.connect(test)
     return winobj

@@ -32,11 +32,11 @@ class Ui_parakeet(QDialog):
         self.label.setObjectName("label")
 
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label)
-        self.parakeet_address = QtWidgets.QLineEdit()
-        self.parakeet_address.setMinimumSize(QtCore.QSize(400, 35))
-        self.parakeet_address.setObjectName("parakeet_address")
+        self.parakeet_api = QtWidgets.QLineEdit()
+        self.parakeet_api.setMinimumSize(QtCore.QSize(400, 35))
+        self.parakeet_api.setObjectName("parakeet_api")
 
-        self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.parakeet_address)
+        self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.parakeet_api)
         self.verticalLayout.addLayout(self.formLayout_2)
 
         self.set_btn = QtWidgets.QPushButton()
@@ -66,7 +66,7 @@ class Ui_parakeet(QDialog):
         QtCore.QMetaObject.connectSlotsByName(form)
 
     def update_ui(self):
-        self.parakeet_address.setText(str(params.get("parakeet_address",'')))
+        self.parakeet_api.setText(str(params.get("parakeet_api",'')))
     def retranslateUi(self, form):
         form.setWindowTitle("parakeet-tdt "+tr('This channel needs deployed and started before available'))
         self.label.setText(tr("parakeet url"))

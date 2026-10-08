@@ -18,7 +18,7 @@ from videotrans.task.taskcfg import SrtItem
 class Qwen3ASRRecogn(BaseRecogn):
     def __post_init__(self):
         super().__post_init__()
-        spaceid=params.get('qwenmt_spaceid', '').strip()
+        spaceid=params.get('bailian_spaceid', '').strip()
         # 未填写业务空间ID时使用百炼默认地址，否则 api_url 为空字符串，请求地址无协议头导致报错
         self.api_url = 'https://dashscope.aliyuncs.com/api/v1'
         if spaceid and  not spaceid.startswith('http'):
@@ -30,7 +30,7 @@ class Qwen3ASRRecogn(BaseRecogn):
     def _exec(self) -> Union[List[SrtItem], None]:
         if self._exit(): return
         # 发送请求
-        api_key=params.get('qwenmt_key','')
+        api_key=params.get('bailian_key','')
         model=self.model_name
         if model.startswith('qwen-audio-3.0-asr-flash') or model.startswith('fun-asr-flash'):
             return self._audio_funasr_flash(api_key,model)

@@ -28,7 +28,7 @@
 [2. UI & Param Configuration (if credentials needed)]
     videotrans/ui/{name}.py             --> UI widget layout
     videotrans/winform/{name}.py        --> Window controller & event handlers
-    videotrans/configure/_app_params.py --> Default parameters
+    videotrans/configure/_default_params.py --> Default parameters
     videotrans/ui/menu_list.py          --> Register menu entry
               ↓
 [3. Core Provider Implementation]
@@ -36,6 +36,10 @@
               ↓
 [4. Voice Roles Definition (TTS Only)]
     videotrans/configure/constant.py OR videotrans/voicejson/{name}.json
+[5. Models list ]
+	videotrans/configure/constant.py 
+	for example:
+	DEEPSEEK_MODELS = "deepseek-flash,deepseek-v4-pro,deepseek-v4-flash"
 ```
 
 Throughout this guide, `{name}` denotes your internal channel identifier (e.g., `newai`).
@@ -86,17 +90,20 @@ If your channel does not require user credentials or configuration (e.g., a zero
 - **Form Controller**: Create `videotrans/winform/{name}.py` (handles config loading, saving, and connectivity tests).
 
 ### 2. Define Default Parameters (Optional)
-In `videotrans/configure/_app_params.py`, add defaults inside `_get_defaults()`:
+In `videotrans/configure/_default_params.py`, add defaults inside `_default`:
 
 ```python
-# videotrans/configure/_app_params.py
-def _get_defaults():
-    return {
-        # ...existing defaults
-        "newai_key": "",
-        "newai_url": "https://api.newai.com/v1",
-        "newai_model": "newai-v1",
-    }
+# videotrans/configure/_default_params.py
+    "deepseek": {
+        "deepseek_key": "", 
+        "deepseek_thinking": False, 
+        "deepseek_model": DEEPSEEK_MODELS.split(',')[0],
+        "deepseek_max_token": 16384
+    },
+	
+	# videotrans/configure/constant.py 
+	# DEEPSEEK_MODELS = "deepseek-flash,deepseek-v4-pro,deepseek-v4-flash"
+
 ```
 
 ### 3. Add to the Top Menu Bar

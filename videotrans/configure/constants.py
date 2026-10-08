@@ -49,7 +49,7 @@ ZHIPUAI_ASR_MODELS="glm-asr-2512"
 
 #---------文本模型 字幕翻译模型 =====================================
 GEMINI_MODELS = "gemini-3.8-flash,gemini-3.7-flash,gemini-3.6-flash,gemini-3.5-flash,gemini-pro-latest,gemini-flash-latest,gemini-2.5-pro,gemini-2.5-flash"
-QWENMT_MODELS = "qwen-mt-turbo,qwen-mt-plus,qwen-mt-flash,qwen-mt-lite,qwen3.8-flash,qwen3.8-max,qwen3.7-plus,qwen3.7-flash,qwen3.7-max,qwen3.6-flash,qwen3.5-flash"
+BAILIAN_MODELS = "qwen-mt-turbo,qwen-mt-plus,qwen-mt-flash,qwen-mt-lite,qwen3.8-flash,qwen3.8-max,qwen3.7-plus,qwen3.7-flash,qwen3.7-max,qwen3.6-flash,qwen3.5-flash"
 CHATGPT_MODELS = "gpt-5.6-sol,gpt-5.6-luna,gpt-5.5,gpt-5.5-pro,gpt-5.4-pro,gpt-5.4,gpt-5.4-mini,gpt-5,gpt-5-mini"
 AZURE_MODELS = "gpt-5.5,gpt-5.4-mini, gpt-5.4-nano, gpt-5.4, gpt-5.4-pro,gpt-5.1, gpt-5.1-chat"
 LOCALLLM_MODELS = "qwen3.6,deepseek-v4-flash"
@@ -69,7 +69,7 @@ INFISTAR_MODELS = "gpt-5.4-mini,deepseek-v4-flash,gpt-5.4,claude-sonnet-5,gemini
 
 #---------TTS 语音合成模型=====================================================
 GEMINI_TTS_MODELS = "gemini-3.1-flash-tts-preview,gemini-3.8-flash-tts,gemini-2.5-flash-preview-tts,gemini-2.5-pro-preview-tts"
-QWEN_TTS_MODELS = 'qwen3-tts-flash,qwen3-tts-instruct-flash,qwen-tts-latest,qwen-tts'
+BAILIAN_TTS_MODELS = 'qwen3-tts-flash,qwen3-tts-instruct-flash,qwen-tts-latest,qwen-tts'
 OPENAI_TTS_MODELS = "tts-1,tts-1-hd,gpt-4o-mini-tts"
 OPENROUTER_TTS_MODELS = "qwen/qwen-audio-3.0-tts-flash,qwen/qwen-audio-3.0-tts-plus,microsoft/mai-voice-2-flash,x-ai/grok-voice-tts-1.0,google/gemini-3.1-flash-tts-preview,deepgram/flux-tts:free,canopylabs/orpheus-3b-0.1-ft,hexgrad/kokoro-82m,mistralai/voxtral-mini-tts-2603"
 SILICONFLOW_TTS_MODELS = "fnlp/MOSS-TTSD-v0.5,FunAudioLLM/CosyVoice2-0.5B"
@@ -237,9 +237,45 @@ Below inside `<GLOBAL_REFERENCE_CONTEXT>` is the **complete, full-length origina
 
 """
 
+# ass 硬字幕样式
+DEFAULT_STYLE = {
+    'Name': 'Default',
+    'Fontname': 'Arial',
+    'Bottom_Fontname': 'Arial',
+    'Fontsize': 16,
+    'Bottom_Fontsize': 16,
+    'PrimaryColour': '&H00FFFFFF&',
+    'Bottom_PrimaryColour': '&H00FFFFFF&',
+    'SecondaryColour': '&H00FFFFFF&',
+    'OutlineColour': '&H00000000&',
+    'BackColour': '&H00000000&',
+    'Bold': 0,
+    'Italic': 0,
+    'Bottom_SecondaryColour': '&H00FFFFFF&',
+    'Bottom_OutlineColour': '&H00000000&',
+    'Bottom_BackColour': '&H00000000&',
+    'Bottom_Bold': 0,
+    'Bottom_Italic': 0,
+    'Underline': 0,
+    'StrikeOut': 0,
+    'ScaleX': 100,
+    'ScaleY': 100,
+    'Spacing': 0,
+    'Angle': 0,
+    'BorderStyle': 1,
+    'Outline': 0.5,
+    'Shadow': 0.5,
+    'Alignment': 2,
+    'MarginL': 10,
+    'MarginR': 10,
+    'MarginV': 10,
+    'Encoding': 1
+}
+
 # --------进度状态提示文字-----------------------
 END_STATUS = "end"
 ERROR_STATUS = "error"
 SUCCEED_STATUS = "succeed"
 STOP_STATUS = "stop"
 ING_STATUS = "ing"
+

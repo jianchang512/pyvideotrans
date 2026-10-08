@@ -65,7 +65,7 @@ notices = {
     'trans': ['trans_thread', 'aitrans_thread', 'translation_wait', 'aitrans_temperature', 'aitrans_context'],
     'dubbing': ['dubbing_thread', 'dubbing_wait', 'remove_dubb_silence', 'remove_dubb_all_silence',
                 'remove_dubb_silence_level', 'save_segment_audio', 'normal_text', 'edgetts_max_concurrent_tasks',
-                'edgetts_retry_nums', 'chattts_voice'],
+                'edgetts_retry_nums'],
     'justify': ['max_audio_speed_rate', 'max_video_pts_rate', 'cjk_len', 'other_len'],
     'prompt_init': prompt_a
 }

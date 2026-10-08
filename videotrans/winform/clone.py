@@ -32,7 +32,7 @@ def openwin():
         import time
         wk = ListenVoice(parent=winobj, queue_tts=[{
             "text":  LISTEN_TEXT.get('zh'),
-            "role": params.get("clone_voicelist",'')[1] if len(params.get("clone_voicelist",'')) > 1 else '',
+            "role": params.get("clone_voicelist",'').split(',')[-1],
             "filename": config.TEMP_DIR + f"/{time.time()}-clonevoice.wav",
             "tts_type": tts.CLONE_VOICE_TTS}],
                          language="zh",

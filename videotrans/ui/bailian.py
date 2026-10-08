@@ -7,7 +7,7 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QDialog
 
 from videotrans.configure.config import tr, params, settings, ROOT_DIR
-from videotrans.configure.constants import QWEN_TTS_MODELS
+from videotrans.configure.constants import BAILIAN_TTS_MODELS
 from videotrans.util.help_misc import open_url
 
 
@@ -34,11 +34,11 @@ class Ui_bailian(QDialog):
         self.label_2.setMinimumSize(QtCore.QSize(0, 35))
         self.label_2.setSizeIncrement(QtCore.QSize(0, 35))
         self.label_2.setObjectName("label_2")
-        self.qwenmt_key = QtWidgets.QLineEdit()
-        self.qwenmt_key.setMinimumSize(QtCore.QSize(0, 35))
-        self.qwenmt_key.setObjectName("qwenmt_key")
+        self.bailian_key = QtWidgets.QLineEdit()
+        self.bailian_key.setMinimumSize(QtCore.QSize(0, 35))
+        self.bailian_key.setObjectName("bailian_key")
         h2.addWidget(self.label_2)
-        h2.addWidget(self.qwenmt_key)
+        h2.addWidget(self.bailian_key)
         v1.addLayout(h2)
 
         
@@ -48,11 +48,11 @@ class Ui_bailian(QDialog):
         self.label_spaceid.setSizeIncrement(QtCore.QSize(0, 35))
         self.label_spaceid.setObjectName("label_spaceid")
         self.label_spaceid.setText(tr("Business space ID"))
-        self.qwenmt_spaceid = QtWidgets.QLineEdit()
-        self.qwenmt_spaceid.setMinimumSize(QtCore.QSize(0, 35))
-        self.qwenmt_spaceid.setObjectName("qwenmt_spaceid")
+        self.bailian_spaceid = QtWidgets.QLineEdit()
+        self.bailian_spaceid.setMinimumSize(QtCore.QSize(0, 35))
+        self.bailian_spaceid.setObjectName("bailian_spaceid")
         hspaceid.addWidget(self.label_spaceid)
-        hspaceid.addWidget(self.qwenmt_spaceid)
+        hspaceid.addWidget(self.bailian_spaceid)
         v1.addLayout(hspaceid)
 
 
@@ -61,24 +61,24 @@ class Ui_bailian(QDialog):
         label_domains.setSizeIncrement(QtCore.QSize(0, 35))
         label_domains.setObjectName("label_domains")
         label_domains.setText(tr("Translation style prompt"))
-        self.qwenmt_domains = QtWidgets.QLineEdit()
-        self.qwenmt_domains.setMinimumSize(QtCore.QSize(0, 35))
-        self.qwenmt_domains.setObjectName("qwenmt_domains")
-        self.qwenmt_domains.setPlaceholderText(tr("Fill in a natural language text (must be English) describing your domain, which will be provided to the model as a prompt"))
+        self.bailian_domains = QtWidgets.QLineEdit()
+        self.bailian_domains.setMinimumSize(QtCore.QSize(0, 35))
+        self.bailian_domains.setObjectName("bailian_domains")
+        self.bailian_domains.setPlaceholderText(tr("Fill in a natural language text (must be English) describing your domain, which will be provided to the model as a prompt"))
         h3 = QtWidgets.QHBoxLayout()
         h3.addWidget(label_domains)
-        h3.addWidget(self.qwenmt_domains)
+        h3.addWidget(self.bailian_domains)
         v1.addLayout(h3)
 
         h_model = QtWidgets.QHBoxLayout()
         self.label_selectmodel = QtWidgets.QLabel()
         self.label_selectmodel.setObjectName("label_selectmodel")
         self.label_selectmodel.setText(tr("Subtitle translation model (must start with qwen-mt or other qwen text generation model)"))
-        self.qwenmt_model = QtWidgets.QComboBox()
-        self.qwenmt_model.setMinimumSize(QtCore.QSize(0, 35))
-        self.qwenmt_model.setObjectName("qwenmt_model")
+        self.bailian_model = QtWidgets.QComboBox()
+        self.bailian_model.setMinimumSize(QtCore.QSize(0, 35))
+        self.bailian_model.setObjectName("bailian_model")
         h_model.addWidget(self.label_selectmodel)
-        h_model.addWidget(self.qwenmt_model)
+        h_model.addWidget(self.bailian_model)
         v1.addLayout(h_model)
 
 
@@ -86,12 +86,12 @@ class Ui_bailian(QDialog):
         label_tts = QtWidgets.QLabel()
         label_tts.setObjectName("label_tts")
         label_tts.setText('TTS '+tr("Model"))
-        self.qwenmt_ttsmodel = QtWidgets.QComboBox()
-        self.qwenmt_ttsmodel.setMinimumSize(QtCore.QSize(0, 35))
-        self.qwenmt_ttsmodel.setObjectName("qwenmt_ttsmodel")
-        self.qwenmt_ttsmodel.addItems(QWEN_TTS_MODELS.split(','))
+        self.bailian_ttsmodel = QtWidgets.QComboBox()
+        self.bailian_ttsmodel.setMinimumSize(QtCore.QSize(0, 35))
+        self.bailian_ttsmodel.setObjectName("bailian_ttsmodel")
+        self.bailian_ttsmodel.addItems(BAILIAN_TTS_MODELS.split(','))
         h_tts.addWidget(label_tts)
-        h_tts.addWidget(self.qwenmt_ttsmodel)
+        h_tts.addWidget(self.bailian_ttsmodel)
         v1.addLayout(h_tts)
 
         self.label_allmodels = QtWidgets.QLabel()
@@ -138,23 +138,23 @@ class Ui_bailian(QDialog):
         QtCore.QMetaObject.connectSlotsByName(form)
 
     def update_ui(self):
-        allmodels_str = settings.get('qwenmt_model','')
-        allmodels = str(settings.get('qwenmt_model','')).split(',')
-        self.qwenmt_model.clear()
-        self.qwenmt_model.addItems([ it  for it in allmodels if "-asr" not in it])
+        allmodels_str = settings.get('bailian_model','')
+        allmodels = str(settings.get('bailian_model','')).split(',')
+        self.bailian_model.clear()
+        self.bailian_model.addItems([ it  for it in allmodels if "-asr" not in it])
         self.edit_allmodels.setPlainText(allmodels_str)
         
 
-        self.qwenmt_key.setText(str(params.get("qwenmt_key",'')))
-        self.qwenmt_spaceid.setText(str(params.get("qwenmt_spaceid",'')))
-        self.qwenmt_domains.setText(str(params.get("qwenmt_domains",'')))
+        self.bailian_key.setText(str(params.get("bailian_key",'')))
+        self.bailian_spaceid.setText(str(params.get("bailian_spaceid",'')))
+        self.bailian_domains.setText(str(params.get("bailian_domains",'')))
         
-        if params["qwenmt_model"] and params['qwenmt_model'] not in allmodels:
-            params['qwenmt_model']='qwen-mt-turbo'
+        if params["bailian_model"] and params['bailian_model'] not in allmodels:
+            params['bailian_model']='qwen-mt-turbo'
             params.save()
 
-        self.qwenmt_model.setCurrentText(params.get("qwenmt_model"))
-        self.qwenmt_ttsmodel.setCurrentText(params.get("qwenmt_ttsmodel",''))
+        self.bailian_model.setCurrentText(params.get("bailian_model"))
+        self.bailian_ttsmodel.setCurrentText(params.get("bailian_ttsmodel",''))
 
     def retranslateUi(self, form):
         form.setWindowTitle(tr("Ali-Bailian"))

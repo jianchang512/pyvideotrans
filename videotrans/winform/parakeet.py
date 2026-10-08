@@ -24,20 +24,20 @@ def openwin():
         return url
 
     def test():
-        url = winobj.parakeet_address.text().strip().strip('/')
+        url = winobj.parakeet_api.text().strip().strip('/')
         if not url:
             return
-        params["parakeet_address"] = _fix_url(url)
+        params["parakeet_api"] = _fix_url(url)
         winobj.test.setText(tr("Testing..."))
         task = TestSTT(parent=winobj, recogn_type=recognition.PARAKEET)
         task.uito.connect(feed)
         task.start()
 
     def save():
-        url = winobj.parakeet_address.text().strip()
+        url = winobj.parakeet_api.text().strip()
         if not url:
             return
-        params["parakeet_address"] = _fix_url(url)
+        params["parakeet_api"] = _fix_url(url)
         params.save()
         set_process(text='', type="refreshtts")
         winobj.close()

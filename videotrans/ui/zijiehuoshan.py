@@ -49,7 +49,7 @@ class Ui_zijiehuoshan(QDialog):
         h_max_token = QtWidgets.QHBoxLayout()
         label_token = QtWidgets.QLabel()
         label_token.setObjectName("label_token")
-        label_token.setText("MaxOutToken")
+        label_token.setText(tr('Maximum output token'))
         self.huoshan_max_token = QtWidgets.QLineEdit()
         self.huoshan_max_token.setMinimumSize(QtCore.QSize(0, 35))
         self.huoshan_max_token.setObjectName("huoshan_max_token")

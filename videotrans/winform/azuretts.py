@@ -28,8 +28,8 @@ def openwin():
         region = winobj.speech_region.text().strip()
         if not region or not region.startswith('https:'):
             region = winobj.azuretts_area.currentText()
-        params['azure_speech_key'] = key
-        params['azure_speech_region'] = region
+        params['azuretts_key'] = key
+        params['azuretts_region'] = region
         from videotrans import tts
         import time
         wk = ListenVoice(parent=winobj, queue_tts=[{"text":  LISTEN_TEXT.get('zh'), "role": 'zh-CN-YunjianNeural',
@@ -40,20 +40,20 @@ def openwin():
         winobj.test.setText('Testing...')
 
     def save():
-        params['azure_speech_key'] = winobj.speech_key.text().strip()
+        params['azuretts_key'] = winobj.speech_key.text().strip()
         region = winobj.speech_region.text().strip()
         if not region or not region.startswith('https:'):
             region = winobj.azuretts_area.currentText()
-        params['azure_speech_region'] = region
+        params['azuretts_region'] = region
         params.save()
         winobj.close()
 
-    if params.get('azure_speech_region','') and params.get('azure_speech_region','').startswith('http'):
-        winobj.speech_region.setText(str(params.get('azure_speech_region','')))
+    if params.get('azuretts_region','') and params.get('azuretts_region','').startswith('http'):
+        winobj.speech_region.setText(str(params.get('azuretts_region','')))
     else:
-        winobj.azuretts_area.setCurrentText(str(params.get('azure_speech_region','')))
-    if params.get('azure_speech_key',''):
-        winobj.speech_key.setText(str(params.get('azure_speech_key','')))
+        winobj.azuretts_area.setCurrentText(str(params.get('azuretts_region','')))
+    if params.get('azuretts_key',''):
+        winobj.speech_key.setText(str(params.get('azuretts_key','')))
     winobj.save.clicked.connect(save)
     winobj.test.clicked.connect(test)
     return winobj

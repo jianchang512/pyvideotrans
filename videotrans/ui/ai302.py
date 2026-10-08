@@ -91,8 +91,8 @@ class Ui_ai302(QDialog):
         QtCore.QMetaObject.connectSlotsByName(form)
 
     def update_ui(self):
-        allmodels_str = settings.get('ai302_models', '')
-        allmodels = str(settings.get('ai302_models', '')).split(',')
+        allmodels_str = settings.get('ai302_model', '')
+        allmodels = str(settings.get('ai302_model', '')).split(',')
 
         self.ai302_model.clear()
         self.ai302_model.addItems(allmodels)

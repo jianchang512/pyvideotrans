@@ -9,7 +9,7 @@ from videotrans.util.help_misc import vail_file
 @dataclass(repr=False)
 class SparkTTS(GradioBase):
     def __post_init__(self):
-        self.ainame = "sparktts"
+        self.ainame = "spark"
         super().__post_init__()
 
     def _run(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:

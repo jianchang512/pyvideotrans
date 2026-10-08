@@ -28,7 +28,7 @@ def openwin():
         params.save()
         winobj.close()
 
-    winobj.edit_allmodels.textChanged.connect(make_setallmodels(winobj, 'ai302_model', 'ai302_models'))
+    winobj.edit_allmodels.textChanged.connect(make_setallmodels(winobj, 'ai302_model', 'ai302_model'))
     winobj.set_ai302.clicked.connect(save_ai302)
     winobj.test_ai302.clicked.connect(test)
     return winobj

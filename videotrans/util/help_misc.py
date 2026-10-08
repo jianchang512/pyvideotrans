@@ -178,7 +178,7 @@ def get_prompt(ainame, aisendsrt=True):
     return content
 
 
-def qwenmt_glossary():
+def bailian_glossary():
     if Path(ROOT_DIR + '/videotrans/glossary.txt').exists():
         glossary = Path(ROOT_DIR + '/videotrans/glossary.txt').read_text(encoding='utf-8-sig', errors="ignore").strip()
         if glossary:

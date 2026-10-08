@@ -58,7 +58,7 @@ class Ui_deepseek(QDialog):
         h_deepseek_max_token = QtWidgets.QHBoxLayout()
         label_deepseek_max_token = QtWidgets.QLabel()
         label_deepseek_max_token.setObjectName("label_deepseek_max_token")
-        label_deepseek_max_token.setText("Max token")
+        label_deepseek_max_token.setText(tr('Maximum output token'))
         self.deepseek_max_token = QtWidgets.QLineEdit()
         self.deepseek_max_token.setMinimumSize(QtCore.QSize(0, 35))
         self.deepseek_max_token.setObjectName("deepseek_max_token")

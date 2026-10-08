@@ -19,6 +19,7 @@ import asyncio
 from pathlib import Path
 from typing import List
 
+from videotrans.configure._default_params import channel_default_params
 from videotrans.ui.advset_keys import notices, ComboBox_List, ComboBox_Data
 
 if sys.platform == "win32":
@@ -39,7 +40,7 @@ config.init_run()
 
 from videotrans.configure.config import ROOT_DIR, TEMP_DIR, app_cfg, params, settings
 from videotrans.configure.constants import FASTER_MODELS_DICT, DEEPGRAM_ASR_MODELS, OPENAI_WHISPER_MODELS, \
-    FUN_ASR_MODELS
+    FUN_ASR_MODELS, DEFAULT_STYLE
 from videotrans import recognition, translator, tts
 from videotrans.util import tools
 from videotrans.util.gpus import getset_gpu
@@ -139,40 +140,6 @@ LOOP_BGM_OPTIONS = {tr("Truncate background audio"): 0, tr("Loop background audi
 # ---------------------------------------------------------------------------
 ASS_JSON_FILE = f"{ROOT_DIR}/videotrans/ass.json"
 
-DEFAULT_ASS_STYLE = {
-    "Name": "Default",
-    "Fontname": "Arial",
-    "Bottom_Fontname": "Arial",
-    "Fontsize": 16,
-    "Bottom_Fontsize": 16,
-    "PrimaryColour": "&H00FFFFFF&",
-    "Bottom_PrimaryColour": "&H00FFFFFF&",
-    "SecondaryColour": "&H00FFFFFF&",
-    "OutlineColour": "&H00000000&",
-    "BackColour": "&H00000000&",
-    "Bold": 0,
-    "Italic": 0,
-    "Bottom_SecondaryColour": "&H00FFFFFF&",
-    "Bottom_OutlineColour": "&H00000000&",
-    "Bottom_BackColour": "&H00000000&",
-    "Bottom_Bold": 0,
-    "Bottom_Italic": 0,
-    "Underline": 0,
-    "StrikeOut": 0,
-    "ScaleX": 100,
-    "ScaleY": 100,
-    "Spacing": 0,
-    "Angle": 0,
-    "BorderStyle": 1,
-    "Outline": 0.5,
-    "Shadow": 0.5,
-    "Alignment": 2,
-    "MarginL": 10,
-    "MarginR": 10,
-    "MarginV": 10,
-    "Encoding": 1,
-}
-
 
 def _parse_ass_color(c):
     if not c.startswith("&H") or not c.endswith("&"):
@@ -199,7 +166,7 @@ def _load_ass_style():
             return json.loads(Path(ASS_JSON_FILE).read_text(encoding="utf-8"))
     except Exception:
         pass
-    return DEFAULT_ASS_STYLE.copy()
+    return DEFAULT_STYLE.copy()
 
 
 def _save_ass_style(s):
@@ -255,671 +222,77 @@ def _safe_get(key, default=""):
         return default
     return v
 
-
+"""
 # ---------------------------------------------------------------------------
 # 渠道设置面板定义
+# 1. translator/recognition/tts 3个包中 _constants.py 中  ID_NAME_DICT 遍历，获取均有 win 属性的项，用win值 到  
+#   videotrans.configure._default_params.py  channel_default_params(win.name) 换取该项所需默认值dict, 
+# 2. 返回的 dict中 字符串、数字、布尔值(checkbox)、select(_model)结尾的值
+# eg.
+# channel_default_params("deepseek")
+ return 
+ {
+            "deepseek_key": "",  # SK 密钥
+            "deepseek_thinking": False,  # 默认不启用思考
+            "deepseek_model": DEEPSEEK_MODELS.split(',')[0],
+            "deepseek_max_token": 16384,  # 最大输出64k
+        }
 # ---------------------------------------------------------------------------
-CHANNEL_SETTINGS = {
-    # === 翻译渠道 ===
-    tr("ChatGPT Translation"): {
-        "category": tr("Subtitle Translation Channels"),
-        "fields": [
-            {
-                "key": "chatgpt_api",
-                "label": "API URL",
-                "type": "text",
-                "default": "",
-                "placeholder": tr("Leave empty to use official API"),
-            },
-            {
-                "key": "chatgpt_key",
-                "label": tr("SK Key"),
-                "type": "text",
-                "default": "",
-                "placeholder": "API Key",
-            },
-            {
-                "key": "chatgpt_max_token",
-                "label": tr("Max Output Tokens"),
-                "type": "text",
-                "default": "8192",
-            },
-            {
-                "key": "chatgpt_model",
-                "label": tr("Model"),
-                "type": "text",
-                "default": "gpt-4o-mini",
-                "placeholder": tr("Enter model name"),
-            },
-        ],
-    },
-    tr("DeepSeek Translation"): {
-        "category": tr("Subtitle Translation Channels"),
-        "fields": [
-            {
-                "key": "deepseek_key",
-                "label": tr("SK Key"),
-                "type": "text",
-                "default": "",
-                "placeholder": "API Key",
-            },
-            {
-                "key": "deepseek_model",
-                "label": tr("Model"),
-                "type": "text",
-                "default": "deepseek-chat",
-                "placeholder": tr("Enter model name"),
-            },
-            {
-                "key": "deepseek_max_token",
-                "label": tr("Max Output Tokens"),
-                "type": "text",
-                "default": "8192",
-            },
-        ],
-    },
-    tr("Gemini Translation"): {
-        "category": tr("Subtitle Translation Channels"),
-        "fields": [
-            {"key": "gemini_key", "label": "Gemini Key", "type": "text", "default": ""},
-            {
-                "key": "gemini_model",
-                "label": tr("Model"),
-                "type": "text",
-                "default": "gemini-2.5-flash",
-                "placeholder": tr("Enter model name"),
-            },
-            {
-                "key": "gemini_maxtoken",
-                "label": tr("Max Tokens"),
-                "type": "text",
-                "default": "8192",
-            },
-        ],
-    },
-    tr("AzureGPT Translation"): {
-        "category": tr("Subtitle Translation Channels"),
-        "fields": [
-            {"key": "azure_api", "label": "API URL", "type": "text", "default": ""},
-            {"key": "azure_key", "label": tr("SK Key"), "type": "text", "default": ""},
-            {
-                "key": "azure_model",
-                "label": tr("Model"),
-                "type": "text",
-                "default": "gpt-4o-mini",
-                "placeholder": tr("Enter model name"),
-            },
-        ],
-    },
-    tr("Local LLM"): {
-        "category": tr("Subtitle Translation Channels"),
-        "fields": [
-            {
-                "key": "localllm_api",
-                "label": "API URL",
-                "type": "text",
-                "default": "http://127.0.0.1:11434/v1",
-                "placeholder": tr("e.g. http://127.0.0.1:11434/v1"),
-            },
-            {
-                "key": "localllm_key",
-                "label": tr("SK Key"),
-                "type": "text",
-                "default": "no-key",
-                "placeholder": tr("Usually fill in no-key"),
-            },
-            {
-                "key": "localllm_max_token",
-                "label": tr("Max Output Tokens"),
-                "type": "text",
-                "default": "8192",
-            },
-            {
-                "key": "localllm_model",
-                "label": tr("Model"),
-                "type": "text",
-                "default": "",
-                "placeholder": tr("Enter model name"),
-            },
-        ],
-    },
-    tr("DeepL Translation"): {
-        "category": tr("Subtitle Translation Channels"),
-        "fields": [
-            {
-                "key": "deepl_authkey",
-                "label": "AUTH KEY",
-                "type": "text",
-                "default": "",
-            },
-            {
-                "key": "deepl_api",
-                "label": tr("API URL (Third-party)"),
-                "type": "text",
-                "default": "",
-                "placeholder": tr("Leave empty to use official API"),
-            },
-            {
-                "key": "deepl_gid",
-                "label": tr("Glossary ID"),
-                "type": "text",
-                "default": "",
-            },
-        ],
-    },
-    tr("Baidu Translation"): {
-        "category": tr("Subtitle Translation Channels"),
-        "fields": [
-            {"key": "baidu_appid", "label": "App ID", "type": "text", "default": ""},
-            {"key": "baidu_miyue", "label": tr("Secret Key"), "type": "text", "default": ""},
-        ],
-    },
-    tr("Tencent Translation"): {
-        "category": tr("Subtitle Translation Channels"),
-        "fields": [
-            {
-                "key": "tencent_SecretId",
-                "label": "SecretId",
-                "type": "text",
-                "default": "",
-            },
-            {
-                "key": "tencent_SecretKey",
-                "label": "SecretKey",
-                "type": "text",
-                "default": "",
-            },
-        ],
-    },
-    tr("Alibaba Bailian (QwenMT)"): {
-        "category": tr("Subtitle Translation Channels"),
-        "fields": [
-            {
-                "key": "qwenmt_key",
-                "label": tr("Bailian SK"),
-                "type": "text",
-                "default": "",
-            },
-            {
-                "key": "qwenmt_model",
-                "label": tr("Translation Model"),
-                "type": "text",
-                "default": "qwen-mt-plus",
-                "placeholder": tr("Must start with qwen-mt"),
-            },
-            {
-                "key": "qwenmt_asr_model",
-                "label": tr("ASR Model"),
-                "type": "text",
-                "default": "qwen3-asr-flash",
-                "placeholder": tr("Must start with qwen3-asr"),
-            },
-        ],
-    },
-    tr("ByteDance VolcEngine"): {
-        "category": tr("Subtitle Translation Channels"),
-        "fields": [
-            {
-                "key": "zijiehuoshan_key",
-                "label": tr("SK Key"),
-                "type": "text",
-                "default": "",
-            },
-            {
-                "key": "zijiehuoshan_model",
-                "label": tr("Inference Endpoint"),
-                "type": "text",
-                "default": "",
-                "placeholder": tr("Enter endpoint name"),
-            },
-        ],
-    },
-    tr("MiniMax Translation"): {
-        "category": tr("Subtitle Translation Channels"),
-        "fields": [
-            {
-                "key": "minimax_key",
-                "label": tr("SK Key"),
-                "type": "text",
-                "default": "",
-            },
-            {
-                "key": "minimax_api",
-                "label": "API URL",
-                "type": "text",
-                "default": "api.minimax.io",
-            },
-            {
-                "key": "minimax_model",
-                "label": tr("Model"),
-                "type": "text",
-                "default": "MiniMax-M3",
-                "placeholder": tr("Enter model name"),
-            },
-            {
-                "key": "minimax_max_tokens",
-                "label": tr("Max Output Tokens"),
-                "type": "text",
-                "default": "8192",
-            },
-        ],
-    },
-    tr("Zhipu AI Translation"): {
-        "category": tr("Subtitle Translation Channels"),
-        "fields": [
-            {"key": "zhipu_key", "label": tr("SK Key"), "type": "text", "default": ""},
-            {
-                "key": "zhipu_model",
-                "label": tr("Model"),
-                "type": "text",
-                "default": "glm-4-flash",
-                "placeholder": tr("Enter model name"),
-            },
-            {
-                "key": "zhipu_max_token",
-                "label": tr("Max Output Tokens"),
-                "type": "text",
-                "default": "8192",
-            },
-        ],
-    },
-    tr("SiliconFlow"): {
-        "category": tr("Subtitle Translation Channels"),
-        "fields": [
-            {"key": "guiji_key", "label": tr("SK Key"), "type": "text", "default": ""},
-            {
-                "key": "guiji_model",
-                "label": tr("Model"),
-                "type": "text",
-                "default": "Qwen/Qwen3-32B",
-                "placeholder": tr("Enter model name"),
-            },
-            {
-                "key": "guiji_max_token",
-                "label": tr("Max Output Tokens"),
-                "type": "text",
-                "default": "8192",
-            },
-        ],
-    },
-    tr("OpenRouter Translation"): {
-        "category": tr("Subtitle Translation Channels"),
-        "fields": [
-            {
-                "key": "openrouter_key",
-                "label": tr("SK Key"),
-                "type": "text",
-                "default": "",
-            },
-            {
-                "key": "openrouter_model",
-                "label": tr("Model"),
-                "type": "text",
-                "default": "",
-                "placeholder": tr("Enter model name"),
-            },
-            {
-                "key": "openrouter_max_token",
-                "label": tr("Max Output Tokens"),
-                "type": "text",
-                "default": "8192",
-            },
-        ],
-    },
-    tr("API Route Translation"): {
-        "category": tr("Subtitle Translation Channels"),
-        "fields": [
-            {"key": "api_route_key", "label": "API Key", "type": "text", "default": ""},
-            {
-                "key": "api_route_model",
-                "label": tr("Model"),
-                "type": "text",
-                "default": "gpt-5.4-mini",
-                "placeholder": tr("Enter model name"),
-            },
-            {
-                "key": "api_route_max_token",
-                "label": tr("Max Output Tokens"),
-                "type": "text",
-                "default": "8192",
-            },
-        ],
-    },
-    tr("Cheaper Inference Translation"): {
-        "category": tr("Subtitle Translation Channels"),
-        "fields": [
-            {
-                "key": "cheaperinference_key",
-                "label": "API Key",
-                "type": "text",
-                "default": "",
-            },
-            {
-                "key": "cheaperinference_model",
-                "label": tr("Model"),
-                "type": "text",
-                "default": "gpt-5.4-mini",
-                "placeholder": tr("Enter model name"),
-            },
-            {
-                "key": "cheaperinference_max_token",
-                "label": tr("Max Output Tokens"),
-                "type": "text",
-                "default": "8192",
-            },
-        ],
-    },
-    tr("Infistar Translation"): {
-        "category": tr("Subtitle Translation Channels"),
-        "fields": [
-            {"key": "infistar_key", "label": "API Key", "type": "text", "default": ""},
-            {
-                "key": "infistar_model",
-                "label": tr("Model"),
-                "type": "text",
-                "default": "gpt-5.4-mini",
-                "placeholder": tr("Enter model name"),
-            },
-            {
-                "key": "infistar_max_token",
-                "label": tr("Max Output Tokens"),
-                "type": "text",
-                "default": "8192",
-            },
-        ],
-    },
-    tr("Atlas Cloud"): {
-        "category": tr("Subtitle Translation Channels"),
-        "fields": [
-            {"key": "atlascloud_key", "label": "API Key", "type": "text", "default": ""},
-            {"key": "atlascloud_model", "label": "Model", "type": "text", "default": "deepseek-ai/deepseek-v4-flash",
-             "placeholder": ""},
-            {"key": "atlascloud_max_token", "label": "Max-out-token", "type": "text", "default": "8192"},
-        ],
-    },
-    tr("Xiaomi AI Translation"): {
-        "category": tr("Subtitle Translation Channels"),
-        "fields": [
-            {
-                "key": "xiaomi_key",
-                "label": tr("Xiaomi Key"),
-                "type": "text",
-                "default": "",
-            },
-            {
-                "key": "xiaomi_model",
-                "label": tr("Model"),
-                "type": "text",
-                "default": "mimo-v2.5-pro",
-                "placeholder": tr("Enter model name"),
-            },
-            {
-                "key": "xiaomi_maxtoken",
-                "label": tr("Max Tokens"),
-                "type": "text",
-                "default": "8192",
-            },
-        ],
-    },
-    # === 语音识别渠道 ===
-    "OpenAI ASR": {
-        "category": tr("ASR Channels"),
-        "fields": [
-            {
-                "key": "openairecognapi_url",
-                "label": "API URL",
-                "type": "text",
-                "default": "",
-                "placeholder": tr("Leave empty to use official API"),
-            },
-            {
-                "key": "openairecognapi_key",
-                "label": tr("SK Key"),
-                "type": "text",
-                "default": "",
-            },
-            {
-                "key": "openairecognapi_model",
-                "label": tr("Model"),
-                "type": "text",
-                "default": "whisper-1",
-                "placeholder": tr("Enter model name"),
-            },
-        ],
-    },
-    "Deepgram ASR": {
-        "category": tr("ASR Channels"),
-        "fields": [
-            {
-                "key": "deepgram_apikey",
-                "label": "API Key",
-                "type": "text",
-                "default": "",
-            },
-        ],
-    },
-    "Audexum ASR": {
-        "category": tr("ASR Channels"),
-        "fields": [
-            {"key": "audexum_key", "label": "API Key", "type": "text", "default": ""},
-        ],
-    },
-    "Parakeet ASR": {
-        "category": tr("ASR Channels"),
-        "fields": [
-            {
-                "key": "parakeet_address",
-                "label": "API URL",
-                "type": "text",
-                "default": "http://127.0.0.1:8080",
-            },
-        ],
-    },
-    tr("ByteDance ASR"): {
-        "category": tr("ASR Channels"),
-        "fields": [
-            {
-                "key": "zijierecognmodel_appid",
-                "label": "AppID",
-                "type": "text",
-                "default": "",
-            },
-            {
-                "key": "zijierecognmodel_token",
-                "label": "Access Token",
-                "type": "text",
-                "default": "",
-            },
-        ],
-    },
-    # === 配音渠道 ===
-    "OpenAI TTS": {
-        "category": tr("TTS Channel"),
-        "fields": [
-            {
-                "key": "openaitts_api",
-                "label": "API URL",
-                "type": "text",
-                "default": "",
-                "placeholder": tr("Leave empty to use official API"),
-            },
-            {
-                "key": "openaitts_key",
-                "label": tr("SK Key"),
-                "type": "text",
-                "default": "",
-            },
-            {
-                "key": "openaitts_model",
-                "label": tr("Model"),
-                "type": "text",
-                "default": "tts-1",
-                "placeholder": tr("Enter model name"),
-            },
-        ],
-    },
-    "Azure TTS": {
-        "category": tr("TTS Channel"),
-        "fields": [
-            {
-                "key": "azure_speech_key",
-                "label": "SPEECH KEY",
-                "type": "text",
-                "default": "",
-            },
-            {
-                "key": "azure_speech_region",
-                "label": "Region / URL",
-                "type": "text",
-                "default": "eastasia",
-                "placeholder": tr("e.g. eastasia or full URL"),
-            },
-        ],
-    },
-    "ElevenLabs TTS": {
-        "category": tr("TTS Channel"),
-        "fields": [
-            {
-                "key": "elevenlabstts_key",
-                "label": "API Key",
-                "type": "text",
-                "default": "",
-            },
-        ],
-    },
-    "GPT-SoVITS": {
-        "category": tr("TTS Channel"),
-        "fields": [
-            {
-                "key": "gptsovits_url",
-                "label": "API URL",
-                "type": "text",
-                "default": "http://127.0.0.1:9880",
-            },
-        ],
-    },
-    "Spark / Index / VoxCPM": {
-        "category": tr("TTS Channel"),
-        "fields": [
-            {
-                "key": "sparktts_url",
-                "label": "Spark-TTS URL",
-                "type": "text",
-                "default": "http://127.0.0.1:7860",
-            },
-            {
-                "key": "indextts_url",
-                "label": "Index-TTS URL",
-                "type": "text",
-                "default": "http://127.0.0.1:7860",
-            },
-            {
-                "key": "voxcpmtts_url",
-                "label": "VoxCPM URL",
-                "type": "text",
-                "default": "http://127.0.0.1:7860",
-            },
-        ],
-    },
-    "CosyVoice TTS": {
-        "category": tr("TTS Channel"),
-        "fields": [
-            {
-                "key": "cosyvoice_url",
-                "label": "WebUI URL",
-                "type": "text",
-                "default": "http://127.0.0.1:8000",
-            },
-            {
-                "key": "cosyvoice_instruct_text",
-                "label": tr("Prompt Text"),
-                "type": "text",
-                "default": "",
-            },
-        ],
-    },
-    tr("Alibaba Bailian TTS (Qwen-TTS)"): {
-        "category": tr("TTS Channel"),
-        "fields": [
-            {
-                "key": "qwentts_key",
-                "label": tr("Bailian SK"),
-                "type": "text",
-                "default": "",
-            },
-            {
-                "key": "qwentts_model",
-                "label": tr("Model"),
-                "type": "text",
-                "default": "qwen3-tts-flash",
-                "placeholder": tr("Enter model name"),
-            },
-        ],
-    },
-    tr("Qwen-TTS Local"): {
-        "category": tr("TTS Channel"),
-        "fields": [
-            {
-                "key": "qwenttslocal_prompt",
-                "label": tr("Custom Voice Prompt"),
-                "type": "text",
-                "default": "",
-            },
-        ],
-    },
-    tr("Doubao TTS 2.0"): {
-        "category": tr("TTS Channel"),
-        "fields": [
-            {"key": "doubao2_appid", "label": "App ID", "type": "text", "default": ""},
-            {
-                "key": "doubao2_access",
-                "label": "Access Token",
-                "type": "text",
-                "default": "",
-            },
-        ],
-    },
-    "Minimaxi TTS": {
-        "category": tr("TTS Channel"),
-        "fields": [
-            {
-                "key": "minimaxi_apikey",
-                "label": tr("SK Key"),
-                "type": "text",
-                "default": "",
-            },
-            {
-                "key": "minimaxi_apiurl",
-                "label": "API URL",
-                "type": "text",
-                "default": "api.minimaxi.com",
-            },
-        ],
-    },
-    "X.AI TTS": {
-        "category": tr("TTS Channel"),
-        "fields": [
-            {
-                "key": "xaitts_key",
-                "label": tr("SK Key"),
-                "type": "text",
-                "default": "",
-            },
-        ],
-    },
-    tr("Xiaomi TTS"): {
-        "category": tr("TTS Channel"),
-        "fields": [
-            {
-                "key": "xiaomi_key",
-                "label": tr("Xiaomi Key"),
-                "type": "text",
-                "default": "",
-            },
-        ],
-    },
-}
+"""
+CHANNEL_SETTINGS={}
+_HAD_WIN=[]
+from videotrans.translator import ID_NAME_DICT as trans_idname
+from videotrans.recognition import ID_NAME_DICT as stt_idname
+from videotrans.tts import ID_NAME_DICT as tts_idname
 
+
+def _add_channel(it,title):
+
+    pas=channel_default_params(it.win)
+    if not pas:return
+    _HAD_WIN.append(it.win)
+    tmp={
+        "category":title,
+        "fields":[]
+    }
+    for k,v in pas.items():
+        k_split=k.split('_',1)
+        k_type="text"
+        choices=[]
+        if v in [True,False]:
+            k_type="checkbox"
+        elif k_split[-1].endswith('model'):
+            k_type='select'
+            choices=settings.get(k,'').split(',')
+        elif k=='gptsovits_role':
+            k_type="textarea"
+        elif isinstance(v,int|float):
+            k_type="number"
+
+        tmp['fields'].append(
+            {
+                "key": k,
+                "label":k_split[-1],
+                "type": k_type,
+                "default": v,
+                "placeholder": k,
+                "choices":choices
+            }
+        )
+    CHANNEL_SETTINGS[it.name]=tmp
+
+for it in trans_idname.values():
+    if not it.win or it.win in _HAD_WIN:continue
+    _add_channel(it,tr("Subtitle Translation Channels"))
+
+# print(f'{CHANNEL_SETTINGS=}')
+for it in stt_idname.values():
+    if not it.win or it.win in _HAD_WIN:continue
+    _add_channel(it,tr("ASR Channels"))
+
+for it in tts_idname.values():
+    if not it.win or it.win in _HAD_WIN:continue
+    _add_channel(it,tr("TTS Channel"))
 
 # ---------------------------------------------------------------------------
 # ASS 样式编辑器（纯 Gradio）
@@ -1196,8 +569,8 @@ def build_ass_editor():
             return tr("Style saved")
 
         def reset_ass_style():
-            _save_ass_style(DEFAULT_ASS_STYLE.copy())
-            s = DEFAULT_ASS_STYLE
+            _save_ass_style(DEFAULT_STYLE.copy())
+            s = DEFAULT_STYLE
             return (
                 s["Fontname"],
                 s["Fontsize"],
@@ -1339,12 +712,41 @@ def build_channel_settings():
                         fields = []
                         for f in ch_cfg["fields"]:
                             val = str(_safe_get(f["key"], f.get("default", "")))
-                            tb = gr.Textbox(
-                                label=f["label"],
-                                value=val,
-                                placeholder=f.get("placeholder", ""),
-                                interactive=True,
-                            )
+
+                            if f['type']=='number':
+                                tb=gr.Number(
+                                    label=f["label"],
+                                    value=val,
+                                    placeholder=f.get("placeholder", ""),
+                                    interactive=True,
+                                )
+                            elif f['type']=='checkbox':
+                                tb=gr.Checkbox(
+                                    label=f["label"],
+                                    value=val,
+                                    interactive=True,
+                                )
+                            elif f['type']=='select':
+                                tb=gr.Dropdown(
+                                    choices=f.get('choices',[]),
+                                    label=f["label"],
+                                    value=val,
+                                    interactive=True,
+                                )
+                            elif f['type']=='textarea':
+                                tb=gr.TextArea(
+                                    label=f["label"],
+                                    value=val,
+                                    placeholder=f.get("placeholder", ""),
+                                    interactive=True,
+                                )
+                            else:
+                                tb = gr.Textbox(
+                                    label=f["label"],
+                                    value=val,
+                                    placeholder=f.get("placeholder", ""),
+                                    interactive=True,
+                                )
                             fields.append((f["key"], tb))
 
                         save_btn = gr.Button(tr("Save"), size="sm")

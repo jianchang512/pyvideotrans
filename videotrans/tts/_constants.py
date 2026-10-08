@@ -1,5 +1,6 @@
 from videotrans import ChannelProvider
 from videotrans.configure._i18n import tr
+
 """
 如果想新增渠道
 1. 定义一个常量，值为以下递增的序号
@@ -32,7 +33,7 @@ FIRERED3_TTS = 16
 
 # 云 API
 DOUBAO2_TTS = 17
-QWEN_TTS = 18
+BAILIAN_TTS = 18
 XIAOMI_TTS = 19
 GLM_TTS = 20
 MINIMAXI_TTS = 21
@@ -57,7 +58,7 @@ AZURE_TTS = 32
 AI302_TTS = 33
 CAMB_TTS = 34
 
-#自定义API
+# 自定义API
 TTS_API = 35
 # 在线API
 SILICONFLOW_API = 36
@@ -100,61 +101,150 @@ LOCAL_BUILTIN = [
 
 # 配音角色根据语言不同而变化的渠道
 CHANGE_BY_LANGUAGE = [EDGE_TTS, MINIMAXI_TTS, AZURE_TTS, DOUBAO2_TTS, AI302_TTS, KOKORO_TTS,
-                      PIPER_TTS, VITSCNEN_TTS,DEEPGRAM_TTS]
+                      PIPER_TTS, VITSCNEN_TTS, DEEPGRAM_TTS]
 
 # 渠道id对应的设置窗口和sk键名,
 # key_name: 存储 SK 或 api url的键，通过 app_cfg.params 调用，如果不存在该值，在使用时报错未填写
 # win: 对应 winform 包中的文件名及 ui 包中的文件名，用于调用打开设置窗口
 # imp 为该渠道实际代码文件，位于当前目录下
 ID_NAME_DICT = {
-    EDGE_TTS: ChannelProvider(tr("Edge-TTS(free)"), imp="._edgetts"),
-    QWEN3LOCAL_TTS: ChannelProvider(f"Qwen3-TTS({tr('Built-in')})", imp="._qwenttslocal"),
-    F5_TTS: ChannelProvider(f"F5-TTS({tr('Built-in')})", imp="._f5tts"),
-    OMNIVOICE_TTS: ChannelProvider(f"OmniVoice({tr('Built-in')})", imp="._omnivoice"),
-    CONFUCIUS_TTS: ChannelProvider(f"Confucius4({tr('Built-in')})", imp="._confuciustts"),
-    MOSS_TTS: ChannelProvider(f"MOSS-TTS-Nano({tr('Built-in')})", imp="._mosstts"),
-    ZIPVOICE_TTS: ChannelProvider(f"{tr('ZipVoice')}({tr('Built-in')})", imp="._zipvoice"),
-    PIPER_TTS: ChannelProvider(f"Piper({tr('Built-in')})", imp="._piper"),
-    CHATTERBOX_TTS: ChannelProvider(f"ChatterBox({tr('Built-in')})", imp="._chatterbox", win="chatterbox"),
-    Supertonic_TTS: ChannelProvider(f"Supertonic3({tr('Built-in')})", imp="._supertonic"),
-    VITSCNEN_TTS: ChannelProvider(f"{tr('VITS')}({tr('Built-in')})", imp="._vits"),
-    HIGGS_AUDIO_TTS: ChannelProvider(f"Higgs-audio-v3({tr('Built-in')})", imp="._higgs"),
+    EDGE_TTS: ChannelProvider(tr("Edge-TTS(free)"),
+                              imp="._edgetts"),
+    QWEN3LOCAL_TTS: ChannelProvider(f"Qwen3-TTS({tr('Built-in')})",
+                                    imp="._qwenttslocal"),
+    F5_TTS: ChannelProvider(f"F5-TTS({tr('Built-in')})",
+                            imp="._f5tts"),
+    OMNIVOICE_TTS: ChannelProvider(f"OmniVoice({tr('Built-in')})",
+                                   imp="._omnivoice"),
+    CONFUCIUS_TTS: ChannelProvider(f"Confucius4({tr('Built-in')})",
+                                   imp="._confuciustts"),
+    MOSS_TTS: ChannelProvider(f"MOSS-TTS-Nano({tr('Built-in')})",
+                              imp="._mosstts"),
+    ZIPVOICE_TTS: ChannelProvider(f"{tr('ZipVoice')}({tr('Built-in')})",
+                                  imp="._zipvoice"),
+    PIPER_TTS: ChannelProvider(f"Piper({tr('Built-in')})",
+                               imp="._piper"),
+    CHATTERBOX_TTS: ChannelProvider(f"ChatterBox({tr('Built-in')})",
+                                    imp="._chatterbox",
+                                    win="chatterbox"),
+    Supertonic_TTS: ChannelProvider(f"Supertonic3({tr('Built-in')})",
+                                    imp="._supertonic"),
+    VITSCNEN_TTS: ChannelProvider(f"{tr('VITS')}({tr('Built-in')})",
+                                  imp="._vits"),
+    HIGGS_AUDIO_TTS: ChannelProvider(f"Higgs-audio-v3({tr('Built-in')})",
+                                     imp="._higgs"),
 
-    INDEX_TTS: ChannelProvider(f"Index-TTS({tr('Local')}API)", imp="._index", key_name="indextts_url", win="gradiowin"),
-    GPTSOVITS_TTS: ChannelProvider(f"GPT-SoVITS({tr('Local')}API)", imp="._gptsovits", key_name="gptsovits_url",
+    INDEX_TTS: ChannelProvider(f"Index-TTS({tr('Local')}API)",
+                               imp="._index",
+                               key_name="index_url",
+                               win="gradiowin"),
+    GPTSOVITS_TTS: ChannelProvider(f"GPT-SoVITS({tr('Local')}API)",
+                                   imp="._gptsovits",
+                                   key_name="gptsovits_url",
                                    win="gptsovits"),
-    COSYVOICE_TTS: ChannelProvider(f"CosyVoice({tr('Local')}API)", imp="._cosyvoice", key_name="cosyvoice_url",
+    COSYVOICE_TTS: ChannelProvider(f"CosyVoice({tr('Local')}API)",
+                                   imp="._cosyvoice",
+                                   key_name="cosyvoice_url",
                                    win="cosyvoice"),
-    VOXCPM_TTS: ChannelProvider(f"VoxCPM({tr('Local')}API)", imp="._voxcpm", key_name="voxcpmtts_url", win="gradiowin"),
-    FIRERED3_TTS: ChannelProvider(f"FireRed3({tr('Local')}API)", imp="._firered3tts", key_name="firered3tts_url",
+    VOXCPM_TTS: ChannelProvider(f"VoxCPM({tr('Local')}API)",
+                                imp="._voxcpm",
+                                key_name="voxcpm_url",
+                                win="gradiowin"),
+    FIRERED3_TTS: ChannelProvider(f"FireRed3({tr('Local')}API)",
+                                  imp="._firered3tts",
+                                  key_name="firered3tts_url",
                                   win="gradiowin"),
 
-    DOUBAO2_TTS: ChannelProvider(tr("DouBao2"), imp="._doubao2", key_name="doubao2_access", win="doubao2"),
-    QWEN_TTS: ChannelProvider(f"{tr('Ali-Bailian')}", imp="._bailian", key_name="qwenmt_key", win="bailian"),
-    XIAOMI_TTS: ChannelProvider(tr('XiaoMi'), imp="._xiaomi", key_name="xiaomi_key", win="xiaomi"),
-    GLM_TTS: ChannelProvider(f'{tr("Zhipu AI")}', imp="._glmtts", key_name="zhipuai_key", win="zhipuai"),
-    MINIMAXI_TTS: ChannelProvider("Minimaxi TTS", imp="._minimaxi", key_name="minimaxi_key", win="minimaxi"),
+    DOUBAO2_TTS: ChannelProvider(tr("DouBao2"),
+                                 imp="._doubao2",
+                                 key_name="doubao2_access",
+                                 win="doubao2"),
+    BAILIAN_TTS: ChannelProvider(f"{tr('Ali-Bailian')}",
+                              imp="._bailian",
+                              key_name="bailian_key",
+                              win="bailian"),
+    XIAOMI_TTS: ChannelProvider(tr('XiaoMi'),
+                                imp="._xiaomi",
+                                key_name="xiaomi_key",
+                                win="xiaomi"),
+    GLM_TTS: ChannelProvider(f'{tr("Zhipu AI")}',
+                             imp="._glmtts",
+                             key_name="zhipuai_key",
+                             win="zhipuai"),
+    MINIMAXI_TTS: ChannelProvider("Minimaxi TTS",
+                                  imp="._minimaxi",
+                                  key_name="minimaxi_key",
+                                  win="minimaxi"),
 
-    OPENAI_TTS: ChannelProvider("OpenAI TTS", imp="._openaitts", key_name="openaitts_key", win="openaitts"),
-    GEMINI_TTS: ChannelProvider("Gemini TTS", imp="._geminitts", key_name="gemini_key", win="gemini"),
-    ELEVENLABS_TTS: ChannelProvider("Elevenlabs.io", imp="._elevenlabs", key_name="elevenlabstts_key", win="elevenlabs"),
-    XAI_TTS: ChannelProvider('X.AI TTS', imp="._xaitts", key_name="xaitts_key", win="xaitts"),
-    G_TTS: ChannelProvider(f"gTTS({tr('free')})", imp="._gtts"),
+    OPENAI_TTS: ChannelProvider("OpenAI TTS",
+                                imp="._openaitts",
+                                key_name="openaitts_key",
+                                win="openaitts"),
+    GEMINI_TTS: ChannelProvider("Gemini TTS",
+                                imp="._geminitts",
+                                key_name="gemini_key",
+                                win="gemini"),
+    ELEVENLABS_TTS: ChannelProvider("Elevenlabs.io",
+                                    imp="._elevenlabs",
+                                    key_name="elevenlabstts_key",
+                                    win="elevenlabs"),
+    XAI_TTS: ChannelProvider('X.AI TTS',
+                             imp="._xaitts",
+                             key_name="xaitts_key",
+                             win="xaitts"),
+    G_TTS: ChannelProvider(f"gTTS({tr('free')})",
+                           imp="._gtts"),
 
-    CHATTTS: ChannelProvider(f"ChatTTS({tr('Local')}API)", imp="._chattts", key_name="chattts_api", win="chattts"),
-    SPARK_TTS: ChannelProvider(f"Spark-TTS({tr('Local')}API)", imp="._spark", key_name="sparktts_url", win="f5tts"),
-    KOKORO_TTS: ChannelProvider(f"kokoro({tr('Local')}API)", imp="._kokoro", key_name="kokoro_api", win="kokoro"),
-    FISHTTS: ChannelProvider(f"Fish TTS({tr('Local')}API)", imp="._fishtts", key_name="fishtts_url", win="fishtts"),
+    CHATTTS: ChannelProvider(f"ChatTTS({tr('Local')}API)",
+                             imp="._chattts",
+                             key_name="chattts_api",
+                             win="chattts"),
+    SPARK_TTS: ChannelProvider(f"Spark-TTS({tr('Local')}API)",
+                               imp="._spark",
+                               key_name="spark_url",
+                               win="gradiowin"),
+    KOKORO_TTS: ChannelProvider(f"kokoro({tr('Local')}API)",
+                                imp="._kokoro",
+                                key_name="kokoro_api",
+                                win="kokoro"),
+    FISHTTS: ChannelProvider(f"Fish TTS({tr('Local')}API)",
+                             imp="._fishtts",
+                             key_name="fishtts_url",
+                             win="fishtts"),
 
-    CLONE_VOICE_TTS: ChannelProvider(f"clone-voice({tr('Local')}API)", imp="._clone", key_name="clone_api", win="clone"),
-    AZURE_TTS: ChannelProvider("Azure TTS", imp="._azure", key_name="azure_speech_key", win="azuretts"),
-    AI302_TTS: ChannelProvider("302.ai", imp="._ai302", key_name="ai302_key", win="ai302"),
-    CAMB_TTS: ChannelProvider("CAMB.ai", imp="._camb", key_name="camb_api_key", win="camb"),
+    CLONE_VOICE_TTS: ChannelProvider(f"clone-voice({tr('Local')}API)",
+                                     imp="._clone",
+                                     key_name="clone_api",
+                                     win="clone"),
+    AZURE_TTS: ChannelProvider("Azure TTS",
+                               imp="._azure",
+                               key_name="azuretts_key",
+                               win="azuretts"),
+    AI302_TTS: ChannelProvider("302.ai",
+                               imp="._ai302",
+                               key_name="ai302_key",
+                               win="ai302"),
+    CAMB_TTS: ChannelProvider("CAMB.ai",
+                              imp="._camb",
+                              key_name="camb_api_key",
+                              win="camb"),
 
-    TTS_API: ChannelProvider(tr("Customize API"), imp="._ttsapi", key_name="ttsapi_url", win="ttsapi"),
-    SILICONFLOW_API: ChannelProvider(tr("SiliconFlow"), imp="._siliconflow", key_name="siliconflow_key", win="siliconflow" ),
-    OPENROUTER_API: ChannelProvider("OpenRouter.ai", imp="._openrouter", key_name="openrouter_key", win="openrouter" ),
-    DEEPGRAM_TTS: ChannelProvider("Deepgram.com", imp="._deepgram", key_name="deepgram_key", win="deepgram" ),
+    TTS_API: ChannelProvider(tr("Customize API"),
+                             imp="._ttsapi",
+                             key_name="ttsapi_url",
+                             win="ttsapi"),
+    SILICONFLOW_API: ChannelProvider(tr("SiliconFlow"),
+                                     imp="._siliconflow",
+                                     key_name="siliconflow_key",
+                                     win="siliconflow"),
+    OPENROUTER_API: ChannelProvider("OpenRouter.ai",
+                                    imp="._openrouter",
+                                    key_name="openrouter_key",
+                                    win="openrouter"),
+    DEEPGRAM_TTS: ChannelProvider("Deepgram.com",
+                                  imp="._deepgram",
+                                  key_name="deepgram_key",
+                                  win="deepgram"),
 }
 
 # 强制保持按照每个常量值大小排序

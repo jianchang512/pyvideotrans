@@ -47,7 +47,7 @@ class Ui_xiaomi(QDialog):
         h_token=QtWidgets.QHBoxLayout()
         label_token = QtWidgets.QLabel()
         label_token.setObjectName("label_token")
-        label_token.setText('Max Token')
+        label_token.setText(tr('Maximum output token'))
         self.xiaomi_max_token = QtWidgets.QLineEdit()
         self.xiaomi_max_token.setObjectName("xiaomi_max_token")
         

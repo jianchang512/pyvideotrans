@@ -296,7 +296,7 @@ def get_clone_role(set_p=False):
         url = params.get('clone_api', '').strip().rstrip('/') + "/init"
         res = requests.get('http://' + url.replace('http://', ''), proxies={"http": "", "https": ""})
         res.raise_for_status()
-        params["clone_voicelist"] = ['No', "clone"] + res.json()
+        params["clone_voicelist"] = ",".join(['No', "clone"] + res.json())
         help_misc.set_process(type='refreshtts')
     except Exception:
         if set_p: raise
@@ -332,7 +332,7 @@ def role_menu(tts_type, langcode=None) -> List:
     if tts_type == tts.XIAOMI_TTS:
         return ['No'] + constants.MITTS_ROLES.split(',')
 
-    if tts_type == tts.QWEN_TTS:
+    if tts_type == tts.BAILIAN_TTS:
         return list(get_qwen3tts_rolelist().keys())
 
     if tts_type == tts.Supertonic_TTS:
@@ -353,8 +353,8 @@ def role_menu(tts_type, langcode=None) -> List:
         return get_camb_role()
 
     if tts_type == tts.CLONE_VOICE_TTS:
-        _list = params.get("clone_voicelist")
-        return ['No'] if not isinstance(_list, list) else _list
+        _list = params.get("clone_voicelist",'').split(',')
+        return _list
 
     if tts_type == tts.CHATTTS:
         return ['No'] + list(str(settings.get('chattts_voice','')).split(','))

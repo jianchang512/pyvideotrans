@@ -7,18 +7,18 @@ from videotrans.configure.excepts import TranslateSrtError
 from videotrans.configure.config import params, logger
 from videotrans.translator import get_source_target_code, CHATGPT_INDEX
 from videotrans.translator._base import BaseTrans
-from videotrans.util.help_misc import qwenmt_glossary
+from videotrans.util.help_misc import bailian_glossary
 from openai import OpenAI
 
 
 @dataclass(repr=False)
-class QwenMT(BaseTrans):
+class BianlianMT(BaseTrans):
 
     def __post_init__(self):
         super().__post_init__()
         self.ainame="bailian"
-        spaceid=params.get('qwenmt_spaceid', '').strip()
-        self.model_name=params.get('qwenmt_model', 'qwen-mt-turbo')
+        spaceid=params.get('bailian_spaceid', '').strip()
+        self.model_name=params.get('bailian_model', 'qwen-mt-turbo')
         if self.model_name=='qwen-turbo':
             self.model_name='qwen-mt-turbo'
         # 非 qwen-mt 则为其他文字生成模型，需要语言名称
@@ -53,16 +53,16 @@ class QwenMT(BaseTrans):
             "target_lang": self.target_code.split('-')[0]
         }
         # 术语表
-        term=qwenmt_glossary()
+        term=bailian_glossary()
         if term:
             translation_options['terms']=term
-        if params.get("qwenmt_domains"):
-            translation_options['domains']=params.get("qwenmt_domains")
+        if params.get("bailian_domains"):
+            translation_options['domains']=params.get("bailian_domains")
 
 
         response = dashscope.Generation.call(
             # 若没有配置环境变量，请用阿里云百炼API Key将下行替换为：api_key="sk-xxx",
-            api_key=params.get('qwenmt_key',''),
+            api_key=params.get('bailian_key',''),
             model=self.model_name,
             messages=messages,
             result_format='message',
@@ -97,7 +97,7 @@ class QwenMT(BaseTrans):
             client = OpenAI(
                 # 各地域的API Key不同。获取API Key：https://www.alibabacloud.com/help/zh/model-studio/get-api-key
                 # 若没有配置环境变量，请用阿里云百炼API Key将下行替换为：api_key="sk-xxx",
-                api_key=params.get('qwenmt_key',''),
+                api_key=params.get('bailian_key',''),
                 # 以下为新加坡地域URL，调用时请将{WorkspaceId}替换为真实的业务空间ID，各地域的URL不同。
                 base_url=self.api_url,
                 http_client=httpx.Client(proxy=None)

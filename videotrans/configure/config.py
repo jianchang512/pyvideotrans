@@ -17,7 +17,7 @@ logger = _set_logs()
 
 app_cfg: AppCfg = AppCfg()
 settings: AppSettings = AppSettings()
-params: AppParams = AppParams(_sets=settings)
+params: AppParams = AppParams()
 
 HOME_DIR = settings.homedir
 Path(HOME_DIR).mkdir(parents=True, exist_ok=True)

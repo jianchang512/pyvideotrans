@@ -10,12 +10,11 @@ from videotrans.configure._paths import ROOT_DIR
 from videotrans.configure._logging import _write_with_retry
 from videotrans.configure.constants import (
     CHATTTS_ROLES,
-    WHISPER_MODELS,
     OPENAIRECOGNAPI_MODELS,
-    WHISPER_CPP_MODELS, MINIMAX_MODELS,
-    XIAOMI_MODELS, WHISPER_NET_MODELS, AI302_MODELS, QWENMT_MODELS, CHATGPT_MODELS, AZURE_MODELS, LOCALLLM_MODELS,
+     MINIMAX_MODELS,
+    XIAOMI_MODELS,  AI302_MODELS, BAILIAN_MODELS, CHATGPT_MODELS, AZURE_MODELS, LOCALLLM_MODELS,
     ZHIPUAI_MODELS, DEEPSEEK_MODELS, OPENROUTER_MODELS, LITELLM_MODELS, APIROUTE_MODELS, CheaperInference_MODELS,
-    SILICONFLOW_MODELS, ZIJIEHUOSHAN_MODELS, GEMINI_MODELS, OPENAI_TTS_MODELS, QWEN_TTS_MODELS,INFISTAR_MODELS, ATLASCLOUD_MODELS
+    SILICONFLOW_MODELS, ZIJIEHUOSHAN_MODELS, GEMINI_MODELS, OPENAI_TTS_MODELS, INFISTAR_MODELS, ATLASCLOUD_MODELS
 
 )
 
@@ -99,28 +98,30 @@ class AppSettings:
 
     @staticmethod
     def _models_dict():
+
+        # 存储用于在设置界面手动填写的、用于供选择当前使用的n个模型，一般用于文本生成模型
         return {
-            "ai302_models": AI302_MODELS,
-            'qwenmt_model': QWENMT_MODELS,
-            "openaitts_model": OPENAI_TTS_MODELS,
-            "openairecognapi_model": OPENAIRECOGNAPI_MODELS,
-            "chatgpt_model": CHATGPT_MODELS,
-            "azure_model": AZURE_MODELS,
-            "localllm_model": LOCALLLM_MODELS,
-            "zhipuai_model": ZHIPUAI_MODELS,
-            "deepseek_model": DEEPSEEK_MODELS,
-            "xiaomi_model": XIAOMI_MODELS,
-            "openrouter_model": OPENROUTER_MODELS,
-            "litellm_model": LITELLM_MODELS,
+            "ai302_model": AI302_MODELS,
             "api_route_model": APIROUTE_MODELS,
             "atlascloud_model": ATLASCLOUD_MODELS,
-            "cheaperinference_model": CheaperInference_MODELS,
-            "siliconflow_model": SILICONFLOW_MODELS,
-            "zijiehuoshan_model": ZIJIEHUOSHAN_MODELS,
-            "infistar_model": INFISTAR_MODELS,
-            "minimaxi_model": MINIMAX_MODELS,
+            "azure_model": AZURE_MODELS,
+            'bailian_model': BAILIAN_MODELS,
+            "chatgpt_model": CHATGPT_MODELS,
             "chattts_voice": CHATTTS_ROLES,
+            "cheaperinference_model": CheaperInference_MODELS,
+            "deepseek_model": DEEPSEEK_MODELS,
             "gemini_model": GEMINI_MODELS,
+            "infistar_model": INFISTAR_MODELS,
+            "litellm_model": LITELLM_MODELS,
+            "localllm_model": LOCALLLM_MODELS,
+            "minimaxi_model": MINIMAX_MODELS,
+            "openairecognapi_model": OPENAIRECOGNAPI_MODELS,
+            "openaitts_model": OPENAI_TTS_MODELS,
+            "openrouter_model": OPENROUTER_MODELS,
+            "siliconflow_model": SILICONFLOW_MODELS,
+            "xiaomi_model": XIAOMI_MODELS,
+            "zhipuai_model": ZHIPUAI_MODELS,
+            "zijiehuoshan_model": ZIJIEHUOSHAN_MODELS,
         }
 
     def _get_defaults(self) -> Dict:

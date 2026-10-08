@@ -29,7 +29,7 @@
 [2. UI 与参数配置 (需配置项时)]
     videotrans/ui/{name}.py             --> 界面布局 (UI)
     videotrans/winform/{name}.py        --> 业务交互控制 (WinForm)
-    videotrans/configure/_app_params.py --> 注入默认参数
+    videotrans/configure/_default_params.py --> 注入默认参数
     videotrans/ui/menu_list.py          --> 挂载到顶部设置菜单
               ↓
 [3. 核心业务实现]
@@ -37,6 +37,10 @@
               ↓
 [4. 角色配置 (仅 TTS 需要)]
     videotrans/configure/constant.py 或 videotrans/voicejson/{name}.json
+
+[5. 默认可用模型列表 (如果多个文本生成模型、ASR模型等)]
+	videotrans/configure/constant.py 中，定义常量，以英文逗号分隔，如
+	DEEPSEEK_MODELS = "deepseek-flash,deepseek-v4-pro,deepseek-v4-flash"
 ```
 
 ---
@@ -85,16 +89,17 @@ ID_NAME_DICT[NEWAI_API] = ChannelProvider(
 - **窗口控制器**：新建 `videotrans/winform/{name}.py`（处理参数回显、数据保存、连接测试等逻辑）。
 
 ### 2. 注入默认配置参数（可选）
-在 `videotrans/configure/_app_params.py` 的 `_get_defaults()` 方法中追加默认参数：
+在 `videotrans/configure/_default_params.py` 的 `_default` 字典中追加默认参数：
 ```python
-# videotrans/configure/_app_params.py
-def _get_defaults():
-    return {
-        # ...已有配置项
-        "newai_key": "",
-        "newai_url": "https://api.newai.com/v1",
-        "newai_model": "newai-v1",
-    }
+# videotrans/configure/_default_params.py
+    "deepseek": {
+        "deepseek_key": "", 
+        "deepseek_thinking": False, 
+        "deepseek_model": DEEPSEEK_MODELS.split(',')[0],
+        "deepseek_max_token": 16384
+    },
+	# videotrans/configure/constant.py 
+	# DEEPSEEK_MODELS = "deepseek-flash,deepseek-v4-pro,deepseek-v4-flash"
 ```
 
 ### 3. 挂载到软件菜单栏

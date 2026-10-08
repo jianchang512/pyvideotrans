@@ -15,7 +15,7 @@ class TransAPI(BaseTrans):
 
     def __post_init__(self):
         super().__post_init__()
-        url = params.get('trans_api_url','').strip().rstrip('/')
+        url = params.get('transapi_url','').strip().rstrip('/')
         if len(url)<4:
             raise StopTask(f'API URL is error: {url}')
         if not url.lower().startswith('http'):
@@ -26,7 +26,7 @@ class TransAPI(BaseTrans):
     def _item_task(self, data: str) -> str:
         if self._exit(): return
         text = quote(data)
-        requrl = f"{self.api_url}target_language={self.target_code}&source_language={self.source_code.split('-')[0] if self.source_code else ''}&text={text}&secret={params.get('trans_key','')}"
+        requrl = f"{self.api_url}target_language={self.target_code}&source_language={self.source_code.split('-')[0] if self.source_code else ''}&text={text}&secret={params.get('transapi_key','')}"
 
         response = requests.get(url=requrl,verify=False)
         logger.debug(f'[TransAPI]返回:{response=}')

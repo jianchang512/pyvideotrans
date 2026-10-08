@@ -14,7 +14,7 @@ from videotrans.util._srt_parse import get_subtitle_from_srt
 class ParaketRecogn(BaseRecogn):
     def __post_init__(self):
         super().__post_init__()
-        self.api_url = params.get('parakeet_address', '')
+        self.api_url = params.get('parakeet_api', '')
 
     def _exec(self) -> Union[List[SrtItem], None]:
         if self._exit(): return

@@ -15,7 +15,7 @@ REAL_USE=METHOD_TEXT_EN
 @dataclass(repr=False)
 class IndexTTS(GradioBase):
     def __post_init__(self):
-        self.ainame = "indextts"
+        self.ainame = "index"
         super().__post_init__()
 
 

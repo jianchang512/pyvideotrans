@@ -4,7 +4,7 @@ import logging
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict
 
 from videotrans.configure._paths import ROOT_DIR
 from videotrans.configure._logging import _write_with_retry
@@ -16,7 +16,6 @@ class AppParams:
     AppParams: 对应 params.json，包含 getset_params 功能
     """
     _json_path: str = f"{ROOT_DIR}/videotrans/params.json"
-    _sets:Any=None
 
     def __post_init__(self):
         self.getset_params()
@@ -88,60 +87,8 @@ class AppParams:
             "voice_role": "No",#默认不选中配音角色
             "voice_rate": "0",
 
-            # 内置
-            "chatterbox_cfg_weight": 0.5,
-            "chatterbox_exaggeration": 0.5,
-
             "f5tts_role": "zh_female_nverguo.wav#你说四大皆空，却为何，紧闭双眼，若你睁开眼睛看看我，我不相信你，两眼空空。\nzh_female_cosy.wav#希望你以后，能够做的比我还好哟！\nzh_male_bj.wav#说起咱北京的烤鸭啊，那可真是外焦里嫩、色泽金黄，一口咬下去满嘴流油！\nzh_female_cn.wav#大家好呀，今天跟你们分享一下我的日常护肤小习惯，其实护肤不需要太复杂，清洁补水最重要。\nzh_female_tw.wav#台湾有许多隐藏版的小吃店，他们可能不起眼，但食物却十分美味，下次不妨多留意身边这样的小店吧！\nen_female_1.wav#Genes of intracellular calcium metabolism and blood pressure control in primary hypertension.\nen_female_2.wav#Diamond develops and manufactures its own coils.",
-            # 本地 qwen-tts3 提示词
-            "qwenttslocal_prompt": "",
 
-
-            # 自定义翻译 api
-            "trans_api_url": "",
-            "trans_key": "",
-            # 自定义语音识别api
-            "recognapi_url": "",
-            "recognapi_key": "",
-            # 自定义 TTS API
-            "ttsapi_url": "",
-            "ttsapi_voice_role": "",
-            "ttsapi_extra": "123456",
-
-            "gptsovits_url": "http://127.0.0.1:9880",
-            "gptsovits_role": "",
-            "gptsovits_isv2": True,
-
-            # 本地 whisperx api
-            "whipserx_api": "http://127.0.0.1:9092",
-            # 本地 kokoro api
-            "kokoro_api": "http://127.0.0.1:5066",
-            # 本地 parakeet api
-            "parakeet_address": "",
-            # clone-voice
-            "clone_api": "http://127.0.0.1:9988",
-            "clone_voicelist": ["clone"],
-
-            # stt api
-            "sttapi_url": "http://127.0.0.1:9977",
-
-            "cosyvoice_url": "http://127.0.0.1:8000",
-
-            "fishtts_url": "http://127.0.0.1:8080/v1/tts",
-
-            "confuciustts_url": "http://127.0.0.1:7860",
-
-            "indextts_url": "http://127.0.0.1:7860",
-            "indextts_version": 1,
-
-            "voxcpmtts_url": "http://127.0.0.1:7860",
-            "voxcpmtts_version": "v2",
-
-            "firered3tts_url": "http://127.0.0.1:7860",
-
-            "sparktts_url": "http://127.0.0.1:7860",
-
-            "chattts_api": "http://127.0.0.1:9966",
 
 
             # 语音转录面板参数
@@ -173,7 +120,7 @@ class AppParams:
 
         }
         from ._default_params import channel_default_params
-        fix_params.update(channel_default_params(self._sets))
+        fix_params.update(channel_default_params())
         return fix_params
 
 
