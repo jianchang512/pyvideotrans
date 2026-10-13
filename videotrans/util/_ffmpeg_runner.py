@@ -10,6 +10,23 @@ from pathlib import Path
 from videotrans.configure.config import ROOT_DIR, tr, app_cfg, settings, logger
 
 
+# Tokens that let a crafted `ffmpeg_cmd` setting introduce a new input/output
+# source (e.g. "-i http://attacker/path") instead of just tuning an existing
+# encode. Blocking these closes the SSRF path while still allowing the
+# field's intended use: encoder-tuning flags like "-bf 7 -b_ref_mode middle".
+_FFMPEG_CMD_FORBIDDEN_FLAGS = {"-i"}
+
+
+def _reject_unsafe_ffmpeg_cmd(custom_params):
+    for token in custom_params:
+        if token in _FFMPEG_CMD_FORBIDDEN_FLAGS or "://" in token:
+            raise ValueError(
+                f"自定义ffmpeg命令参数包含不允许的内容: {token!r}。"
+                " 该字段不能用于指定新的输入/输出源或网络协议 (Custom ffmpeg command"
+                " arguments may not introduce a new input/output source or network protocol)."
+            )
+
+
 def extract_concise_error(stderr_text: str,stdout:str="") -> str:
     if not stderr_text:
         return f"Unknown error (empty stderr) {stdout}"
@@ -40,6 +57,7 @@ def runffmpeg(arg, *, noextname=None, force_cpu=True, cmd_dir=None):
 
     if settings.get('ffmpeg_cmd'):
         custom_params = [p for p in settings.get('ffmpeg_cmd', '').split(' ') if p]
+        _reject_unsafe_ffmpeg_cmd(custom_params)
         cmd = cmd[:-1] + custom_params + cmd[-1:]
 
     try:
