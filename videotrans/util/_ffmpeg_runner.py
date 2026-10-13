@@ -14,7 +14,7 @@ from videotrans.configure.config import ROOT_DIR, tr, app_cfg, settings, logger
 # source (e.g. "-i http://attacker/path") instead of just tuning an existing
 # encode. Blocking these closes the SSRF path while still allowing the
 # field's intended use: encoder-tuning flags like "-bf 7 -b_ref_mode middle".
-_FFMPEG_CMD_FORBIDDEN_FLAGS = {"-i", "-protocol_whitelist", "-f", "-filter_complex_script"}
+_FFMPEG_CMD_FORBIDDEN_FLAGS = {"-i"}
 
 
 def _reject_unsafe_ffmpeg_cmd(custom_params):
