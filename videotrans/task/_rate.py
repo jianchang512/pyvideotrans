@@ -6,11 +6,13 @@
 
  - 因 【视频慢速】处理无法精确到ms，每个片段会存在 几十ms到几百ms 的误差，随着视频时长增长，误差越来越大，为弥补该误差，先执行【视频慢速】处理，再根据真实视频片段时长，执行配音变速处理，当使用 pyrubberband 扩展处理音频时，误差最终可消除为0
 
-- 若同时选中【音频加速】，实际视频和音频变速幅度均为约一半。
+- 若同时选中【音频加速】，实际视频和音频变速幅度均为约一半[特例：先判断单独音频加速倍数是否小于1.2，若是，则跳过视频慢速]
 
 ---
 
 处理之前，会将所有字幕开始和结束时刻设为首尾相连，并将第一条字幕开始时间强制设为0，以便吞并可能存在的开始短片段，方便处理。
+同时将最后一条字幕结束时间设为视频总长
+
 在最终处理完毕后合并音频前，再判断如果第1条配音时长短语第一条视频片段，则音频左侧再补充静音，防止某些类似 第 3秒才开始的音频错误的第0秒开始
 
 """
@@ -43,9 +45,22 @@ from videotrans.util import tools
 from concurrent.futures import ProcessPoolExecutor
 
 
-def _cut_video_get_duration(task, novoice_mp4_original, preset, crf, fps_mode):
+def _cut_video_get_duration(task, novoice_mp4_original, preset, crf, fps_mode)->dict:
     """
     裁切视频片段，并根据需要进行慢速（PTS）处理。
+    Args:
+        task:  {"start":   # 需截取的开始时间点
+                "end":   # 需截取的结束时间点
+                "target_time":  # 视频变速后需达到的目标时长
+                "tts_index": 字幕序号
+            }
+        novoice_mp4_original:  用于截取片段的原始视频
+        preset: 预设
+        crf: crf值
+        fps_mode: 帧率模式
+
+    Returns:
+
     """
     # 变速后实际时长 ms
     task['actual_duration'] = 0
@@ -65,7 +80,7 @@ def _cut_video_get_duration(task, novoice_mp4_original, preset, crf, fps_mode):
     ss_time = tools.ms_to_time_string(ms=task['start'], sepflag='.')
 
     # PTS 系数
-    pts_factor = task.get('pts', 1.0)
+    pts_factor = target_duration_ms / source_duration_ms #task.get('pts', 1.0)
 
     flag = f'[Video-Cut] 字幕{task.get("tts_index")}: 裁切时长={source_duration_ms}ms,  PTS={pts_factor}, 变速目标时长={target_duration_ms}ms'
 
@@ -80,7 +95,8 @@ def _cut_video_get_duration(task, novoice_mp4_original, preset, crf, fps_mode):
         '-g', '1',
         '-preset', preset,
         '-crf', crf,
-        '-pix_fmt', 'yuv420p'
+        '-pix_fmt', 'yuv420p',
+        '-vf',f"setpts={pts_factor}*PTS"
     ]
 
     cmd.extend(fps_mode)
@@ -137,9 +153,16 @@ def _cut_video_get_duration(task, novoice_mp4_original, preset, crf, fps_mode):
     return task
 
 
-def _change_speed_rubberband(input_path, target_duration):
+def _change_speed_rubberband(input_path, target_duration,idx=0)->bool:
     """
-    使用 Rubber Band 进行音频变速
+
+    Args:
+        input_path: 待处理原始配音文件
+        target_duration: 变速后达到时长ms
+        idx: 字幕序号
+
+    Returns: bool
+
     """
     try:
         y, sr = sf.read(input_path)
@@ -160,7 +183,7 @@ def _change_speed_rubberband(input_path, target_duration):
         time_stretch_rate = max(0.2, min(time_stretch_rate, 50.0))
 
         logger.debug(
-            f"[rubberband] 配音时长:{current_duration}ms, 目标时长:{target_duration}ms 倍率:{time_stretch_rate:.2f}")
+            f"[rubberband]字幕{idx} 配音时长:{current_duration}ms, 目标时长:{target_duration}ms 倍率:{time_stretch_rate:.2f}")
 
         y_stretched = pyrb.time_stretch(y, sr, time_stretch_rate)
 
@@ -176,7 +199,17 @@ def _change_speed_rubberband(input_path, target_duration):
     return True
 
 
-def _precise_speed_up_audio(input_path=None, target_duration=None):
+def _precise_speed_up_audio(input_path=None, target_duration=None,idx=0)->bool:
+    """
+
+    Args:
+        input_path: 待处理原始配音文件
+        target_duration: 变速后达到时长ms
+        idx: 字幕序号
+
+    Returns: bool
+
+    """
     # 使用 pydub 获取当前时长（避免双重读取）
     current_duration_ms = len(AudioSegment.from_file(input_path, format='wav'))
 
@@ -185,7 +218,7 @@ def _precise_speed_up_audio(input_path=None, target_duration=None):
     atempo_list = []
     speed_factor = current_duration_ms / target_duration
     logger.debug(
-        f"[ffmpeg atempo] {input_path} 配音时长:{current_duration_ms}ms, 目标时长:{target_duration}ms, 倍率:{speed_factor:.2f}")
+        f"[ffmpeg atempo]字幕{idx} 配音时长:{current_duration_ms}ms, 目标时长:{target_duration}ms, 倍率:{speed_factor:.2f}")
 
     # 处理加速情况 (> 2.0)
     while speed_factor > 2.0:
@@ -220,7 +253,6 @@ def _precise_speed_up_audio(input_path=None, target_duration=None):
 
 
 class SpeedRate:
-    MIN_CLIP_DURATION_MS = 40
     AUDIO_SAMPLE_RATE = 48000
     AUDIO_CHANNELS = 2
     # 音频和视频同时启用时，如果配音/字幕倍率低于此阈值，仅加速音频，不慢速视频
@@ -228,7 +260,7 @@ class SpeedRate:
 
     def __init__(self,
                  *,
-                 queue_tts=None,
+                 queue_tts=None,#配音后的字幕队列数据
                  should_videorate=False,
                  should_audiorate=False,
                  uuid=None,
@@ -239,6 +271,25 @@ class SpeedRate:
                  remove_silent_mid=False,
                  align_sub_audio=True
                  ):
+        """
+
+        Args:
+            queue_tts: [
+                    {'text': 'xx',
+                    'line': 1,
+                    'start_time': 1650,
+                    'end_time': 4670,
+                    'filename': '配音文件'},...]
+            should_videorate: 是否选中视频慢速
+            should_audiorate: 是否选中音频加速
+            uuid: 唯一ID，用于信号传输
+            novoice_mp4: 原始无声视频
+            raw_total_time: 原始视频时长
+            target_audio: 目标配音文件
+            cache_folder: 临时缓存目录
+            remove_silent_mid: 是否移除字幕间静音区间，仅在 音频加速和视频慢速都未选中时生效
+            align_sub_audio: 是否对齐字幕和语音，仅在 音频加速和视频慢速都未选中时生效
+        """
         self.align_sub_audio = align_sub_audio
         self.remove_silent_mid = remove_silent_mid
         # 原始视频时长 ms
@@ -351,6 +402,14 @@ class SpeedRate:
             self.audio0_left_pad = self.queue_tts[0]['start_time']
             self.queue_tts[0]['start_time'] = 0
             logger.debug(f'第0条字幕开始时间强制设为0，记录偏移 {self.audio0_left_pad=}ms')
+        # 如果最后一条结束时间  self.raw_total_time 避免遗漏视频画面
+        if self.queue_tts[-1]['end_time']<self.raw_total_time:
+            if self.raw_total_time - self.queue_tts[-1]['end_time']>300000:
+                logger.error(f'最后一条字幕距离视频结束距离大于 5 分钟，数据异常')
+            else:
+                self.queue_tts[-1]['end_time'] = self.raw_total_time
+                logger.debug(f'最后一条字幕结束时间强制设为 {self.raw_total_time=}ms')
+
 
         for i, current in enumerate(self.queue_tts):
             # 将字幕开始时间、结束时间，首尾相连
@@ -377,7 +436,10 @@ class SpeedRate:
                 current['dubb_time'] = len(AudioSegment.from_file(current['filename']))
 
     def _calculate_adjustments(self):
-        """计算策略"""
+        """
+            计算策略
+            音频加速、视频慢速 至少选中了其中一个，或全部选中
+        """
         tools.set_process(text=tr("Calculating sync adjustments"), uuid=self.uuid)
 
         for i, it in enumerate(self.queue_tts):
@@ -408,42 +470,41 @@ class SpeedRate:
                     "target_time": audio_target  # 变速结束后需达到的目标时长
                 })
                 logger.debug(
-                    f'仅音频加速: dubb_time={dubb_duration}ms, {audio_target=}ms, ratio={min(ratio, self.max_audio_speed_rate)}')
+                    f'仅音频加速: {dubb_duration=}ms, {audio_target=}ms, ratio={min(ratio, self.max_audio_speed_rate)}')
                 continue
 
-            mode_log = ""
-            if not self.should_audiorate and self.should_videorate:
-                mode_log = "Only Video"
-                # 配音大于原字幕时长时，对视频做慢速处理，短于时不处理，直接setpts=pts 裁剪
-                if dubb_duration > source_duration:
+
+            # 仅视频慢速 或 两者都选中
+            mode_log = "[仅视频慢速]" if not self.should_audiorate and self.should_videorate else "[音频加速+视频慢速]"
+            if dubb_duration <= source_duration:
+                mode_log+=f": 字幕{i} 可用区间: {source_duration}ms, 配音时长: {dubb_duration}ms, [无需变速]"
+            else:
+                slow_video_no=""
+                # 仅视频慢速
+                if not self.should_audiorate and self.should_videorate:
                     video_target = dubb_duration
-                    pts = video_target / source_duration
-                    if pts > self.max_video_pts_rate:
+                    if video_target / source_duration > self.max_video_pts_rate:
                         video_target = int(source_duration * self.max_video_pts_rate)
+                else:
+                    # 两者都选中 音频加速+视频慢速
+                    # < 1.2  视频不需要变速，
+                    if dubb_duration / source_duration > self.BOTH_MODE_AUDIO_ONLY_THRESHOLD:
+                        # 音频加速和视频慢速各自负担一半时间差
+                        diff = dubb_duration - source_duration
+                        video_target = round(source_duration + (diff / 2))
+                    else:
+                        slow_video_no=f" [仅音频加速可低于 {self.BOTH_MODE_AUDIO_ONLY_THRESHOLD}, 跳过视频慢速处理]"
 
-            elif self.should_audiorate and self.should_videorate:
-                mode_log = "Both"
-                if dubb_duration > source_duration:
-                    # 音频加速和视频慢速各自负担一半时间差
-                    diff = dubb_duration - source_duration
-                    video_target = round(source_duration + (diff / 2))
+                    mode_log+=f": 字幕{i} 可用区间: {source_duration}ms, 配音时长: {dubb_duration}ms, 需变速 {slow_video_no}"
 
-            # 日志
-            flag = f"Mode={mode_log}, 字幕{i} 可用区间: {source_duration}ms, 当前配音时长: {dubb_duration}ms  "
-
+            logger.debug(mode_log)
             # 所有片段均注册,无需视频慢速的则 PTS=1.0
-            if self.should_videorate:
-                pts = video_target / source_duration if video_target > source_duration else 1.0
-                self.video_for_clips.append({
-                    "start": it['start_time_source'],  # 需截取的开始时间点
-                    "end": it['end_time_source'],  # 需截取的结束时间点
-                    "target_time": video_target,  # 视频变速后需达到的目标时长
-                    "pts": pts,
-                    "tts_index": i
-                })
-                flag += f' 视频慢速目标时长: {video_target}ms，PTS={pts}  '
-
-            logger.debug(flag)
+            self.video_for_clips.append({
+                "start": it['start_time_source'],  # 需截取的开始时间点
+                "end": it['end_time_source'],  # 需截取的结束时间点
+                "target_time": video_target,  # 视频变速后需达到的目标时长
+                "tts_index": i
+            })
 
     def _execute_audio_speedup_rubberband(self):
         if len(self.audio_data) < 1: return
@@ -455,7 +516,7 @@ class SpeedRate:
                 if d['dubb_time'] > d['target_time']:
                     all_task.append(pool.submit(
                         _change_speed_rubberband if HAS_RUBBERBAND and self.audio_speed_rubberband else _precise_speed_up_audio,
-                        d['filename'], d['target_time']))
+                        d['filename'], d['target_time'],i))
 
             for i, task in enumerate(all_task):
                 try:
@@ -467,7 +528,7 @@ class SpeedRate:
     def _video_speeddown(self):
         data = []
         for i, clip_info in enumerate(self.video_for_clips):
-            clip_info['filename'] = Path(self.cache_folder, f"clip_{i}_{clip_info['pts']:.3f}.mp4").as_posix()
+            clip_info['filename'] = Path(self.cache_folder, f"clip_{i}.mp4").as_posix()
             data.append(clip_info)
 
         if len(data) < 1:
@@ -505,17 +566,14 @@ class SpeedRate:
 
         # 根据 process_clips 实际时长，更新队列
         self.audio_data = []
-        _st=0
+        st=0
         for i, it in enumerate(processed_clips):
-            # 删除视频
-            self.queue_tts[i]['start_time']=_st
-            _actual_duration = it.get('actual_duration', 0)  # 变速结束后需达到的目标时长
-            _ed=_st+_actual_duration
-            self.queue_tts[i]['end_time']=_ed
-            self.queue_tts[i]['source_duration']=_actual_duration
-            _st=_ed
-
-
+            self.queue_tts[i]['start_time']=st
+            actual_duration = it.get('actual_duration', 0)  # 变速结束后需达到的目标时长
+            ed=st+actual_duration
+            self.queue_tts[i]['end_time']=ed
+            self.queue_tts[i]['source_duration']=actual_duration
+            st=ed
 
         for i, it in enumerate(self.queue_tts):
             tmp={

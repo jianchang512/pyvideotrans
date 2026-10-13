@@ -35,6 +35,7 @@ def _get_transobj(lang:str=None):
         if _langfile and Path(_langfile).exists():
             try:
                 _tobj = json.loads(Path(_langfile).read_text(encoding='utf-8'))
+                if _tobj:return _tobj
             except Exception as e:
                 Path(f'{ROOT_DIR}/start_error.txt').write_text(f"{e}")
     return _tobj
@@ -42,12 +43,14 @@ def _get_transobj(lang:str=None):
 def _init_language(settings):
     global defaulelang, _transobj
     SUPPORT_LANG = _get_langjson_list()
+
     try:
         _lang = os.environ.get('PYVIDEOTRANS_LANG', settings.lang)
         if not _lang or not SUPPORT_LANG.get(_lang) or not Path(SUPPORT_LANG.get(_lang)).exists():
             _lang = QLocale.system().name()
     except Exception:
         _lang = "en_US"
+    os_language=_lang
 
     if _lang not in SUPPORT_LANG:
         _lang = "en_US"
@@ -56,7 +59,7 @@ def _init_language(settings):
         settings.save()
     defaulelang = _lang
     _transobj = _get_transobj(defaulelang)
-    return defaulelang, _transobj
+    return defaulelang, _transobj, os_language
 
 
 def tr(lang_key, *kw):

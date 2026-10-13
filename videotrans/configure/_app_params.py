@@ -47,8 +47,8 @@ class AppParams:
 
         self._apply_dict(default)
         return self.to_dict()
-
-    def _get_defaults(self):
+    @staticmethod
+    def _get_defaults():
 
         fix_params= {
             "last_opendir": os.path.expanduser("~"),

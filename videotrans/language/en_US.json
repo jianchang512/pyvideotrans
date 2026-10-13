@@ -1170,6 +1170,12 @@
     "cjk_len_notice": "Number of characters per line for Chinese, Japanese, and Korean subtitles; more than this will result in a line break",
     "other_len_notice": "Number of words per line for subtitles in other languages; more than this will result in a line break",
   "Initial prompt for the Whisper model for speech": "Initial prompt for the Whisper model for {} speech",
-  "Thinking": "Thinking"
+  "Thinking": "Thinking",
+  "The audio.cpp binary file does not exist":"The audio.cpp binary file does not exist. Please download the corresponding audio.cpp zip file first, then unzip it to the {} folder, and ensure that {} exists within that folder. Download link: [{}]",
+  "Select the model for dubbing":"Select the model for dubbing",
+  "Insufficient permissions":"Insufficient permissions. Please run this software again with administrator privileges.",
+  "OOMerror":"The underlying memory allocation failed, possibly due to insufficient memory. Please try a different voice-over model.",
+  "toggle audiocpp model":"You can switch between different models in the Menu - TTS Settings - Audio.cpp",
+  "use admin run":"When using this voice-over channel, it is recommended to run this software with administrator privileges; otherwise, you may encounter a permission insufficient error."
 
 }

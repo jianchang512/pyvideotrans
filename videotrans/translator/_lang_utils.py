@@ -39,6 +39,13 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,
         return True
 
     if not show_target: return True
+    if translate_type==M2M100_INDEX:
+        if  LANGUAGE_M2M100.get(show_target) or LANGUAGE_M2M100.get(LANGNAME_DICT_REV.get(show_target)):
+            return True
+        return tr('deepl_nosupport') + f':{show_target}'
+
+
+
     # 再判断是否为No，即不支持
     index = 0
     target_list = None
@@ -54,8 +61,6 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,
         index = 6
     elif translate_type == ALI_INDEX:
         index = 8
-    elif translate_type == M2M100_INDEX:
-        index = 10
     elif translate_type == BAILIAN_INDEX:
         index = 9
 
@@ -67,8 +72,15 @@ def is_allow_translate(*, translate_type=None, show_target=None, only_key=False,
         # 特殊兼容zh
         target_list = LANG_CODE['zh-cn']
 
-    if not target_list or (target_list[index] == 'No'):
+    if not target_list:return tr('deepl_nosupport') + f':{show_target}'
+
+    try:
+        if target_list[index] == 'No':
+            return tr('deepl_nosupport') + f':{show_target}'
+    except (IndexError,KeyError) as e:
+        logger.exception(e,exc_info=True)
         return tr('deepl_nosupport') + f':{show_target}'
+
     return True
 
 

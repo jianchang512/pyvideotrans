@@ -56,6 +56,7 @@ MENU_CFG_TTS = [
     ("elevenlabs", "ElevenLabs.io", None),
     ("azuretts", tr("AzureAI TTS"), None),
 
+    ("audiocpp", "Audio.cpp", None),
     ("gptsovits", "GPT-SoVITS", None),
     ("gradiowin", "Index/VoxCPM/SparK/FireRed3", None),
     ("chatterbox", "ChatterBox-TTS", None),

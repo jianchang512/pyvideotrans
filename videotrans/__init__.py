@@ -6,8 +6,8 @@ from typing import Optional
 
 from videotrans.configure.config import logger
 
-VERSION = "v4.15"
-VERSION_NUM = 415
+VERSION = "v4.16"
+VERSION_NUM = 416
 _loaded_modules = {}
 
 

@@ -1,0 +1,140 @@
+{
+  "omnivoice": {
+    "type": "tts",
+    "file": "OmniVoice-GGUF/omnivoice-q8_0.gguf",
+    "url": "https://huggingface.co/audio-cpp/audio.cpp-gguf/resolve/main/OmniVoice-GGUF/omnivoice-q8_0.gguf?download=true",
+    "is_reference_text": true,
+    "is_language": false,
+    "is_seed": true
+  },
+  "qwen3_tts": {
+    "type": "tts",
+    "file": "Qwen3-TTS-12Hz-1.7B-Base-GGUF/qwen3-tts-12hz-1.7b-base-q8_0_v2.gguf",
+    "url": "https://huggingface.co/audio-cpp/audio.cpp-gguf/resolve/main/Qwen3-TTS-12Hz-1.7B-Base-GGUF/qwen3-tts-12hz-1.7b-base-q8_0_v2.gguf?download=true",
+	"support_languages":["zh", "en", "ja", "ko", "de", "fr", "ru", "pt", "es", "it"],
+    "is_reference_text": true,
+    "is_language": false,
+    "is_seed": false
+  },
+  "confucius4_tts": {
+    "type": "clon",
+    "file": "Confucius4-TTS-GGUF/confucius4-tts-orig.gguf",
+    "url": "https://huggingface.co/audio-cpp/audio.cpp-gguf/resolve/main/Confucius4-TTS-GGUF/confucius4-tts-orig.gguf?download=true",
+    "support_languages": ["zh", "en", "ja", "ko", "de", "fr", "es", "id", "it", "th", "pt", "ru", "ms", "vi"],
+    "is_reference_text": false,
+    "is_language": true,
+    "is_seed": false
+  },
+  "cosyvoice3": {
+    "type": "tts",
+    "file": "CosyVoice3-GGUF/cosyvoice3-q8_0.gguf",
+    "url": "https://huggingface.co/audio-cpp/audio.cpp-gguf/resolve/main/CosyVoice3-GGUF/cosyvoice3-q8_0.gguf?download=true",
+    "support_languages": ["zh", "en", "ja", "ko", "de", "es", "fr", "it", "ru", "yue"],
+    "is_reference_text": true,
+    "is_language": false,
+    "is_seed": false
+  },
+  "moss_tts_nano": {
+    "type": "clon",
+    "file": "MOSS-TTS-Nano-100M-GGUF/moss-tts-nano-100m-q8_0.gguf",
+    "url": "https://huggingface.co/audio-cpp/audio.cpp-gguf/resolve/main/MOSS-TTS-Nano-100M-GGUF/moss-tts-nano-100m-q8_0.gguf?download=true",
+	"support_languages":["zh","en","de","es","fr","ja","it","hu","ko","ru","fa","ar","pl","pt","cs","da","sv","el","tr"],
+    "is_reference_text": true,
+    "is_language": false,
+    "is_seed": true
+  },
+  "moss_tts_local": {
+    "type": "clon",
+    "file": "MOSS-TTS-Local-v1.5-GGUF/moss-tts-local-v1.5-q8_0.gguf",
+    "url": "https://huggingface.co/audio-cpp/audio.cpp-gguf/resolve/main/MOSS-TTS-Local-v1.5-GGUF/moss-tts-local-v1.5-q8_0.gguf?download=true",
+	"support_languages":["zh","en","de","es","fr","ja","it","hu","ko","ru","fa","ar","pl","pt","cs","da","sv","el","tr"],
+    "is_reference_text": false,
+    "is_language": false,
+    "is_seed": true
+  },
+  "voxcpm2": {
+    "type": "tts",
+    "file": "VoxCPM2-GGUF/voxcpm2-q8_0.gguf",
+    "url": "https://huggingface.co/audio-cpp/audio.cpp-gguf/resolve/main/VoxCPM2-GGUF/voxcpm2-q8_0.gguf?download=true",
+	"support_languages":["ar","my","zh","da","nl","en","fi","fr","de","el","he","hi","id","it","ja","km","ko","lo","ms","nb","pl","pt","ru","es","sw","sv","fil","th","tr","vi"],
+    "is_reference_text": true,
+    "is_language": false,
+    "is_seed": false
+  },
+  "fish_audio": {
+    "type": "tts",
+    "file": "Fish-Audio-S2-Pro-GGUF/fish-audio-s2-pro-q8_0.gguf",
+    "url": "https://huggingface.co/audio-cpp/audio.cpp-gguf/resolve/main/Fish-Audio-S2-Pro-GGUF/fish-audio-s2-pro-q8_0.gguf?download=true",
+    "is_reference_text": true,
+    "is_language": false,
+    "is_seed": true
+  },
+
+  "index_tts2": {
+    "type": "clon",
+    "file": "IndexTTS2.5-GGUF/index-tts2_5-q8_0.gguf",
+    "url": "https://huggingface.co/audio-cpp/audio.cpp-gguf/resolve/main/IndexTTS2.5-GGUF/index-tts2_5-q8_0.gguf?download=true",
+    "support_languages": ["zh","en","ja","es","ar"],
+    "is_reference_text": false,
+    "is_language": true,
+    "is_seed": true
+  },
+  "higgs_audio_tts": {
+    "type": "tts",
+    "file": "Higgs-Audio-v3-TTS-4B-GGUF/higgs-audio-v3-tts-4b-q8_0.gguf",
+    "url": "https://huggingface.co/audio-cpp/audio.cpp-gguf/resolve/main/Higgs-Audio-v3-TTS-4B-GGUF/higgs-audio-v3-tts-4b-q8_0.gguf?download=true",
+    "is_reference_text": true,
+    "is_language": false,
+    "is_seed": true
+  },
+  
+  "dots_tts": {
+    "type": "tts",
+    "file": "DotTTS-SOAR-GGUF/dots-tts-soar-q8_0.gguf",
+    "url": "https://huggingface.co/audio-cpp/audio.cpp-gguf/resolve/main/DotTTS-SOAR-GGUF/dots-tts-soar-q8_0.gguf?download=true",
+    "support_languages": ["zh","en"],
+    "is_reference_text": true,
+    "is_language": false,
+    "is_seed": false
+  },
+  "firered_audio": {
+    "type": "clon",
+    "file": "FireRedAudio-GGUF/firered-audio-q8_0.gguf",
+    "url": "https://huggingface.co/audio-cpp/audio.cpp-gguf/resolve/main/FireRedAudio-GGUF/firered-audio-q8_0.gguf?download=true",
+    "support_languages": ["zh","en"],
+    "is_reference_text": true,
+    "is_language": true,
+    "is_seed": false
+  },
+  
+
+  
+  "breeze_tts": {
+    "type": "clon",
+    "file": "Breeze-TTS-2-GGUF/breeze-tts-2-q8_0.gguf",
+    "url": "https://huggingface.co/audio-cpp/audio.cpp-gguf/resolve/main/Breeze-TTS-2-GGUF/breeze-tts-2-q8_0.gguf?download=true",
+    "support_languages": ["zh","en"],
+    "is_reference_text": true,
+    "is_language": false,
+    "is_seed": false
+  },
+  "irodori_tts": {
+    "type": "clon",
+    "file": "Irodori-TTS-v4-Small-GGUF/irodori-tts-v4-small-q8_0.gguf",
+    "url": "https://huggingface.co/audio-cpp/audio.cpp-gguf/resolve/main/Irodori-TTS-v4-Small-GGUF/irodori-tts-v4-small-q8_0.gguf?download=true",
+    "support_languages": ["ja"],
+    "is_reference_text": false,
+    "is_language": true,
+    "is_seed": true
+  },
+  
+  "chatterbox": {
+    "type": "clon",
+    "file": "Chatterbox-GGUF/chatterbox-q8_0.gguf",
+    "url": "https://huggingface.co/audio-cpp/audio.cpp-gguf/resolve/main/Chatterbox-GGUF/chatterbox-q8_0.gguf?download=true",
+    "support_languages": ["ar", "da", "de", "el", "en", "es", "fi", "fr", "hi", "it", "ko", "ms", "nl", "no", "pl", "pt", "sv", "sw", "tr"],
+    "is_reference_text": false,
+    "is_language": true,
+    "is_send": true
+  }
+}

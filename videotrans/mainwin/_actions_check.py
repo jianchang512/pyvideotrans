@@ -35,8 +35,10 @@ class WinActionCheckMixin:
         return True
 
     def check_tts(self):
-        if tts.is_input_api(tts_type=self.main.tts_type.currentIndex()) is not True:
-            return False
+        _rs=tts.is_input_api(tts_type=self.main.tts_type.currentIndex())
+        if isinstance(_rs,str):
+            return show_error(_rs)
+
         if self.main.target_language.currentText() == '-' and self.main.voice_role.currentText() not in ['No', '', ' ']:
             show_error(tr('wufapeiyin'))
             return False
@@ -175,7 +177,7 @@ class WinActionCheckMixin:
         if self.shound_translate():
             rs=translator.is_allow_translate(
                 translate_type=self.cfg['translate_type'],
-                show_target=self.cfg['target_language_code'])
+                show_target=self.main.target_language.currentText())
 
             self.main.show_tips.setText(rs if rs is not True else '')
 

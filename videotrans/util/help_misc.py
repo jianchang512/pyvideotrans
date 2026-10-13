@@ -2,7 +2,6 @@ import hashlib
 import json
 import os, re
 import platform
-import shutil
 import subprocess
 import sys
 import tempfile
@@ -15,7 +14,7 @@ from typing import Tuple, Union
 import unicodedata
 
 from videotrans import VERSION
-from videotrans.configure.config import tr, app_cfg, logger, ROOT_DIR, defaulelang, push_queue
+from videotrans.configure.config import tr, app_cfg, logger, ROOT_DIR, defaulelang, push_queue,os_language
 from videotrans.task.taskcfg import SignMsg
 
 
@@ -435,7 +434,7 @@ def check_new_version():
         import requests
         # 纯静态文件，仅返回版本信息字符串
         # 只获取当前软件版本号数字和操作系统类型(win32/macos/linux)
-        url = f"https://pyvideotrans.com/version.json?version={VERSION}&os={sys.platform}"
+        url = f"https://pyvideotrans.com/version.json?version={VERSION}&os={sys.platform}&language={os_language}"
         res = requests.get(url)
         res.raise_for_status()
         d = res.json()

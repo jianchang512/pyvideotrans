@@ -828,18 +828,6 @@ LANG_CODE = {
         "uz",  # 阿里
         "uz",  # qwen-mt
     ],
-    "az": [
-        "az",  # google通道
-        "aze",  # 字幕嵌入语言
-        "aze",  # 百度通道
-        "AZ",  # deepl deeplx通道
-        "No",  # 腾讯通道
-        "No",  # OTT通道
-        "az",  # 微软翻译
-        "Azerbaijani",  # AI翻译
-        "AZ",  # 阿里
-        "az",  # qwen-mt qwen-tts qwen-asr
-    ],
     "he": [
         "he",  # google通道
         "heb",  # 字幕嵌入语言

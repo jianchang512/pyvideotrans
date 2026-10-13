@@ -129,7 +129,7 @@ def openwin():
             set_proxy(proxy)
             settings['proxy'] = proxy
 
-        rs = translator.is_allow_translate(translate_type=translate_type, show_target=target_code)
+        rs = translator.is_allow_translate(translate_type=translate_type, show_target=target_language)
         winobj.loglabel.setText(rs if rs is not True else '')
         if len(winobj.files) < 1:
             return show_error(tr("Must import srt subtitle files"))

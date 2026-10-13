@@ -42,18 +42,18 @@ MINIMAXI_TTS = 21
 OPENAI_TTS = 22
 GEMINI_TTS = 23
 ELEVENLABS_TTS = 24
-XAI_TTS = 25
-G_TTS = 26
 
 # 本地 API
-CHATTTS = 27
-SPARK_TTS = 28
-KOKORO_TTS = 29
-FISHTTS = 30
+AUDIOCPP_TTS=25
+CHATTTS = 26
+SPARK_TTS = 27
+KOKORO_TTS = 28
+FISHTTS = 29
 
 # 不推荐
-CLONE_VOICE_TTS = 31
 # 在线API
+XAI_TTS = 30
+G_TTS = 31
 AZURE_TTS = 32
 AI302_TTS = 33
 CAMB_TTS = 34
@@ -64,6 +64,7 @@ TTS_API = 35
 SILICONFLOW_API = 36
 OPENROUTER_API = 37
 DEEPGRAM_TTS = 38
+CLONE_VOICE_TTS = 39
 
 # 支持克隆的渠道，即存在 clone 配音角色
 SUPPORT_CLONE = [
@@ -188,12 +189,8 @@ ID_NAME_DICT = {
                                     imp="._elevenlabs",
                                     key_name="elevenlabstts_key",
                                     win="elevenlabs"),
-    XAI_TTS: ChannelProvider('X.AI TTS',
-                             imp="._xaitts",
-                             key_name="xaitts_key",
-                             win="xaitts"),
-    G_TTS: ChannelProvider(f"gTTS({tr('free')})",
-                           imp="._gtts"),
+    AUDIOCPP_TTS: ChannelProvider(f"Audio.cpp({tr('Local')})",
+                           imp="._audiocpp",win="audiocpp"),
 
     CHATTTS: ChannelProvider(f"ChatTTS({tr('Local')}API)",
                              imp="._chattts",
@@ -212,10 +209,12 @@ ID_NAME_DICT = {
                              key_name="fishtts_url",
                              win="fishtts"),
 
-    CLONE_VOICE_TTS: ChannelProvider(f"clone-voice({tr('Local')}API)",
-                                     imp="._clone",
-                                     key_name="clone_api",
-                                     win="clone"),
+    XAI_TTS: ChannelProvider('X.AI TTS',
+                             imp="._xaitts",
+                             key_name="xaitts_key",
+                             win="xaitts"),
+    G_TTS: ChannelProvider(f"gTTS({tr('free')})",
+                           imp="._gtts"),
     AZURE_TTS: ChannelProvider("Azure TTS",
                                imp="._azure",
                                key_name="azuretts_key",
@@ -245,6 +244,10 @@ ID_NAME_DICT = {
                                   imp="._deepgram",
                                   key_name="deepgram_key",
                                   win="deepgram"),
+    CLONE_VOICE_TTS: ChannelProvider(f"clone-voice({tr('Local')}API)",
+                                     imp="._clone",
+                                     key_name="clone_api",
+                                     win="clone"),
 }
 
 # 强制保持按照每个常量值大小排序

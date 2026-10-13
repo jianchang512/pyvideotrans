@@ -214,6 +214,12 @@ WHISPERCPP_MODEL_URL_MS = 'https://modelscope.cn/models/viggocx/whisper.cpp/reso
 SPACY_URL_MS = 'https://modelscope.cn/models/himyworld/videotrans/resolve/master/spacy_ontonotes.zip'
 SPACY_URL_HF = 'https://github.com/explosion/spacy-pkuseg/releases/download/v0.0.26/spacy_ontonotes.zip'
 
+# audio.cpp
+AUDIO_CPP_MAC_MS="https://modelscope.cn/models/himyworld/videotrans/resolve/master/audio-v0.9.1-bin-macos-arm64-metal.zip"
+AUDIO_CPP_WIN_MS="https://modelscope.cn/models/himyworld/videotrans/resolve/master/audio-v0.9.1-bin-windows-x64-cuda12.4.zip"
+AUDIO_CPP_MAC_HF="https://huggingface.co/mortimerme/repocollect/resolve/main/audio-v0.9.1-bin-macos-arm64-metal.zip?download=true"
+AUDIO_CPP_WIN_HF="https://huggingface.co/mortimerme/repocollect/resolve/main/audio-v0.9.1-bin-windows-x64-cuda12.4.zip?download=true"
+
 # ----------Rubberband 库安装提示------------------
 INSTALL_RUBBERBAND_TIPS = """Windows: For Windows systems, please download the file, extract it, and place it in the ffmpeg folder in the current directory. Use a better audio acceleration algorithm\nhttps://breakfastquay.com/files/releases/rubberband-4.0.0-gpl-executable-windows.zip
 Darwin: `brew install rubberband`  and  `uv add pyrubberband` Use a better audio acceleration algorithm

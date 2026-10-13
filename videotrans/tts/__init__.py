@@ -1,9 +1,11 @@
+import json
 from typing import Union, Type
-from videotrans.configure.config import tr, params, app_cfg, logger
+from videotrans.configure.config import tr, params, app_cfg, logger,ROOT_DIR
 from videotrans.tts._base import BaseTTS
 from videotrans import get_class
+from pathlib import Path
+import platform
 from ._constants import *
-
 
 # 检查当前配音渠道是否支持所选配音语言
 # 返回True为支持，其他为不支持并返回错误字符串
@@ -20,8 +22,13 @@ def is_allow_lang(langcode: str = None, tts_type: int = None):
     is_support=True
     name = ID_NAME_DICT.get(tts_type).name
     _lang2 = langcode.split('-')[0]
+    if tts_type==AUDIOCPP_TTS:
+        jsondata=json.loads(Path(f'{ROOT_DIR}/videotrans/voicejson/audiocpp.json').read_text(encoding="utf-8"))
+        _obj=jsondata.get(_lang2,{}).get('support_languages')
+        if _obj and _lang2 not in _obj:
+            is_support=False
 
-    if tts_type == DEEPGRAM_TTS and  _lang2 not in ['de','en','es','fr','ja','nl','it']:
+    elif tts_type == DEEPGRAM_TTS and  _lang2 not in ['de','en','es','fr','ja','nl','it']:
         is_support=False
 
     elif tts_type == DOUBAO2_TTS and _lang2 not in ["zh", "en", "ja", "id", "es", "ar", "de", "fr", "ko", "ms", "pt",
@@ -70,12 +77,15 @@ def is_input_api(tts_type: int = None, return_str=False):
     _cls = ID_NAME_DICT.get(tts_type)
     if not _cls:
         return True
+    if tts_type==AUDIOCPP_TTS and platform.system()=='Linux' and not Path(f'{ROOT_DIR}/audio_cpp/audiocpp_cli').exists():
+        return tr("The audio.cpp binary file does not exist",f'{ROOT_DIR}/audio_cpp','audiocpp_cli','https://github.com/0xShug0/audio.cpp/releases')
     if _cls.key_name and not params.get(_cls.key_name):
         if return_str:
             return "Please configure the SK or API information of the channel first."
         from videotrans import winform
         winform.get_win(_cls.win)
     return True
+
 
 
 # 使用 clone 音色时提示，字幕需保持在 3-10s

@@ -33,6 +33,9 @@ _default = {
         "atlascloud_model": ATLASCLOUD_MODELS.split(',')[0],
         "atlascloud_max_token": 16384,
     },
+    "audiocpp":{
+        "audiocpp_model":"omnivoice"#默认使用TTS模型
+    },
     "azure": {
         # azure gpt
         "azure_api": "",

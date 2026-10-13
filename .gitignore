@@ -15,6 +15,7 @@ AGENTS.md
 edgetts.txt
 .agree.txt
 test.py
+testedgetts.py
 ffmpeg/ffmpeg.exe
 ffmpeg/ffprobe.exe
 ffmpeg/ffplay.exe
@@ -39,7 +40,7 @@ logs
 models
 dev
 chatterbox
-
+audio_cpp
 
 .venv
 venv

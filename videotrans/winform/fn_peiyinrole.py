@@ -149,8 +149,9 @@ def openwin():
 
 
 
-        if tts.is_input_api(tts_type=tts_type) is not True:
-            return False
+        _rs=tts.is_input_api(tts_type=tts_type)
+        if isinstance(_rs,str):
+            return show_error(_rs)
 
         if tts_type not in [tts.EDGE_TTS,tts.OMNIVOICE_TTS,tts.G_TTS]:
             langcode = translator.get_code(show_text=language)
@@ -273,8 +274,11 @@ def openwin():
         winobj.hecheng_role.addItems(role_list)
         if _origin_role and _origin_role in role_list:
             winobj.hecheng_role.setCurrentText(_origin_role)
-        if type not in [tts.EDGE_TTS,tts.OMNIVOICE_TTS,tts.G_TTS] and tts.is_input_api(tts_type=type) is not True:
-            return False
+        _rs=tts.is_input_api(tts_type=type)
+        if isinstance(_rs,str):
+            return show_error(_rs)
+        if type==tts.AUDIOCPP_TTS:
+            winobj.loglabel.setText(tr('toggle audiocpp model'))
 
     def hecheng_language_fun(t):
         tts_type = winobj.tts_type.currentIndex()

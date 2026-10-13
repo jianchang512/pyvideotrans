@@ -173,7 +173,7 @@ class Worker(QThread):
             msg=f"{except_msg}\n{traceback.format_exc()}\n"
             if trk:
                 video_duration_ms=trk.video_info.get('time')
-                msg+=f'{trk=}\n{trk.cfg=}\n{video_duration_ms=}'
+                msg+=f'{trk=}\n{video_duration_ms=}'
             self._post(text=msg, type='error')
         finally:
             app_cfg.onlyone_importsrtfile=None

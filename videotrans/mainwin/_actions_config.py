@@ -77,8 +77,11 @@ class WinActionConfigMixin:
         self.main.voice_role.addItems(_role_list)
         if _origin_role and _origin_role in _role_list:
             self.main.voice_role.setCurrentText(_origin_role)
-        if tts.is_input_api(tts_type=type) is not True:
-            return
+        _rs=tts.is_input_api(tts_type=type)
+        if isinstance(_rs,str):
+            return show_error(_rs)
+        if type==tts.AUDIOCPP_TTS:
+            self.main.show_tips.setText(tr('toggle audiocpp model'))
 
     def set_voice_role(self, t):
         role = self.main.voice_role.currentText()

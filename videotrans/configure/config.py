@@ -22,7 +22,7 @@ params: AppParams = AppParams()
 HOME_DIR = settings.homedir
 Path(HOME_DIR).mkdir(parents=True, exist_ok=True)
 
-defaulelang, _transobj = _init_language(settings)
+defaulelang, _transobj, os_language = _init_language(settings)
 
 set_app_cfg_ref(app_cfg)
 set_logger_ref(logger)
