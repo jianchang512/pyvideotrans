@@ -1,4 +1,5 @@
 # 原理解释见 @docs/Synchronize.md
+# 源码地址 https://github.com/jianchang512/pyvideotrans/blob/main/videotrans/task/_rate.py
 """
 # 2026-0923 修改
 

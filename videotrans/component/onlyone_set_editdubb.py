@@ -1041,7 +1041,7 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
             end_time = self.table.item(i, 4)
             start_raw=ms_to_time_string(ms=int(float(start_time.text().strip())*1000))
             end_raw=ms_to_time_string(ms=int(float(end_time.text().strip())*1000))
-            # 不修改文本，以便可以单独使用 各种配音渠道支持的控制符号进行声音微调
+
             text_item = self.table.item(i, 6)
             text = text_item.text().strip() if text_item else item['text'].strip()
             # 删除空文本对应的音频文件

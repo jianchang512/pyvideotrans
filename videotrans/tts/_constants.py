@@ -216,7 +216,7 @@ ID_NAME_DICT = {
     G_TTS: ChannelProvider(f"gTTS({tr('free')})",
                            imp="._gtts"),
     AZURE_TTS: ChannelProvider("Azure TTS",
-                               imp="._azure",
+                               imp="._azuretts",
                                key_name="azuretts_key",
                                win="azuretts"),
     AI302_TTS: ChannelProvider("302.ai",

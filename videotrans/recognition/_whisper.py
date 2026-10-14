@@ -57,7 +57,7 @@ class FasterAll(BaseRecogn):
         # 起一个进程
         logs_file = f'{config.TEMP_DIR}/{self.uuid}/openai-{self.detect_language}-{time.time()}.log'
 
-        _min_speech = max(int(float(settings.get('min_speech_duration_ms', 1000))), 3000)
+        _min_speech = max(int(float(settings.get('min_speech_duration_ms', 1000))), 200)
         # 最长片段不得大于25s,并且不得小于 _min_speech
         _max_speech = min(int(float(settings.get('max_speech_duration_s', 6)) * 1000), 25000)
         if _max_speech<=_min_speech:
@@ -91,13 +91,12 @@ class FasterAll(BaseRecogn):
         self.signal(text=title)
         logs_file = f'{config.TEMP_DIR}/{self.uuid}/faster-{self.detect_language}-{time.time()}.log'
 
-        _min_speech = max(int(float(settings.get('min_speech_duration_ms', 1000))), 3000)
+        _min_speech = max(int(float(settings.get('min_speech_duration_ms', 1000))), 200)
         # 最长片段不得大于25s,并且不得小于 _min_speech
         _max_speech = min(int(float(settings.get('max_speech_duration_s', 6)) * 1000), 25000)
         if _max_speech<=_min_speech:
             _max_speech=_min_speech+1000
 
-        
         
         subtitle_srt=f'{TEMP_ROOT}/faster-{datetime.datetime.now().strftime("%Y%m%d-%H_%M_%S")}.srt'
         kwargs = {

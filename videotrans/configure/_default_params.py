@@ -42,6 +42,10 @@ _default = {
         "azure_key": "",
         "azure_model": AZURE_MODELS.split(',')[0],
     },
+    "azuretts":{
+        "azuretts_key":"",
+        "azuretts_region":""
+    },
     "bailian": {
         # 千问百炼 API
         "bailian_key": "",
