@@ -1,4 +1,4 @@
-﻿﻿# pyVideoTrans
+﻿# pyVideoTrans
 
 > | Sponsors ||
 > | :--- | :--- |
