@@ -1,7 +1,8 @@
-﻿> Sponsors:
-> - **[Recall.ai](https://www.recall.ai/product/meeting-transcription-api?utm_source=github&utm_medium=sponsorship&utm_campaign=jianchang512-pyvideotrans) -  Meeting Transcription API**:  If you’re looking for a transcription API for meetings, consider checking out **[Recall.ai](https://www.recall.ai/product/meeting-transcription-api?utm_source=github&utm_medium=sponsorship&utm_campaign=jianchang512-pyvideotrans)** , an API that works with Zoom, Google Meet, Microsoft Teams, and more
-> - **[OfoxAI: Text, speech, image and video model APIs](https://ofox.ai/?utm_source=github&utm_medium=sponsorship&utm_content=pyvideotrans)**: Access GPT, Claude, Gemini and DeepSeek text models, ElevenLabs speech models, and image and video generation models with one API key—choose the models that fit your creative needs.
-> - **[infistar - 160+ 模型,一个 Key](https://www.infistar.cc/register?aff=9H6H7RR9&ref_source=link)**: infistar 是 OpenAI 兼容中转,一个 Key 随时切 160+ 模型,挑出翻得最准又最省的那个
+﻿﻿> | Sponsors ||
+> | :--- | :--- |
+> | [Recall.ai Meeting Transcription API](https://www.recall.ai/product/meeting-transcription-api?utm_source=github&utm_medium=sponsorship&utm_campaign=jianchang512-pyvideotrans)   | If you’re looking for a transcription API for meetings, consider checking out **[Recall.ai](https://www.recall.ai/product/meeting-transcription-api?utm_source=github&utm_medium=sponsorship&utm_campaign=jianchang512-pyvideotrans)** , an API that works with Zoom, Google Meet, Microsoft Teams, and more |
+> | [OfoxAI：文本、语音、图像、视频，多模型 API 资源](https://ofox.ai/zh?utm_source=github&utm_medium=sponsorship&utm_content=pyvideotrans) | Access GPT, Claude, Gemini and DeepSeek text models, ElevenLabs speech models, and image and video generation models with one API key—choose the models that fit your creative needs. |
+> | [infistar - 160+ 模型,一个 Key](https://www.infistar.cc/register?aff=9H6H7RR9&ref_source=link) | infistar 是 OpenAI 兼容中转,一个 Key 随时切 160+ 模型,挑出翻得最准又最省的那个 |
 
 
 ---
