@@ -1,4 +1,5 @@
-﻿> | Sponsors ||
+﻿
+> | Sponsors ||
 > | :--- | :--- |
 > | [Recall.ai Meeting Transcription API](https://www.recall.ai/product/meeting-transcription-api?utm_source=github&utm_medium=sponsorship&utm_campaign=jianchang512-pyvideotrans)   | If you’re looking for a transcription API for meetings, consider checking out **[Recall.ai](https://www.recall.ai/product/meeting-transcription-api?utm_source=github&utm_medium=sponsorship&utm_campaign=jianchang512-pyvideotrans)** , an API that works with Zoom, Google Meet, Microsoft Teams, and more |
 > | [OfoxAI：文本、语音、图像、视频，多模型 API 资源](https://ofox.ai/zh?utm_source=github&utm_medium=sponsorship&utm_content=pyvideotrans) | 一个 API Key 接入 GPT、Claude、Gemini、DeepSeek 等文本模型及 ElevenLabs 语音模型，同时提供图像与视频生成模型，按创作需求灵活选择。|
