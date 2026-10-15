@@ -12,6 +12,8 @@ from videotrans.task._base import BaseTask
 from videotrans.task.taskcfg import TaskCfgTTS, SrtItem
 import asyncio
 
+from videotrans.tts import SUPPORT_VOLUME
+from videotrans.util.help_misc import vail_file
 
 """
 仅配音任务：对应 批量为字幕配音 面板
@@ -258,7 +260,7 @@ class DubbingSrt(BaseTask):
         )
         self.queue_tts = rate_inst.run()
         volume = self.cfg.volume.strip()
-        if volume != '+0%':
+        if self.cfg.tts_type not in SUPPORT_VOLUME and volume != '+0%' and vail_file(self.cfg.target_wav):
             try:
                 volume = 1 + float(volume.replace('%', '')) / 100
                 tmp_name = self.cfg.cache_folder + f'/volume-{volume}-{Path(self.cfg.target_wav).name}'

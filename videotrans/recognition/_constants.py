@@ -54,6 +54,7 @@ SILICONFLOW_API = 29
 OPENROUTER_API = 30
 MINIMAX_API = 31
 AUDEXUM_API = 32
+FISHAUDIO_API = 33
 
 # 允许切换不同模型的渠道
 ALLOW_CHANGE_MODEL = [
@@ -65,7 +66,7 @@ ALLOW_CHANGE_MODEL = [
 
 # 允许所有语言，无需语言支持检测
 ALLOW_ALL_LANGUAGES = [FASTER_WHISPER, OPENAI_WHISPER, WHISPERX_API, Faster_Whisper_XXL, Whisper_CPP, OPENAI_API,
-                       AI_302, GEMINI_SPEECH, WHISPER_NET, GOOGLE_SPEECH, AUDEXUM_API]
+                       AI_302, GEMINI_SPEECH, WHISPER_NET, GOOGLE_SPEECH, AUDEXUM_API,FISHAUDIO_API]
 
 # 渠道id对应的设置窗口和sk键名,
 # key_name: 存储 SK 或 api url的键，通过 app_cfg.params 调用，如果不存在该值，在使用时报错未填写
@@ -175,6 +176,10 @@ ID_NAME_DICT = {
                                  key_name="audexum_key",
                                  win="audexum",
                                  imp="._audexum"),
+    FISHAUDIO_API: ChannelProvider("Fish-Audio API",
+                                 key_name="fishaudio_key",
+                                 win="fishaudio",
+                                 imp="._fishaudio"),
 
 }
 # 强制保持按照每个常量值大小排序

@@ -1100,6 +1100,7 @@
     "best_of_title": "识别准确度best_of",
     "condition_on_previous_text_title": "启用上下文感知",
     "hotwords_title": "热词",
+     "llm_resegment_title": "使用LLM重新断句替代LLM纠错",
     "zh_hant_s_title": "字幕繁体转简体",
     "chattts_voice_title": "ChatTTS音色值",
     "gemini_model_title": "Gemini模型列表",
@@ -1168,6 +1169,8 @@
     "max_video_pts_rate_notice": "视频慢放最大倍数，默认10，不可大于10",
     "cjk_len_notice": "中日韩字幕单行字符数，多于将换行，仅针对视频翻译中的目标字幕或单独的语音转录功能字幕",
     "other_len_notice": "其他语言字幕单行字符数，多于将换行，仅针对视频翻译中的目标字幕或单独的语音转录功能字幕",
+    "llm_resegment_notice": "使用LLM重新断句替代LLM纠错,若选中将使用AI模型重新断句，而非仅仅修正错别字",
+
     "Initial prompt for the Whisper model for speech": "发音语言为 {} 时发送给whisper模型的提示词",
     "Thinking": "思考模式",
 	"The audio.cpp binary file does not exist":"不存在audio.cpp文件，请先下载对应压缩包，解压到 {} 文件夹内,确保在该文件夹内存在 {}\n下载地址:[{}]",
@@ -1175,6 +1178,8 @@
 	"Insufficient permissions":"权限不足，请重新使用管理员权限运行本软件",
 	"OOMerror":"底层内存分配失败,可能内存不足，请更换其他配音模型",
 	"toggle audiocpp model":"可在 菜单-TTS设置-Audio.cpp 中切换不同配音模型",
-	"use admin run":"使用该配音渠道时，建议以管理员权限运行本软件，否则可能报错权限不足"
+	"use admin run":"使用该配音渠道时，建议以管理员权限运行本软件，否则可能报错权限不足",
+  "fishaudio update role tips": "仅仅更新我的声音库里自己创建的，软件默认自带fish.audio上每个语言按评分排名的前100个声音，若需其他声音，请点击帮助按钮",
+  "Update my voice": "更新[我的声音]"
 
 }

@@ -83,7 +83,7 @@ class GeminiRecogn(BaseRecogn):
             "text": "",
             "words": []
         }]
-        _min_speech = max(int(float(settings.get('min_speech_duration_ms', 1000))), 1000)
+        _min_speech = max(int(float(settings.get('min_speech_duration_ms', 1000))), 200)
         _max_speech = max(min(int(float(settings.get('max_speech_duration_s', 6)) * 1000), 20000), _min_speech + 1000)
         for i,it in enumerate(srts):                       
             words,_text=self._req(it['filename'])

@@ -126,8 +126,8 @@ class AppSettings:
 
     def _get_defaults(self) -> Dict:
         _d = {
-            "homedir": ROOT_DIR + "/output",
             "lang": "",
+            "homedir": ROOT_DIR + "/output",
             "Faster_Whisper_XXL": "",
             "Whisper_cpp": "",
             "crf": 23,
@@ -196,6 +196,7 @@ class AppSettings:
             "other_len": 40,
             "llm_chunk_size": 50,
             "llm_ai_type": 1,
+            "llm_resegment":False,
             "gemini_recogn_chunk": 50,
             "zh_hant_s": True,
             "process_max": 0,

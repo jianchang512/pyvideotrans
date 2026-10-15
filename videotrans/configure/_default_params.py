@@ -75,6 +75,10 @@ _default = {
         "deepseek_model": DEEPSEEK_MODELS.split(',')[0],
         "deepseek_max_token": 16384,  # 最大输出64k
     },
+    "fishaudio":{
+        "fishaudio_key":"",
+        "fishaudio_model":"s2.1-pro"
+    },
     "gemini": {
         # gemini
         "gemini_key": "",
@@ -175,11 +179,7 @@ _default = {
     "audexum": {
         "audexum_key": "",
     },
-    "azuretts": {
-        # azure tts
-        "azuretts_key": "",
-        "azuretts_region": "",
-    },
+
     "baidu": {
         # 百度翻译
         "baidu_appid": "",
@@ -190,7 +190,8 @@ _default = {
         "chatterbox_cfg_weight": 0.5,
         "chatterbox_exaggeration": 0.5,
     },
-    "chattts": {"chattts_api": "http://127.0.0.1:9966", }, "clone": {
+    "chattts": {"chattts_api": "http://127.0.0.1:9966", },
+    "clone": {
         # clone-voice
         "clone_api": "http://127.0.0.1:9988",
         "clone_voicelist": "No,clone",

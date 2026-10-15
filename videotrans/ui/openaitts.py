@@ -135,7 +135,7 @@ class Ui_openaitts(QDialog):
             self.openaitts_model.setCurrentText(str(params.get("openaitts_model",'')))
     def retranslateUi(self, form):
         form.setWindowTitle("OpenAI API TTS")
-        self.label_3.setText(tr("Model"))
+        self.label_3.setText(tr('From  Text  Into  Speech')+tr("Model"))
         self.set_openaitts.setText(tr("Save"))
         self.test_openaitts.setText(tr("Test"))
         self.openaitts_api.setPlaceholderText(

@@ -109,12 +109,14 @@ class OpenAICampat(BaseTrans):
 
     def llm_segment(self, srt_list,step='')->List[SrtItem]:
         _st=time.time()
-
-
-        prompts_template = Path(f'{ROOT_DIR}/videotrans/prompts/resegment/llm.txt').read_text(encoding='utf-8')
+        flag="LLM纠错"
+        if not step and settings.get('llm_resegment'):
+            flag="LLM重新断句替换LLM纠错"
+            prompts_template = Path(f'{ROOT_DIR}/videotrans/prompts/resegment/llm_re.txt').read_text(encoding='utf-8').replace('{max_speech_s}',str(settings.get('max_speech_duration_s',5)))
+        else:
+            prompts_template = Path(f'{ROOT_DIR}/videotrans/prompts/resegment/llm.txt').read_text(encoding='utf-8')
         chunk_size = int(settings.get('llm_chunk_size', 20))
 
-        
         kwargs={
                 "model":self.model_name,
                 "temperature":self.temperature,
@@ -127,7 +129,7 @@ class OpenAICampat(BaseTrans):
             kwargs["max_completion_tokens"]=int(self.max_tokens)
         else:
             kwargs["max_tokens"]=int(self.max_tokens)
-        logger.debug(f'LLM Re-segmenting:{self.ainame=},{kwargs=},{self.model_name=},{self.api_url=},{step=}')
+        logger.debug(f'{self.ainame=},{kwargs=},{self.model_name=},{self.api_url=},{step=}')
         
         @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(2)),
                wait=wait_fixed(5), before=before_log(logger, logging.INFO),
@@ -153,14 +155,14 @@ class OpenAICampat(BaseTrans):
             
         
         new_sublist = []
-        logger.debug(f'LLM纠错前:{srt_list=}')
+        logger.debug(f'{flag}:{srt_list=}')
         for idx in range(0, len(srt_list), chunk_size):
             self.signal(text=f'[{idx}] {self.ainame} ' + tr("Re-segmenting..."))
             srt_str = "\n\n".join(
                 [f"{line + 1}\n{it['time']}\n{it['text']}" for line, it in enumerate(srt_list[idx: idx + chunk_size])])
             new_sublist.append(_send(srt_str))
 
-        logger.debug(f'LLM纠错后:{new_sublist=}')
+        logger.debug(f'{flag}:{new_sublist=}')
         _srtlist = get_subtitle_from_srt("\n\n".join(new_sublist), is_file=False)
         # 修正可能存在的时间戳错误
         _len = len(_srtlist)
@@ -176,5 +178,5 @@ class OpenAICampat(BaseTrans):
                 it['startraw'] = ms_to_time_string(ms=it['start_time'])
                 it['endraw'] = ms_to_time_string(ms=it['end_time'])
                 it["time"] = f"{it['startraw']} --> {it['endraw']}"
-        logger.debug(f'{"【二次识别后】"  if step else ""}LLM纠错完成,原始字幕行:{len(srt_list)}, 新字幕行:{len(_srtlist)}, 用时:{time.time()-_st}s')
+        logger.debug(f'{"【二次识别后】"  if step else ""} {flag},原始字幕行:{len(srt_list)}, 新字幕行:{len(_srtlist)}, 用时:{time.time()-_st}s')
         return _srtlist

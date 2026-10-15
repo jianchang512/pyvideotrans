@@ -213,6 +213,21 @@ def get_minimaxi_rolelist():
         except (OSError, json.JSONDecodeError):
             pass
     return voice_list
+@lru_cache
+def get_fishaudio_rolelist():
+    from . import help_misc
+    voice_list = {}
+    voice_file = ROOT_DIR + "/videotrans/voicejson/fishaudio.json"
+
+    if help_misc.vail_file(voice_file):
+        try:
+            with open(voice_file, 'r', encoding='utf-8-sig') as f:
+                voice_list = json.loads(f.read())
+            for i, it in voice_list.items():
+                voice_list[i] = {"No": "No"} | it
+        except (OSError, json.JSONDecodeError):
+            pass
+    return voice_list
 
 @lru_cache
 def get_qwen3tts_rolelist():
@@ -400,6 +415,8 @@ def role_menu(tts_type, langcode=None) -> List:
         _roledict = get_doubao2_rolelist()
     elif tts_type == tts.MINIMAXI_TTS:
         _roledict = get_minimaxi_rolelist()
+    elif tts_type == tts.FISHAUDIOAPI_TTS:
+        _roledict = get_fishaudio_rolelist()
     else:
         # AzureTTS
         _roledict = get_azure_rolelist()

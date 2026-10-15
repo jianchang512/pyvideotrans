@@ -46,6 +46,8 @@ def openwin():
 
     def test():
         params['elevenlabstts_key'] = winobj.elevenlabstts_key.text().strip()
+        params['elevenlabstts_model'] = winobj.elevenlabstts_model.currentText()
+        params.save()
         try:
             from videotrans import tts
             from videotrans.task.simple_runnable_qt import run_in_threadpool

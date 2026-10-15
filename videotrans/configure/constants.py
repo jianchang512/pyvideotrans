@@ -76,6 +76,7 @@ SILICONFLOW_TTS_MODELS = "fnlp/MOSS-TTSD-v0.5,FunAudioLLM/CosyVoice2-0.5B"
 MINIMAX_TTS_MODELS = "speech-2.8-hd,speech-2.8-turbo,speech-2.6-hd,speech-2.6-turbo,speech-02-hd,speech-02-turbo"
 ELEVENLABS_TTS_MODELS = "eleven_v4,eleven_v3,eleven_multilingual_v2"
 XIAOMI_TTS_MODELS = 'mimo-v2.5-tts'
+FISHAUDIO_TTS_MODELS='s2.1-pro,s2-pro,s2.1-pro-free,drama-3'
 
 
 # ------------默认TTS配音角色=================================

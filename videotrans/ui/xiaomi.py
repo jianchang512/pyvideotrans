@@ -83,7 +83,7 @@ class Ui_xiaomi(QDialog):
         h2ttsmodel = QtWidgets.QHBoxLayout()
         self.label_ttsmodel = QtWidgets.QLabel()
         self.label_ttsmodel.setObjectName("label_ttsmodel")
-        self.label_ttsmodel.setText('TTS model')
+        self.label_ttsmodel.setText(tr('From  Text  Into  Speech')+tr("Model"))
 
         self.ttsmodel = QtWidgets.QComboBox()
         self.ttsmodel.setMinimumSize(QtCore.QSize(0, 35))
@@ -141,5 +141,5 @@ class Ui_xiaomi(QDialog):
         self.set_xiaomi.setText(tr("Save"))
         self.test.setText(tr("Test"))
         self.xiaomi_key.setPlaceholderText("XiaoMi API Keys")
-        self.label_2.setText("XiaoMi API Key ")
+        self.label_2.setText(tr('SK'))
         self.label_3.setText(tr('Text  Or Srt  Translation')+tr("Model"))

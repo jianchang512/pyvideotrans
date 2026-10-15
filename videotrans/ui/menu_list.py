@@ -50,6 +50,7 @@ MENU_CFG_TTS = [
 
     ("openaitts", "OpenAI TTS", None),
     ("doubao2", tr("DouBao2"), None),
+    ("fishaudio", 'Fish.audio', None),
 
 
     ("xaitts", "X.AI TTS", None),

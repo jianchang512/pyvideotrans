@@ -202,7 +202,7 @@ class BaseTrans(BaseCon):
         return get_md5(f'{self.translate_type}-{self.api_url}-{self.aisendsrt}-{self.model_name}-{self.source_code}-{self.target_code}-{it}')
     
     def _set_context(self,target_code=None):
-        if not self.text_list: return '' # LLM  error correction
+        if not self.text_list: return '' # LLM  error correction or LLM re-segment
         lang_prompt=''
         lang_prompt_file=f'{ROOT_DIR}/videotrans/prompts/language_prompts/{self.common_target_code}.txt'
         if Path(lang_prompt_file).exists():

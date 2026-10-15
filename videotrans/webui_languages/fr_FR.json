@@ -546,7 +546,9 @@
   "max_video_pts_rate_notice": "Taux de ralentissement vidéo maximal (par défaut : 10, max. 10).",
   "cjk_len_notice": "Nombre max. de caractères par ligne pour le chinois, japonais et coréen avant retour à la ligne.",
   "other_len_notice": "Nombre max. de mots par ligne pour les autres langues avant retour à la ligne.",
-  "Initial prompt for the Whisper model for speech": "Prompt initial du modèle Whisper pour l'audio en {}"
+  "Initial prompt for the Whisper model for speech": "Prompt initial du modèle Whisper pour l'audio en {}",
+  "llm_resegment_notice": "Use LLM to re-sentence instead of LLM correct errors",
+  "llm_resegment_title": "Use LLM to re-sentence instead of LLM correct errors"
 
 
 }

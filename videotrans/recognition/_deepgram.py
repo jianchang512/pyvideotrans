@@ -64,7 +64,7 @@ class DeepgramRecogn(BaseRecogn):
                     tmp['words'].append({"start":w.start,"end":w.end,"word":w.punctuated_word})
                 text_words.append(tmp)
 
-            min_speech = max(int(float(settings.get('min_speech_duration_ms', 1000))), 3000)
+            min_speech = max(int(float(settings.get('min_speech_duration_ms', 1000))), 200)
             # 最长片段不得大于25s,并且不得小于 _min_speech
             max_speech = min(int(float(settings.get('max_speech_duration_s', 6)) * 1000), 25000)
             if max_speech<=min_speech:

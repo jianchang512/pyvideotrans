@@ -65,6 +65,7 @@ SILICONFLOW_API = 36
 OPENROUTER_API = 37
 DEEPGRAM_TTS = 38
 CLONE_VOICE_TTS = 39
+FISHAUDIOAPI_TTS=40
 
 # 支持克隆的渠道，即存在 clone 配音角色
 SUPPORT_CLONE = [
@@ -99,10 +100,12 @@ LOCAL_BUILTIN = [
     Supertonic_TTS,
     VITSCNEN_TTS
 ]
+# 支持 音量调节 的渠道，无需使用ffmpeg额外处理
+SUPPORT_VOLUME=[EDGE_TTS, AZURE_TTS,FISHAUDIOAPI_TTS,MINIMAXI_TTS,DOUBAO2_TTS,GLM_TTS,AI302_TTS]
 
 # 配音角色根据语言不同而变化的渠道
 CHANGE_BY_LANGUAGE = [EDGE_TTS, MINIMAXI_TTS, AZURE_TTS, DOUBAO2_TTS, AI302_TTS, KOKORO_TTS,
-                      PIPER_TTS, VITSCNEN_TTS, DEEPGRAM_TTS]
+                      PIPER_TTS, VITSCNEN_TTS, DEEPGRAM_TTS,FISHAUDIOAPI_TTS]
 
 # 渠道id对应的设置窗口和sk键名,
 # key_name: 存储 SK 或 api url的键，通过 app_cfg.params 调用，如果不存在该值，在使用时报错未填写
@@ -248,6 +251,10 @@ ID_NAME_DICT = {
                                      imp="._clone",
                                      key_name="clone_api",
                                      win="clone"),
+    FISHAUDIOAPI_TTS: ChannelProvider(f"Fish-Audio API",
+                                     imp="._fishaudio",
+                                     key_name="fishaudio_key",
+                                     win="fishaudio"),
 }
 
 # 强制保持按照每个常量值大小排序

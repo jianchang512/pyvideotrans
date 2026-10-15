@@ -546,6 +546,8 @@
     "max_video_pts_rate_notice": "视频慢放最大倍数，默认10，不可大于10",
     "cjk_len_notice": "中日韩字幕单行字符数，多于将换行，仅针对视频翻译中的目标字幕或单独的语音转录功能字幕",
     "other_len_notice": "其他语言字幕单行字符数，多于将换行，仅针对视频翻译中的目标字幕或单独的语音转录功能字幕",
-    "Initial prompt for the Whisper model for speech": "发音语言为 {} 时发送给whisper模型的提示词"
+    "Initial prompt for the Whisper model for speech": "发音语言为 {} 时发送给whisper模型的提示词",
+  "llm_resegment_notice": "使用LLM重新断句替代LLM纠错",
+  "llm_resegment_title": "使用LLM重新断句替代LLM纠错"
 
 }

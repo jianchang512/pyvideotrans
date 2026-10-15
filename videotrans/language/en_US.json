@@ -1104,6 +1104,7 @@
     "translation_wait_title": "Pause (s) after each translation request",
     "dubbing_wait_title": "Pause (s) after each dubbing request",
     "gemini_model_title": "Gemini model list",
+    "llm_resegment_title": "Use LLM to re-sentence instead of LLM correct errors",
     "lang_notice": "Set the software's interface language. Requires a restart to take effect.",
     "countdown_sec_notice": "Countdown in seconds for a single video translation.",
     "homedir_notice": "Directory to save results (STT, TTS, TransSubtitles). Defaults to the 'output' folder.",
@@ -1169,6 +1170,7 @@
     "max_video_pts_rate_notice": "Maximum video slow-down rate. Default: 10 (cannot exceed 10).",
     "cjk_len_notice": "Number of characters per line for Chinese, Japanese, and Korean subtitles; more than this will result in a line break",
     "other_len_notice": "Number of words per line for subtitles in other languages; more than this will result in a line break",
+  "llm_resegment_notice": "Use LLM to re-sentence instead of LLM correct errors",
   "Initial prompt for the Whisper model for speech": "Initial prompt for the Whisper model for {} speech",
   "Thinking": "Thinking",
   "The audio.cpp binary file does not exist":"The audio.cpp binary file does not exist. Please download the corresponding audio.cpp zip file first, then unzip it to the {} folder, and ensure that {} exists within that folder. Download link: [{}]",
@@ -1176,6 +1178,9 @@
   "Insufficient permissions":"Insufficient permissions. Please run this software again with administrator privileges.",
   "OOMerror":"The underlying memory allocation failed, possibly due to insufficient memory. Please try a different voice-over model.",
   "toggle audiocpp model":"You can switch between different models in the Menu - TTS Settings - Audio.cpp",
-  "use admin run":"When using this voice-over channel, it is recommended to run this software with administrator privileges; otherwise, you may encounter a permission insufficient error."
+  "use admin run":"When using this voice-over channel, it is recommended to run this software with administrator privileges; otherwise, you may encounter a permission insufficient error.",
+  "fishaudio update role tips": "This software only updates the audio I created in my own audio library. By default, it includes the top 100 audio tracks from fish.audio, ranked by score for each language. If you need other audio tracks, please click the help button.",
+  "Update my voice": "Update my voice"
+
 
 }
