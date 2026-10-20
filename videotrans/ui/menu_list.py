@@ -31,6 +31,7 @@ MENU_CFG_TRANS = [
     ("cheaperinference", 'Cheaper Inference', None),
     ("infistar", 'Infistar', None),
     ("atlascloud", 'Atlas Cloud', None),
+    ("opper", 'Opper', None),
 
     ("deepl", "DeepL API", None),
     ("deeplx", "DeepLX API", None),

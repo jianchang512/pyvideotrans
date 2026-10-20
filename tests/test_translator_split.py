@@ -138,6 +138,11 @@ class TestTranslatorIndexConstants:
         assert ATLASCLOUD_INDEX == 29
         assert ATLASCLOUD_INDEX in AI_TRANS_CHANNELS
 
+    def test_opper_index(self):
+        from videotrans.translator import OPPER_INDEX, AI_TRANS_CHANNELS
+        assert OPPER_INDEX == 30
+        assert OPPER_INDEX in AI_TRANS_CHANNELS
+
     def test_infistar_index(self):
         from videotrans.translator import INFISTAR_INDEX, AI_TRANS_CHANNELS
         assert INFISTAR_INDEX == 28

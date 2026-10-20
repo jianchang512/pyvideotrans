@@ -12,7 +12,7 @@ from videotrans.configure.constants import (
     MINIMAX_MODELS,
     XIAOMI_MODELS, AI302_MODELS, BAILIAN_MODELS, CHATGPT_MODELS, AZURE_MODELS, LOCALLLM_MODELS,
     ZHIPUAI_MODELS, DEEPSEEK_MODELS, OPENROUTER_MODELS, LITELLM_MODELS, APIROUTE_MODELS, CheaperInference_MODELS,
-    SILICONFLOW_MODELS, ZIJIEHUOSHAN_MODELS, GEMINI_MODELS, OPENAI_TTS_MODELS, INFISTAR_MODELS, ATLASCLOUD_MODELS
+    SILICONFLOW_MODELS, ZIJIEHUOSHAN_MODELS, GEMINI_MODELS, OPENAI_TTS_MODELS, INFISTAR_MODELS, ATLASCLOUD_MODELS, OPPER_MODELS
 
 )
 
@@ -140,6 +140,12 @@ _default = {
         "openrouter_model": OPENROUTER_MODELS.split(',')[0],
         "openrouter_tts_model": OPENROUTER_TTS_MODELS.strip().split(',')[0],
         "openrouter_max_token": 16384,  # 最大输出16k
+    },
+    "opper": {
+        # opper.ai
+        "opper_key": "",
+        "opper_model": OPPER_MODELS.split(',')[0],
+        "opper_max_token": 16384,
     },
     "siliconflow": {
         # 硅基流动
