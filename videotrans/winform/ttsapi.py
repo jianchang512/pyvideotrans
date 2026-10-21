@@ -26,6 +26,7 @@ def openwin():
         params["ttsapi_url"] = url
         params["ttsapi_extra"] = extra
         params["ttsapi_voice_role"] = role
+        params.save()
         winobj.test.setText(tr("Testing..."))
         from videotrans import tts
         import time

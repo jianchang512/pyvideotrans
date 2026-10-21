@@ -150,6 +150,7 @@ class AppSettings:
             "aitrans_context": False,
             "batch_nums": 0,
             "uvr_models": "spleeter",
+            "noise_model": "dpdfnet2.onnx",
 
             "max_audio_speed_rate": 50,
             "max_video_pts_rate": 10,
@@ -166,7 +167,7 @@ class AppSettings:
 
             "vad_type": "silero",
 
-            "trans_thread": 10,
+            "trans_thread": 5,
             "aitrans_thread": 40,
             "translation_wait": 0.1,
             "dubbing_wait": 1,
@@ -197,6 +198,7 @@ class AppSettings:
             "llm_chunk_size": 50,
             "llm_ai_type": 1,
             "llm_resegment":False,
+            "ultimate_mini":False,
             "gemini_recogn_chunk": 50,
             "zh_hant_s": True,
             "process_max": 0,

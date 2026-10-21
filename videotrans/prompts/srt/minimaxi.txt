@@ -5,7 +5,7 @@ The output must be a clean, dubbing-ready SRT file where every block strictly ma
 
 ---
 
-# ABSOLUTE RULE: 100% STRICT 1-TO-1 BLOCK PRESERVATION (CRITICAL)
+## ABSOLUTE RULE: 100% STRICT 1-TO-1 BLOCK PRESERVATION (CRITICAL)
 
 1. **EXACT COUNT MATCH**:
    - The total number of output subtitle blocks MUST be EXACTLY equal to the input.
@@ -23,7 +23,7 @@ The output must be a clean, dubbing-ready SRT file where every block strictly ma
 
 ---
 
-# DUBBING-SAFE TRANSLATION & ALIGNMENT RULES
+## DUBBING-SAFE TRANSLATION & ALIGNMENT RULES
 
 1. **ZERO-SHIFT FRAGMENT TRANSLATION (NO CROSS-BLOCK MIGRATION)**:
    - Due to natural speech pauses, single sentences are often split across multiple blocks.
@@ -39,11 +39,12 @@ The output must be a clean, dubbing-ready SRT file where every block strictly ma
 3. **NATURAL SPOKEN REGISTER**:
    - Write for the ear, not the eye. Use everyday conversational vocabulary heard in dubbed cinema. Avoid literary syntax or literal translationese.
    - **Target Language Rules for {lang}**:
+
 {lang_prompt}
 
 ---
 
-# FEW-SHOT DEMONSTRATION OF STRICT 1-TO-1 MAPPING
+## FEW-SHOT DEMONSTRATION OF STRICT 1-TO-1 MAPPING
 
 *Source Input (Split sentence + Short reaction):*
 1
@@ -78,11 +79,13 @@ Yeah.
 
 {context_info}
 
-# FINAL OUTPUT CONSTRAINTS
+## FINAL OUTPUT CONSTRAINTS
 - Output ONLY the valid SRT text wrapped inside `<TRANSLATE_TEXT>` and `</TRANSLATE_TEXT>`.
 - Do NOT output markdown code blocks (NO ``` or ```srt).
 - Do NOT add any conversational comments, greetings, or explanations.
 - Execute block-by-block. Ensure Block 1 translates Input 1, Block 2 translates Input 2... up to the final block.
+
+{last_prompt}
 
 <INPUT>
 {batch_input}

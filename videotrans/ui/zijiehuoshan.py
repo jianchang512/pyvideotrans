@@ -54,14 +54,18 @@ class Ui_zijiehuoshan(QDialog):
         self.huoshan_max_token.setMinimumSize(QtCore.QSize(0, 35))
         self.huoshan_max_token.setObjectName("huoshan_max_token")
         
-        self.huoshan_thinking = QtWidgets.QCheckBox()
-        self.huoshan_thinking.setObjectName("huoshan_thinking")
-        self.huoshan_thinking.setText(tr('Thinking'))
         h_max_token.addWidget(label_token)
         h_max_token.addWidget(self.huoshan_max_token)
-        h_max_token.addWidget(self.huoshan_thinking)
         v1.addLayout(h2)
         v1.addLayout(h_max_token)
+
+        hreason = QtWidgets.QHBoxLayout()
+        hreason.addWidget(QtWidgets.QLabel(tr('Reasoning Effort')))
+        self.reasoning_effort=QtWidgets.QComboBox()
+        self.reasoning_effort.addItems(['default','none','low','medium','high','max'])
+        self.reasoning_effort.setToolTip(tr('none_effort'))
+        hreason.addWidget(self.reasoning_effort)
+        v1.addLayout(hreason)
 
         self.label_allmodels = QtWidgets.QLabel()
         self.label_allmodels.setObjectName("label_allmodels")
@@ -113,6 +117,9 @@ class Ui_zijiehuoshan(QDialog):
         self.zijiehuoshan_key.setText(str(params.get("zijiehuoshan_key",'')))
         if params.get("zijiehuoshan_model",'') in allmodels:
             self.zijiehuoshan_model.setCurrentText(params.get("zijiehuoshan_model",''))
+        self.reasoning_effort.setCurrentText(params.get("zijiehuoshan_reasoning_effort","default"))
+        self.huoshan_max_token.setText(str(params.get('zijiehuoshan_max_token',32768)))
+
     def retranslateUi(self, form):
         form.setWindowTitle(tr("ByteDance Ark"))
         self.label_3.setText(tr('Selecting an Inference Access Point'))

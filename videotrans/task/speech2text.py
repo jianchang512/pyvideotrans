@@ -10,7 +10,7 @@ from typing import List
 from videotrans.configure import constants
 from videotrans.configure.config import ROOT_DIR, tr, settings, logger, HOME_DIR
 from videotrans.configure import config
-from videotrans.configure.constants import PUNC_RESTORE_MS, DENOISE_URL_MS,  DENOISE_URL_HF, PUNC_RESTORE_HF
+from videotrans.configure.constants import PUNC_RESTORE_MS, PUNC_RESTORE_HF
 from videotrans.recognition import run
 from videotrans.task._base import BaseTask
 from videotrans.task.taskcfg import TaskCfgSTT
@@ -78,13 +78,12 @@ class SpeechToText(BaseTask):
             try:
                 from videotrans.process.prepare_audio import remove_noise
                 title = tr('Starting to process speech noise reduction, which may take a long time, please be patient')
-                down_file_from_hf(f'{ROOT_DIR}/models/onnx', urls=DENOISE_URL_MS if not is_connect_hf() else DENOISE_URL_HF,
-                                            callback=self._process_callback)
                 _noise_wav = f"{config.TEMP_DIR}/{self.cfg.noextname}-{os.path.getsize(self.cfg.name)}-removed_noise.wav"
                 kw = {
                         "input_file": self.cfg.shibie_audio,
                         "output_file": _noise_wav,
-                        "is_cuda": self.cfg.is_cuda
+                        "is_cuda": self.cfg.is_cuda,
+                        "model_name":settings.get('noise_model')
                     }
                 _rs = self._new_process(callback=remove_noise, title=title, is_cuda=self.cfg.is_cuda, kwargs=kw)
                 if _rs:

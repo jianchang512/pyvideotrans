@@ -20,6 +20,7 @@ def openwin():
         params['deepl_key'] = key
         params['deepl_api'] = winobj.deepl_api.text().strip()
         params['deepl_gid'] = winobj.deepl_gid.text().strip()
+        params.save()
         winobj.test.setText(tr("Testing..."))
         from videotrans import translator
         task = TestSrtTrans(parent=winobj, translator_type=translator.DEEPL_INDEX)

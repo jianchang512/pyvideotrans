@@ -18,6 +18,7 @@ def openwin():
             return show_error(tr("Please input AccessKey ID and AccessKey Secret"))
         params["ali_id"] = appid
         params["ali_key"] = miyue
+        params.save()
         winobj.test.setText(tr("Testing..."))
         from videotrans import translator
         task = TestSrtTrans(parent=winobj, translator_type=translator.ALI_INDEX)

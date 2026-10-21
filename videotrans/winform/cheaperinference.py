@@ -19,6 +19,7 @@ def openwin():
         params["cheaperinference_key"] = key
         params["cheaperinference_model"] = winobj.cheaperinference_model.currentText()
         params["cheaperinference_max_token"] = winobj.max_token.text().strip()
+        params.save()
         winobj.test.setText(tr("Testing..."))
         task = TestSrtTrans(parent=winobj, translator_type=translator.CHEAPERINFERENCE_INDEX)
         task.uito.connect(feed)

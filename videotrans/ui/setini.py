@@ -107,7 +107,7 @@ class Ui_setini(QtWidgets.QWidget):
         self.centralwidget.setObjectName("centralwidget")
         self.has_done = False
         setini.setObjectName("setini")
-        setini.setMinimumSize(900, 670)
+        setini.setMinimumSize(1100, 670)
         self.setWindowFlags(Qt.WindowStaysOnTopHint)
         self.layout = QtWidgets.QVBoxLayout(setini)
         self.layout.setContentsMargins(0, 0, 0, 0)

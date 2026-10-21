@@ -26,14 +26,14 @@ class LifecycleMixin:
             self.close()
 
     @staticmethod
-    def kill_ffmpeg_processes():
+    def kill_processes(process_name):
         from videotrans.configure.config import logger
 
         current_user = getpass.getuser()
         if platform.system() == "Windows":
             try:
                 result = subprocess.run(
-                    f'taskkill /F /FI "USERNAME eq {current_user}" /IM ffmpeg.exe',
+                    f'taskkill /F /FI "USERNAME eq {current_user}" /IM {process_name}.exe',
                     shell=True,
                     capture_output=True,
                     text=True
@@ -47,7 +47,7 @@ class LifecycleMixin:
 
         try:
             result = subprocess.run(
-                ['pkill', '-9', '-u', current_user, 'ffmpeg'],
+                ['pkill', '-9', '-u', current_user, process_name],
                 capture_output=True,
                 text=True
             )
@@ -58,14 +58,11 @@ class LifecycleMixin:
 
     def closeEvent(self, event):
         self.hide()
-        from videotrans.configure.config import app_cfg, ROOT_DIR, TEMP_DIR, TEMP_ROOT,REDUBB_STATUS_FILE
-        try:
-            if Path(REDUBB_STATUS_FILE).exists():
-                Path(REDUBB_STATUS_FILE).write_text('end')
-        except OSError:
-            pass
+        from videotrans.configure.config import app_cfg, ROOT_DIR, TEMP_DIR, TEMP_ROOT,REDUBB_STATUS_FILE,IPC_STATUS_FILE
         app_cfg.exit_soft = True
         app_cfg.current_status = 'stop'
+        Path(REDUBB_STATUS_FILE).touch()
+        Path(IPC_STATUS_FILE).touch()
         os.chdir(ROOT_DIR)
         self.cleanup_and_accept()
 
@@ -124,5 +121,6 @@ class LifecycleMixin:
         except Exception as e:
             logger.exception(f'子窗口关闭中出错{e}', exc_info=True)
 
+        self.kill_processes('ffmpeg')
+
         QThreadPool.globalInstance().waitForDone(5000)
-        self.kill_ffmpeg_processes()

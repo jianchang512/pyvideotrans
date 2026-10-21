@@ -28,7 +28,7 @@ def openwin():
             return show_error('API KEY and Model')
         params["zijiehuoshan_key"] = key
         params["zijiehuoshan_model"] = model
-        params["zijiehuoshan_thinking"] = winobj.huoshan_thinking.isChecked()
+        params["zijiehuoshan_reasoning_effort"] = winobj.reasoning_effort.currentText()
         params["zijiehuoshan_max_token"] = int(winobj.huoshan_max_token.text())
         params.save()
         winobj.test_zijiehuoshan.setText(tr("Testing..."))
@@ -39,14 +39,12 @@ def openwin():
     def save_zijiehuoshan():
         params["zijiehuoshan_key"] = winobj.zijiehuoshan_key.text().strip()
         params["zijiehuoshan_model"] = winobj.zijiehuoshan_model.currentText()
-        params["zijiehuoshan_thinking"] = winobj.huoshan_thinking.isChecked()
+        params["zijiehuoshan_reasoning_effort"] = winobj.reasoning_effort.currentText()
         params["zijiehuoshan_max_token"] = int(winobj.huoshan_max_token.text())
         params.save()
         winobj.close()
 
     winobj.edit_allmodels.textChanged.connect(make_setallmodels(winobj, 'zijiehuoshan_model', 'zijiehuoshan_model'))
     winobj.set_zijiehuoshan.clicked.connect(save_zijiehuoshan)
-    winobj.huoshan_thinking.setChecked(bool(params.get('zijiehuoshan_thinking',False)))
-    winobj.huoshan_max_token.setText(str(params.get('zijiehuoshan_max_token',32768)))
     winobj.test_zijiehuoshan.clicked.connect(test)
     return winobj

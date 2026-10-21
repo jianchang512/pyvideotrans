@@ -28,6 +28,7 @@ def openwin():
 
     def test():
         params["fishtts_url"] = _fix_url(winobj.api_url.text().strip())
+        params.save()
         _rolename = next(reversed(get_f5tts_role().values()))
         if not isinstance(_rolename,dict):
             return show_error(tr("No reference audio {} exists",_rolename))

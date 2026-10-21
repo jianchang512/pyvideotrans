@@ -1,0 +1,7 @@
+==========================================
+
+## CRITICAL OVERRIDE — HIGHEST PRIORITY: DUBBING TIME-SYNC 
+This translation is strictly for dubbing (voiceover). While preserving the core semantic meaning, you must keep the output **extremely concise** and strictly constrain the **syllable count and sentence length** so that the spoken duration **does not exceed the original speech**, ensuring seamless audio-visual synchronization.
+
+**NON-NEGOTIABLE:** This duration constraint **supersedes all previous stylistic instructions**. If any instruction conflicts with timing, **BREVITY WINS**. You are explicitly authorized to omit non-essential modifiers, condense clauses, and prioritize tight, spoken phrasing. Any audio/syllable expansion is considered a failure.
+

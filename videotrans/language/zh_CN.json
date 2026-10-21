@@ -84,7 +84,7 @@
   "Custom Speech Recognition API": "自定义语音识别API",
   "Custom api address must be filled in": "必须填写自定义api地址",
   "Customize API": "自定义TTS API",
-  "Customize each configuration to batch video translation. When selecting a single video, you can pause to edit subtitles during processing.": "支持单个或批量翻译视频。若仅选一个视频，处理中会弹出编辑界面，可对字幕或配音进行修改。鼠标放在各组件3s会显示帮助文字\n[发音语言]是指视频中的人类说话语言，[目标语言]是指想翻译到的语言，若要配音，必须选择[目标语言]。点击[设置更多参数]，可查看更多设置",
+  "Customize each configuration to batch video translation. When selecting a single video, you can pause to edit subtitles during processing.": "支持单个或批量翻译视频。若选单个视频，处理中会弹出编辑界面。点击[设置更多参数]，可设置降噪/分离背景音等",
   "Customized API": "自定义翻译API",
   "Customizing TTS-API": "自定义TTS API",
   "Customizing the TTS-API": "自定义TTS-API/无编码能力勿使用该功能",
@@ -714,7 +714,7 @@
   "Translation results saved to:": "翻译结果保存到: ",
   "may not support": "可能尚不支持",
   "Modify secondary recognition results": "二次语音识别结果：可在此修改字幕",
-  "Reasoning Effort": "推理深度",
+  "Reasoning Effort": "思考深度(none是关闭)",
   "This channel needs deployed and started before available": "该渠道需另行部署并启动后可用",
   "Default punctuation": "默认标点",
   "Restore punctuation": "恢复标点(cn/en)",
@@ -1105,6 +1105,12 @@
     "chattts_voice_title": "ChatTTS音色值",
     "gemini_model_title": "Gemini模型列表",
     "lang_notice": "设置软件界面语言，修改后需要重启软件",
+	
+	"noise_model_title":"降噪模型",
+    "ultimate_mini_title": "进一步精简翻译",
+    "ultimate_mini_notice": "选中后将追加AI翻译提示词，要求翻译结果极致精简以避免配音过长",
+	"noise_model_notice":"zipenhancer将使用audio.cpp自动选择最佳设备执行，其他为纯CPU执行",
+	
     "countdown_sec_notice": "当单视频交互翻译时，暂停倒计时秒数(设为0将跳过编辑窗口)",
     "homedir_notice": "用于设置 批量语音转录 / 批量为字幕配音 / 批量翻译srt字幕 等功能的输出结果位置，非视频翻译结果保存位置，默认软件安装目录下output文件夹",
     "retry_nums_notice": "失败后重试次数(针对重试可能恢复的错误，在此设定重试次数)",
@@ -1170,6 +1176,9 @@
     "cjk_len_notice": "中日韩字幕单行字符数，多于将换行，仅针对视频翻译中的目标字幕或单独的语音转录功能字幕",
     "other_len_notice": "其他语言字幕单行字符数，多于将换行，仅针对视频翻译中的目标字幕或单独的语音转录功能字幕",
     "llm_resegment_notice": "使用LLM重新断句替代LLM纠错,若选中将使用AI模型重新断句，而非仅仅修正错别字",
+
+
+
 
     "Initial prompt for the Whisper model for speech": "发音语言为 {} 时发送给whisper模型的提示词",
     "Thinking": "思考模式",

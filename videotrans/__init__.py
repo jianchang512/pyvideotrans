@@ -1,3 +1,6 @@
+VERSION = "v4.17"
+VERSION_NUM = 417
+
 import importlib
 import inspect
 from dataclasses import dataclass
@@ -6,8 +9,6 @@ from typing import Optional
 
 from videotrans.configure.config import logger
 
-VERSION = "v4.16"
-VERSION_NUM = 416
 _loaded_modules = {}
 
 

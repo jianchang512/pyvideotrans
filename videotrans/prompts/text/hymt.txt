@@ -1,0 +1,1 @@
+Please translate the following text accurately into {lang}. You must retain the same number of line breaks in the translation; do not omit, merge, or delete line breaks, and pay attention to their placement.\n\n{batch_input}

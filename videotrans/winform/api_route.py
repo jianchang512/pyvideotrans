@@ -19,6 +19,7 @@ def openwin():
         params["api_route_key"] = key
         params["api_route_model"] = winobj.api_route_model.currentText()
         params["api_route_max_token"] = winobj.max_token.text().strip()
+        params.save()
         winobj.test.setText(tr("Testing..."))
         task = TestSrtTrans(parent=winobj, translator_type=translator.API_ROUTE_INDEX)
         task.uito.connect(feed)

@@ -7,7 +7,7 @@ from pathlib import Path
 import os
 
 from videotrans.configure.config import tr, ROOT_DIR, settings, logger
-from videotrans.configure.constants import DENOISE_URL_MS, PUNC_RESTORE_MS, DENOISE_URL_HF, PUNC_RESTORE_HF
+from videotrans.configure.constants import PUNC_RESTORE_MS, PUNC_RESTORE_HF
 from videotrans.configure.excepts import SpeechToTextError
 from videotrans.recognition import run as run_recogn,  FASTER_WHISPER
 from videotrans.util.help_ffmpeg import conver_to_16k, runffmpeg, cut_from_audio
@@ -33,6 +33,8 @@ class RecognMixin:
         if not vail_file(self.cfg.source_wav):
             raise SpeechToTextError(tr("Failed to separate audio, please check the log or retry"))
         # 未分离人声背景时才降噪，已分离则不再降噪
+        if self.cfg.remove_noise and self.cfg.is_separate:
+            logger.warning(f'已进行人声背景声分离，忽略降噪处理')
         if self.cfg.remove_noise and not self.cfg.is_separate:
             from videotrans.util.help_down import down_file_from_hf
             _remove_noise_wav = f"{self.cfg.cache_folder}/remove_noise.wav"
@@ -45,11 +47,10 @@ class RecognMixin:
                 kw = {
                     "input_file": self.cfg.source_wav if not self.cfg.vocal or not Path(self.cfg.vocal).exists() else self.cfg.vocal,
                     "output_file": _remove_noise_wav,
-                    "is_cuda": self.cfg.is_cuda
+                    "is_cuda": self.cfg.is_cuda,
+                    "model_name":settings.get('noise_model')
                 }
                 try:
-                    down_file_from_hf(f'{ROOT_DIR}/models/onnx', urls=DENOISE_URL_MS if not is_connect_hf() else DENOISE_URL_HF,
-                                            callback=self._process_callback)
                     from videotrans.process.prepare_audio import remove_noise
                     _rs = self._new_process(callback=remove_noise, title=title, is_cuda=self.cfg.is_cuda, kwargs=kw)
                     if _rs:
@@ -115,6 +116,8 @@ class RecognMixin:
         self._recogn_succeed()
         self.signal(text=tr('endtiquzimu'))
         logger.debug(f'[语音识别阶段结束耗时]:{time.time()-_st}s')
+
+    # 降噪，Linux上并且不存在 audio.cpp 时，仍使用 onnx
 
     def _recogn_succeed(self) -> None:
         self.precent += 5

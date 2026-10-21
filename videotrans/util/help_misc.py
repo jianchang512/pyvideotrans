@@ -2,6 +2,7 @@ import hashlib
 import json
 import os, re
 import platform
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -14,7 +15,7 @@ from typing import Tuple, Union
 import unicodedata
 
 from videotrans import VERSION
-from videotrans.configure.config import tr, app_cfg, logger, ROOT_DIR, defaulelang, push_queue,os_language
+from videotrans.configure.config import tr, app_cfg, logger, ROOT_DIR, defaulelang, push_queue,os_language,IPC_STATUS_FILE
 from videotrans.task.taskcfg import SignMsg
 
 
@@ -601,3 +602,44 @@ def is_dir_not_empty(dir_path: str) -> bool:
             return next(it, None) is not None
     except Exception:
         return False
+
+# 调用 audio.cpp
+def exec_audiocpp(cmd):
+    logger.debug(f'audio.cpp start: {cmd=}')
+    # win下可能存在因权限问题抽取配置文件失败，预先复制
+    psrt=Path(f'{ROOT_DIR}/models/audiocpp-gguf')
+    pdst=Path(tempfile.gettempdir()) / "audiocpp-gguf"
+    if not pdst.exists() and psrt.exists():
+        shutil.copytree(psrt,pdst,dirs_exist_ok=True)
+    proc = subprocess.Popen(
+        cmd,
+        encoding="utf-8",
+        errors='ignore',
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        stdin=subprocess.DEVNULL,
+        creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0,
+        cwd=f"{ROOT_DIR}/audio_cpp",
+    )
+    while True:
+        try:
+            # 内部超时等待 0.1s，同时自动清空缓冲区（无需 sleep）
+            stdout, stderr = proc.communicate(timeout=0.1)
+            break  # 进程执行完成，跳出循环
+        except subprocess.TimeoutExpired:
+            if app_cfg.exit_soft or Path(IPC_STATUS_FILE).exists():
+                proc.kill()
+                proc.communicate()
+                return True
+
+    if proc.returncode != 0:
+        logger.error(f'audio.cpp 执行失败:{stdout=},{stderr=},{cmd=}')
+        if "Access is denied" in f"{stdout}{stderr}" or "could not open" in f"{stdout}{stderr}":
+            raise RuntimeError('audio.cpp '+tr('Insufficient permissions'))
+        if "mem_buffer" in f"{stdout}{stderr}":
+            raise RuntimeError(tr('OOMerror'))
+        raise RuntimeError(
+            f'{proc.returncode=}\n{stdout=}\n{stderr=}\n{cmd=}'
+        )
+    return True
