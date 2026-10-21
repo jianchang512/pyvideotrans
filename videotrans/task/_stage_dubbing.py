@@ -113,7 +113,7 @@ class DubbingMixin:
             it['text']=it['text'].strip('...').strip('…').strip()
             if self.cfg.fix_punc==2:
                 it['text']=delete_punc(it['text'])
-            if Path(it['filename']).exists():
+            if vail_file(it['filename']):
                 # 保存缓存
                 shutil.copy2(it['filename'],f'{DUBBING_CACHE}/'+Path(it['filename']).name.split('-')[-1])
                 if outname:
