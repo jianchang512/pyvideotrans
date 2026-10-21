@@ -19,6 +19,7 @@ def openwin():
         params["opper_key"] = key
         params["opper_model"] = winobj.opper_model.currentText()
         params["opper_max_token"] = winobj.max_token.text().strip()
+        params.save()
         winobj.test.setText(tr("Testing..."))
         task = TestSrtTrans(parent=winobj, translator_type=translator.OPPER_INDEX)
         task.uito.connect(feed)
