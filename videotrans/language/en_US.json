@@ -20,6 +20,7 @@
   "Adding image watermark to videos": "Batch adding image watermarks...",
   "After cleaning, you need to restart the software. Only cache and temporary files are cleaned. For configuration information, please directly delete the .json in the videotrans folder.": "Restart software after cleanup. Only cache and temp files are deleted. To reset configs/keys, delete .json files in videotrans folder.",
   "Ali-Bailian": "Ali Bailian API",
+  "Ali-BaiLian API/Qwen-ASR AI": "Ali Bailian API",
   "Solution to model download failure": "Model Download Troubleshooting",
   "Alibaba Machine Translation": "Alibaba Machine Translation",
   "Alibaba Translation": "Alibaba Machine Translation",
