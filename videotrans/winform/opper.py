@@ -1,0 +1,37 @@
+def openwin():
+    from videotrans.winform import get_cls
+    from pathlib import Path
+    from videotrans.configure.config import tr, params, app_cfg
+    from videotrans.util.help_misc import show_error
+    from videotrans.util.TestSrtTrans import TestSrtTrans
+    from videotrans import translator
+    from videotrans.winform._helpers import make_feed_translator, make_setallmodels
+
+    winobj = get_cls(Path(__file__).stem)()
+    winobj.update_ui()
+
+    feed = make_feed_translator(winobj, "test")
+
+    def test():
+        key = winobj.opper_key.text().strip()
+        if not key:
+            return show_error(tr("Please input Secret"))
+        params["opper_key"] = key
+        params["opper_model"] = winobj.opper_model.currentText()
+        params["opper_max_token"] = winobj.max_token.text().strip()
+        winobj.test.setText(tr("Testing..."))
+        task = TestSrtTrans(parent=winobj, translator_type=translator.OPPER_INDEX)
+        task.uito.connect(feed)
+        task.start()
+
+    def save():
+        params["opper_key"] = winobj.opper_key.text().strip()
+        params["opper_model"] = winobj.opper_model.currentText()
+        params["opper_max_token"] = winobj.max_token.text().strip()
+        params.save()
+        winobj.close()
+
+    winobj.set.clicked.connect(save)
+    winobj.edit_allmodels.textChanged.connect(make_setallmodels(winobj, 'opper_model', 'opper_model'))
+    winobj.test.clicked.connect(test)
+    return winobj

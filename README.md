@@ -179,6 +179,7 @@ uv add nvidia-cublas-cu12 nvidia-cudnn-cu12
 | **Translation (LLM/MT)** | **DeepSeek** / ChatGPT | Supports context understanding, more natural translation |
 | | [infistar AI](https://www.infistar.cc/register?aff=9H6H7RR9&ref_source=link) | infistar - 160+ models, one Key, OpenAI compatible gateway, switch to 160+ models at any time with one Key |
 | | Atlas Cloud | OpenAI-compatible gateway, one Key for DeepSeek, GLM, Kimi, Qwen, MiniMax and proxied vendor models |
+| | Opper | EU-hosted OpenAI-compatible gateway, one Key for 700+ models from 50+ providers |
 | | MiniMax AI | MiniMax M3 LLM, latest flagship model, OpenAI-compatible |
 | | Google / Microsoft | Traditional machine translation, fast speed |
 | | Ollama / M2M100 | Fully local offline translation |
