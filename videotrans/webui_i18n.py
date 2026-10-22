@@ -24,19 +24,27 @@ def normalize_locale(value):
     }.get(value, value)
 
 
+# 合并 webui 翻译字典和sp翻译字典
 @cache
 def _load_catalog(locale):
     from videotrans.configure.config import ROOT_DIR
     """Load only WebUI-owned translations for locale."""
     locale = normalize_locale(locale)
     path = Path(f"{ROOT_DIR}/videotrans/webui_languages/{locale}.json")
-    if not path.is_file():
-        return {}
-    try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        return {}
-    return data if isinstance(data, dict) else {}
+    webui_langobj={}
+    path_sp = Path(f"{ROOT_DIR}/videotrans/language/{locale}.json")
+    sp_langobj={}
+    if path.is_file():
+        try:
+            webui_langobj = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            pass
+    if path_sp.is_file():
+        try:
+            sp_langobj = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            pass
+    return sp_langobj|webui_langobj
 
 
 WEBUI_LOCALE = normalize_locale(os.environ.get("PYVIDEOTRANS_LANG", "zh_CN"))

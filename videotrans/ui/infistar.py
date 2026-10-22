@@ -13,10 +13,10 @@ from videotrans.util.help_misc import open_url
 class Ui_infistar(QDialog):
     def __init__(self):
         super().__init__()
+        self.has_done = False
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setupUi(self)
     def setupUi(self, form):
-        self.has_done = False
         form.setObjectName("form")
         form.resize(600, 600)
 

@@ -11,7 +11,8 @@ class XiaoMi(OpenAICampat):
         self.model_name = params.get('xiaomi_model')
         self.api_url = 'https://api.xiaomimimo.com/v1/'
         self.api_key = params.get('xiaomi_key', '')
-        self.extra_body={
-                "thinking": {"type": "disabled" if params.get('xiaomi_thinking') else 'disabled'}
-        }
+        effort=params.get('xiaomi_reasoning_effort')
+        if effort!='default':
+            self.reasoning_effort=effort
+            self.extra_body={"thinking": 'enabled' if effort!='none' else 'disabled'}
         super().__post_init__()

@@ -142,11 +142,7 @@ class Ui_litellm(QDialog):
         self.litellm_key.setText(str(params.get("litellm_key", '')))
         self.litellm_model.setCurrentText(params.get("litellm_model", ''))
         self.max_token.setText(str(params.get("litellm_max_token", '')))
-        _effort=str(params.get("litellm_reasoning_effort","default"))
-        # 兼容旧版本
-        if _effort =='No':
-            _effort='default'
-        self.reasoning_effort.setCurrentText(_effort)
+        self.reasoning_effort.setCurrentText(str(params.get("litellm_reasoning_effort","default")))
 
     def retranslateUi(self, form):
         form.setWindowTitle("LiteLLM")

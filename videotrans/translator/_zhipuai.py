@@ -12,5 +12,8 @@ class ZhipuAI(OpenAICampat):
         self.model_name = params.get('zhipuai_model', "glm-4.5-flash")
         self.api_url = 'https://open.bigmodel.cn/api/paas/v4/'
         self.api_key = params.get('zhipuai_key', '')
-        self.extra_body={"thinking": {"type": "enabled" if params.get('zhipuai_thinking') else "disabled"}}
+        effort=params.get('zhipuai_reasoning_effort')
+        if effort!='default':
+            self.reasoning_effort=effort
+            self.extra_body={"thinking": 'enabled' if effort!='none' else 'disabled'}
         super().__post_init__()

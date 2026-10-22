@@ -53,6 +53,7 @@ _default = {
         "bailian_domains": "",
         "bailian_model": BAILIAN_MODELS.split(',')[0],
         "bailian_ttsmodel": "qwen3-tts-flash",
+        "bailian_reasoning_effort":"default"
     },
     "chatgpt": {
         # openai chatgpt
@@ -63,7 +64,6 @@ _default = {
         "chatgpt_model": CHATGPT_MODELS.split(',')[0],
     },
     "cheaperinference": {
-
         "cheaperinference_key": "",
         "cheaperinference_model": CheaperInference_MODELS.split(',')[0],
         "cheaperinference_max_token": 16384,
@@ -71,7 +71,7 @@ _default = {
     "deepseek": {
         # deepseek
         "deepseek_key": "",  # SK 密钥
-        "deepseek_thinking": False,  # 默认不启用思考
+        "deepseek_reasoning_effort":"none",
         "deepseek_model": DEEPSEEK_MODELS.split(',')[0],
         "deepseek_max_token": 16384,  # 最大输出64k
     },
@@ -116,7 +116,7 @@ _default = {
         "minimaxi_tts_model": MINIMAX_TTS_MODELS.split(',')[0],
         "minimaxi_text_model": MINIMAX_MODELS.split(',')[0],
         "minimaxi_max_token": 16384,
-        "minimaxi_thinking": False,
+        "minimaxi_reasoning_effort":"default",
     },
     "openairecognapi": {
         # openai speech to text
@@ -150,7 +150,7 @@ _default = {
     "siliconflow": {
         # 硅基流动
         "siliconflow_key": "",
-        "siliconflow_thinking": False,
+        "siliconflow_reasoning_effort":"default",
         "siliconflow_model": SILICONFLOW_MODELS.split(',')[0],
         "siliconflow_tts_model": SILICONFLOW_TTS_MODELS.strip().split(',')[0],
         "siliconflow_max_token": 16384,  # 最大输出16k
@@ -159,21 +159,21 @@ _default = {
         # 小米 mimo
         "xiaomi_key": "",
         "xiaomi_ttsmodel": XIAOMI_TTS_MODELS.split(',')[0],
-        "xiaomi_thinking": False,
+        "xiaomi_reasoning_effort":"default",
         "xiaomi_model": XIAOMI_MODELS.split(',')[0],
         "xiaomi_max_token": 16384,
     },
     "zhipuai": {
         # 智谱AI
         "zhipuai_key": "",
-        "zhipuai_thinking": False,
+        "zhipuai_reasoning_effort":"default",
         "zhipuai_model": ZHIPUAI_MODELS.split(',')[0],
         "zhipuai_max_token": 16384,
     },
     "zijiehuoshan": {
         # 字节火山大模型
         "zijiehuoshan_key": "",
-        "zijiehuoshan_thinking": False,
+        "zijiehuoshan_reasoning_effort":"default",
         "zijiehuoshan_max_token": 16384,
         "zijiehuoshan_model": ZIJIEHUOSHAN_MODELS.split(',')[0],
     },

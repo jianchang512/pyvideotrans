@@ -21,7 +21,6 @@ AI嘲: 码之烂平生仅见
 作者云：又不是不能跑。
 
 """
-
 import os
 import atexit, sys, time
 from PySide6.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QMessageBox

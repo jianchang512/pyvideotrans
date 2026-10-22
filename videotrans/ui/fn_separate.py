@@ -52,7 +52,7 @@ class Ui_fn_separate(QtWidgets.QWidget):
         # 开始分离
         self.showtips.setObjectName("showtips")
         self.showtips.setText(
-            "如果文件过大，或频繁分离出错，建议选择独立分离工具，比如uvr5或vocal-separate\ngithub.com/Anjok07/ultimatevocalremovergui/releases\ngithub.com/jianchang512/vocal-separate/releases")
+            "如果文件过大，或频繁分离出错，建议选择独立分离工具，比如uvr5\ngithub.com/Anjok07/ultimatevocalremovergui/releases")
         v1.addWidget(self.showtips)
 
 

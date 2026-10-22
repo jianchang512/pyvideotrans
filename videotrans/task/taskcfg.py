@@ -269,27 +269,31 @@ class TaskCfgVTT(TaskCfgSTT, TaskCfgTTS, TaskCfgSTS):
 
         _msg.append(f'{isTrue[self.clear_cache]} 清理已存在')
         _msg.append(f'{"已" if self.is_cuda else "未"}启用CUDA加速')
-        _msg.append(f'{isTrue[self.remove_noise]} 降噪')
+        if self.remove_noise:
+            _msg.append(f'{isTrue[self.remove_noise]} 降噪, 降噪模型:{settings.get("noise_model")}')
         if self.enable_diariz:
             _msg.append(f'已选 识别说话人，最大说话人数量{"不限制" if self.nums_diariz < 1 else self.nums_diariz + 1}')
         if self.fix_punc > 0:
             _msg.append(f'{"已选 恢复标点符号" if self.fix_punc == 1 else "已选 删除所有标点符号"}')
 
+        cuda_datatype=''
+        if self.recogn_type<2:
+            cuda_datatype=f'数据类型:{settings.get("cuda_com_type")}'
         _msg.append(
-            f"{tr('Speech Recognit')}:{get_recogn_type(self.recogn_type)}, {self.model_name if self.recogn_type in ALLOW_CHANGE_MODEL else ''}, 发音语言: {self.source_language}, {_duanjus[self.rephrase]}")
+            f"{tr('Speech Recognit')}:{get_recogn_type(self.recogn_type)}, {self.model_name if self.recogn_type in ALLOW_CHANGE_MODEL else ''}, 发音语言: {self.source_language}, {_duanjus[self.rephrase]}, {cuda_datatype}")
 
         if self.target_language in [None, 'No', '-'] or self.source_language == self.target_language:
             _msg.append(f'{"发音语言和目标语言相同" if self.source_language == self.target_language else "未选 目标语言"}，不翻译字幕')
         else:
             _msg.append(
-                f"{tr('Translate channel')}:{get_tanslate_type(self.translate_type)},原始语言:{self.source_language},目标语言:{self.target_language}, {isTrue[settings['aisendsrt']]} {tr('Send SRT')}")
+                f"{tr('Translate channel')}:{get_tanslate_type(self.translate_type)},原始语言:{self.source_language},目标语言:{self.target_language}, {isTrue[settings['aisendsrt']]} {tr('Send SRT')}, {settings.get('trans_thread')=}, {settings.get('aitrans_thread')=}")
+
 
         if self.app_mode == 'tiqu':
             if self.copysrt_rawvideo:
                 _msg.append('已选 将生成的字幕复制到视频目录下')
             _msg.append(f"{tr('Subtitle format:')}: {_outs[self.output_srt]}")
         else:
-
             if self.voice_role in [None, 'No']:
                 _msg.append('未选 配音角色，不进行配音')
             else:
@@ -319,6 +323,8 @@ class TaskCfgVTT(TaskCfgSTT, TaskCfgTTS, TaskCfgSTS):
             if self.is_separate or self.background_music or _vocal_exists or _instr_exists:
 
                 _str = f"{isTrue[self.is_separate]} 分离人声与背景声"
+                if self.is_separate:
+                    _str+=f", 分离模型为:{settings.get('uvr_models')}"
                 if self.embed_bgm:
                     _str += f', 已选 重新嵌入背景声, 背景音量{self.backaudio_volume}, 背景声音时长 短于 视频时长时: {_loops[self.loop_backaudio]}'
 

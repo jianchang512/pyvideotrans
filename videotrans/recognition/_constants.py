@@ -53,8 +53,8 @@ CUSTOM_API = 28
 SILICONFLOW_API = 29
 OPENROUTER_API = 30
 MINIMAX_API = 31
-AUDEXUM_API = 32
-FISHAUDIO_API = 33
+FISHAUDIO_API = 32
+AUDEXUM_API = 33
 
 # 允许切换不同模型的渠道
 ALLOW_CHANGE_MODEL = [
@@ -172,14 +172,15 @@ ID_NAME_DICT = {
                                  key_name="minimaxi_key",
                                  win="minimaxi",
                                  imp="._minimaxi"),
-    AUDEXUM_API: ChannelProvider("Audexum.com",
-                                 key_name="audexum_key",
-                                 win="audexum",
-                                 imp="._audexum"),
     FISHAUDIO_API: ChannelProvider("Fish-Audio API",
                                  key_name="fishaudio_key",
                                  win="fishaudio",
                                  imp="._fishaudio"),
+    AUDEXUM_API: ChannelProvider("Audexum.com",
+                                 key_name="audexum_key",
+                                 win="audexum",
+                                 imp="._audexum"),
+
 
 }
 # 强制保持按照每个常量值大小排序

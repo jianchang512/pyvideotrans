@@ -182,7 +182,7 @@ class Ui_fn_recogn(QtWidgets.QWidget):
             "vtt",
             "txt"
         ])
-        self.shibie_stop.setText(tr("stop"))
+        self.shibie_stop.setText(tr("stopImmediately"))
         self.shibie_stop.setCursor(Qt.PointingHandCursor)
 
         self.remove_noise.setText(tr("Noise reduction"))

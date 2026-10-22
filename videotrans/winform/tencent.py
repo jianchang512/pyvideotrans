@@ -22,6 +22,7 @@ def openwin():
         params["tencent_SecretId"] = SecretId
         params["tencent_key"] = SecretKey
         params["tencent_termlist"] = winobj.tencent_term.text().strip()
+        params.save()
         winobj.test.setText(tr("Testing..."))
         task = TestSrtTrans(parent=winobj, translator_type=translator.TENCENT_INDEX)
         task.uito.connect(feed)

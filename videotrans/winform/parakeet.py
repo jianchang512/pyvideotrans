@@ -28,6 +28,7 @@ def openwin():
         if not url:
             return
         params["parakeet_api"] = _fix_url(url)
+        params.save()
         winobj.test.setText(tr("Testing..."))
         task = TestSTT(parent=winobj, recogn_type=recognition.PARAKEET)
         task.uito.connect(feed)

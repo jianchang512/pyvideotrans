@@ -20,6 +20,7 @@ def openwin():
     def test():
         params["deeplx_api"] = _fix_url(winobj.deeplx_api.text().strip())
         params["deeplx_key"] = winobj.deeplx_key.text().strip()
+        params.save()
         winobj.test.setText(tr("Testing..."))
         from videotrans import translator
         task = TestSrtTrans(parent=winobj, translator_type=translator.DEEPLX_INDEX)

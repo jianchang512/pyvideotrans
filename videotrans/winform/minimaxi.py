@@ -29,7 +29,7 @@ def openwin():
         params["minimaxi_emotion"] = winobj.emotion.currentText()
         params["minimaxi_text_model"] = winobj.text_model.currentText()
         params["minimaxi_max_token"] = winobj.max_token.text()
-        params["minimaxi_thinking"] = winobj.minimaxi_thinking.isChecked()
+        params["minimaxi_reasoning_effort"] = winobj.reasoning_effort.currentText()
         params.save()
         winobj.test.setText(tr("Testing..."))
         from videotrans import translator
@@ -45,7 +45,7 @@ def openwin():
         params["minimaxi_emotion"] = winobj.emotion.currentText()
         params["minimaxi_text_model"] = winobj.text_model.currentText()
         params["minimaxi_max_token"] = winobj.max_token.text()
-        params["minimaxi_thinking"] = winobj.minimaxi_thinking.isChecked()
+        params["minimaxi_reasoning_effort"] = winobj.reasoning_effort.currentText()
         params.save()
         set_process(text='', type="refreshtts")
         winobj.close()

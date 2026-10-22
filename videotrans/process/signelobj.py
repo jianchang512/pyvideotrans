@@ -138,6 +138,7 @@ class GlobalProcessManager:
     @classmethod
     def submit_task_cpu(cls, func, **kwargs):
         _executor = cls.get_executor_cpu()
+        print(f'{kwargs=}')
         # 使用 error_callback 记录错误日志
         async_result = _executor.apply_async(
             _task_worker_wrapper,

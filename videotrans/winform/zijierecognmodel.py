@@ -22,6 +22,7 @@ def openwin():
             return show_error(tr('Appid access and cluster are required'))
         params["zijierecognmodel_appid"] = appid
         params["zijierecognmodel_key"] = access
+        params.save()
         task = TestSTT(parent=winobj, recogn_type=recognition.ZIJIE_RECOGN_MODEL)
         task.uito.connect(feed)
         task.start()

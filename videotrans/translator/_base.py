@@ -199,7 +199,7 @@ class BaseTrans(BaseCon):
 
     def _get_key(self, it) -> str:
         it=serial(it)
-        return get_md5(f'{self.translate_type}-{self.api_url}-{self.aisendsrt}-{self.model_name}-{self.source_code}-{self.target_code}-{it}')
+        return get_md5(f'{self.translate_type}-{self.api_url}-{self.aisendsrt}-{self.model_name}-{self.source_code}-{self.target_code}-{it}-{settings.get("ultimate_mini")}')
     
     def _set_context(self,target_code=None):
         if not self.text_list: return '' # LLM  error correction or LLM re-segment
@@ -208,6 +208,11 @@ class BaseTrans(BaseCon):
         if Path(lang_prompt_file).exists():
             lang_prompt=Path(lang_prompt_file).read_text(encoding='utf-8')
         prompt = get_prompt(ainame=self.ainame,aisendsrt=self.aisendsrt).replace('{lang}',target_code or self.target_code).replace('{lang_prompt}',lang_prompt)
+        # 极致精简
+        last_prompt=''
+        if settings.get('ultimate_mini'):
+            last_prompt=Path(f'{ROOT_DIR}/videotrans/prompts/fragment/last_prompt.txt').read_text(encoding="utf-8")
+        prompt=prompt.replace('{last_prompt}',last_prompt)
         if not settings.get('aitrans_context'):
             return prompt.replace('{context_info}','')
             

@@ -21,6 +21,7 @@ def openwin():
     def test():
         params["libre_api"] = _fix_url(winobj.address.text().strip())
         params["libre_key"] = winobj.key.text().strip()
+        params.save()
         winobj.test.setText(tr("Testing..."))
         task = TestSrtTrans(parent=winobj, translator_type=translator.LIBRE_INDEX)
         task.uito.connect(feed)

@@ -20,6 +20,7 @@ def openwin():
             return show_error(tr("Please input appid and Secret"))
         params["baidu_appid"] = appid
         params["baidu_key"] = miyue
+        params.save()
         winobj.test.setText(tr("Testing..."))
         from videotrans import translator
         task = TestSrtTrans(parent=winobj, translator_type=translator.BAIDU_INDEX)

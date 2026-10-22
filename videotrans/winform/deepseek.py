@@ -22,7 +22,8 @@ def openwin():
         params["deepseek_key"] = key
         params["deepseek_model"] = winobj.deepseek_model.currentText()
         params["deepseek_max_token"] = winobj.deepseek_max_token.text()
-        params["deepseek_thinking"] = winobj.deepseek_thinking.isChecked()
+        params["deepseek_reasoning_effort"] = winobj.reasoning_effort.currentText()
+        params.save()
         winobj.test.setText(tr("Testing..."))
         from videotrans import translator
         task = TestSrtTrans(parent=winobj, translator_type=translator.DEEPSEEK_INDEX)
@@ -33,7 +34,7 @@ def openwin():
         params["deepseek_key"] = winobj.deepseek_key.text().strip()
         params["deepseek_model"] = winobj.deepseek_model.currentText()
         params["deepseek_max_token"] = winobj.deepseek_max_token.text()
-        params["deepseek_thinking"] = winobj.deepseek_thinking.isChecked()
+        params["deepseek_reasoning_effort"] = winobj.reasoning_effort.currentText()
         params.save()
         winobj.close()
 

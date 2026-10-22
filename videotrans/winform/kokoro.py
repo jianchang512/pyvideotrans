@@ -27,6 +27,7 @@ def openwin():
 
     def test():
         params['kokoro_api'] = _fix_url(winobj.kokoro_address.text().strip())
+        params.save()
         winobj.test.setText(tr("Testing..."))
         from videotrans import tts
         import time

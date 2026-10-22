@@ -134,7 +134,7 @@ class AssembleMixin:
             logger.debug(f'当前原始视频是标准264, 输出也是264，未视频慢速，未嵌入硬字幕，实现无损输出。')
 
         tmp_target_mp4 = self.cfg.cache_folder + f"/laste_target{_video_output_ext}"
-        self.signal(text=tr("Video + Subtitles + Dubbing in merge"))
+
 
         try:
             protxt = self.cfg.cache_folder + f"/compose{time.time()}.txt"
@@ -148,7 +148,7 @@ class AssembleMixin:
             if not app_cfg.video_codec:
                 self.signal(text=tr("Check supported hardware codes..."))
                 app_cfg.video_codec = get_video_codec()
-
+            self.signal(text=tr("Video + Subtitles + Dubbing in merge"))
             cmd0 = [
                 "-y",
                 "-progress",
@@ -398,19 +398,43 @@ class AssembleMixin:
 
     def _subprocess(self, cmd):
         logger.debug(f'[尝试硬件编解码执行命令]\n{" ".join(cmd)}\n')
-        try:
-            if app_cfg.exit_soft: return
-            cmd = ["ffmpeg", '-nostdin'] + cmd
-            subprocess.run(
-                cmd,
-                encoding="utf-8",
-                errors='ignore',
-                check=True,
-                text=True,
-                capture_output=True,
-                creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0,
-                cwd=self.cfg.cache_folder
-            )
-            return True
-        except subprocess.CalledProcessError as e:
-            raise FFmpegError(f"尝试使用硬件执行命令出错[CalledProcessError]:{e.stderr}\n{e.stdout},{e}") from e
+        if app_cfg.exit_soft:
+            return
+        cmd = ["ffmpeg", "-nostdin"] + cmd
+
+        proc = subprocess.Popen(
+            cmd,
+            encoding="utf-8",
+            errors="ignore",
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            stdin=subprocess.DEVNULL,
+            creationflags=(
+                subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
+            ),
+            cwd=self.cfg.cache_folder,
+        )
+
+        _t, _n = 0, 0
+        while True:
+            try:
+                # 内部超时等待 0.1s，同时自动清空缓冲区（无需 sleep）
+                stdout, stderr = proc.communicate(timeout=0.1)
+                break  # 进程执行完成，跳出循环
+            except subprocess.TimeoutExpired:
+                _t += 0.1
+                _n += 1
+                if _n % 10 == 0:
+                    self.signal(
+                        text=f'Merging  {round(_t, 1)}s'
+                    )
+                if app_cfg.exit_soft:
+                    proc.kill()
+                    proc.communicate()
+                    return True
+
+        if proc.returncode != 0:
+            logger.error(f"尝试使用硬件执行命令出错:{stderr}\n{stdout},{cmd=}")
+            raise RuntimeError(f"{stderr},{stdout}")
+        return True

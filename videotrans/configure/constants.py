@@ -64,7 +64,7 @@ CheaperInference_MODELS = "gpt-5.4-mini,gpt-5.4,claude-sonnet-5,gemini-3.1-pro,d
 SILICONFLOW_MODELS = "tencent/Hy4-preview,zai-org/GLM-5.3,deepseek-ai/DeepSeek-V4-Flash,meituan-longcat/LongCat-2.0,zai-org/GLM-5.2,deepseek-ai/DeepSeek-V4-Pro,Qwen/Qwen3.8-27B"
 AI302_MODELS = "deepseek-v4-pro,deepseek-v4-flash"
 ZIJIEHUOSHAN_MODELS = "doubao-seed-evolving,doubao-seed-2-1-pro-260915,doubao-seed-2-1-turbo-260628,doubao-seed-character-260628,doubao-seed-2-0-pro-260215,doubao-seed-2-0-mini-260428"
-MINIMAX_MODELS = "MiniMax-M3,MiniMax-M2.7,MiniMax-M2.7-highspeed"
+MINIMAX_MODELS = "MiniMax-M3.1-Flash,MiniMax-M3,MiniMax-M2.7,MiniMax-M2.7-highspeed"
 XIAOMI_MODELS = 'mimo-v2.6-flash,mimo-v2.6-pro,mimo-v2.5-pro,mimo-v2.5'
 INFISTAR_MODELS = "gpt-5.4-mini,deepseek-v4-flash,gpt-5.4,claude-sonnet-5,gemini-3.8-flash,qwen3.7-plus"
 
@@ -170,14 +170,9 @@ PUNC_RESTORE_HF = [
     "https://huggingface.co/mortimerme/repocollect/resolve/main/puntc/tokens.json?download=true",
 ]
 # 降噪模型下载地址
-DENOISE_URL_MS = [
-    'https://modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/dpdfnet4.onnx'
-]
-DENOISE_URL_HF = [
-    'https://huggingface.co/mortimerme/repocollect/resolve/main/onnx/dpdfnet4.onnx?download=true'
-]
+DENOISE_URL_HF = 'https://huggingface.co/mortimerme/repocollect/resolve/main/onnx/{}?download=true'
+
 # 背景音频分离地址前缀
-UVR_URL_MS = 'https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/{}'
 UVR_URL_HF = 'https://huggingface.co/mortimerme/repocollect/resolve/main/onnx/{}?download=true'
 # M2M100模型下载地址
 M2M100_URL_MS = 'https://modelscope.cn/models/himyworld/videotrans/resolve/master/m2m100_12b_model.zip'
@@ -221,6 +216,8 @@ AUDIO_CPP_MAC_MS="https://modelscope.cn/models/himyworld/videotrans/resolve/mast
 AUDIO_CPP_WIN_MS="https://modelscope.cn/models/himyworld/videotrans/resolve/master/audio-v0.9.1-bin-windows-x64-cuda12.4.zip"
 AUDIO_CPP_MAC_HF="https://huggingface.co/mortimerme/repocollect/resolve/main/audio-v0.9.1-bin-macos-arm64-metal.zip?download=true"
 AUDIO_CPP_WIN_HF="https://huggingface.co/mortimerme/repocollect/resolve/main/audio-v0.9.1-bin-windows-x64-cuda12.4.zip?download=true"
+AUDIO_CPP_MELBAND="https://huggingface.co/audio-cpp/audio.cpp-gguf/resolve/main/Mel-Band-RoFormer-GGUF/mel-band-roformer-q8_0.gguf?download=true"
+ZIPENHANCER_HF="https://huggingface.co/mortimerme/repocollect/resolve/main/zipenhancer.safetensors?download=true"
 
 # ----------Rubberband 库安装提示------------------
 INSTALL_RUBBERBAND_TIPS = """Windows: For Windows systems, please download the file, extract it, and place it in the ffmpeg folder in the current directory. Use a better audio acceleration algorithm\nhttps://breakfastquay.com/files/releases/rubberband-4.0.0-gpl-executable-windows.zip

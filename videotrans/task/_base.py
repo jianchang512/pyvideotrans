@@ -106,10 +106,10 @@ class BaseTask(BaseCon):
             srt_list = ob.llm_segment(raw_subtitles,step=step)
             if srt_list and len(srt_list) > len(raw_subtitles) / 2:
                 return srt_list
-            logger.error(f'二次识别后LLM重新断句失败，已恢复原样,原始字幕行:{len(raw_subtitles)}, 重新断句后字幕行:{len(srt_list)}\n断句结果:\n{srt_list=}')
+            logger.error(f'LLM POST error:{len(raw_subtitles)=}, {len(srt_list)=}\noutput:\n{srt_list=}')
         except Exception as e:
-            self.signal(text=tr("Re-segmenting Error"))
-            logger.exception(f"二次识别后重新断句失败，已恢复原样 {e}", exc_info=True)
+            self.signal(text=str(e))
+            logger.exception("llm post error", exc_info=True)
         return raw_subtitles
 
     # 如果启用了 LLM重新断句，则跳过该步骤，LLM断句后时间轴发生变更，无法和原始字幕对齐
@@ -160,9 +160,6 @@ class BaseTask(BaseCon):
         _st=time.time()
         speaker_type = settings.get('speaker_type', 'built')
         hf_token = settings.get('hf_token')
-        # if speaker_type == 'built' and self.cfg.detect_language.split('-')[0] not in ['zh', 'en','auto']:
-        #     logger.error(f'当前选择 built 说话人分离模型，但不支持当前语言:{self.cfg.detect_language}')
-        #     return
         if speaker_type in ['pyannote', 'reverb'] and not hf_token:
             logger.error(f'当前选择 pyannote 说话人分离模型，但未设置 huggingface.co 的token: {self.cfg.detect_language}')
             return

@@ -90,7 +90,7 @@ class DubbingMixin:
                 tmp_dict['ref_language'] = _lang
             queue_tts.append(tmp_dict)
 
-        self.queue_tts = copy.deepcopy(queue_tts)
+        self.queue_tts = queue_tts
 
         if not self.queue_tts or len(self.queue_tts) < 1:
             raise RuntimeError(f'字幕长度为0，无法继续配音')
@@ -99,7 +99,7 @@ class DubbingMixin:
             self._create_ref_from_vocal()
 
         run_tts(
-            queue_tts=self.queue_tts,
+            queue_tts=copy.deepcopy(queue_tts),
             language=self.cfg.target_language_code,
             uuid=self.uuid,
             tts_type=self.cfg.tts_type,

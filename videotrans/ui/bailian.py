@@ -81,6 +81,14 @@ class Ui_bailian(QDialog):
         h_model.addWidget(self.bailian_model)
         v1.addLayout(h_model)
 
+        hreason = QtWidgets.QHBoxLayout()
+        hreason.addWidget(QtWidgets.QLabel(tr('Reasoning Effort')))
+        self.reasoning_effort=QtWidgets.QComboBox()
+        self.reasoning_effort.addItems(['default','none','low','medium','high','max'])
+        self.reasoning_effort.setToolTip(tr('none_effort'))
+        hreason.addWidget(self.reasoning_effort)
+        v1.addLayout(hreason)
+
 
         h_tts = QtWidgets.QHBoxLayout()
         label_tts = QtWidgets.QLabel()
@@ -155,6 +163,7 @@ class Ui_bailian(QDialog):
 
         self.bailian_model.setCurrentText(params.get("bailian_model"))
         self.bailian_ttsmodel.setCurrentText(params.get("bailian_ttsmodel",''))
+        self.reasoning_effort.setCurrentText(params.get("bailian_reasoning_effort",'default'))
 
     def retranslateUi(self, form):
         form.setWindowTitle(tr("Ali-Bailian"))

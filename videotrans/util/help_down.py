@@ -1,7 +1,10 @@
+import platform
 import time
 from pathlib import Path
 import shutil, os
 import zipfile
+
+from videotrans.configure._paths import ROOT_DIR
 from videotrans.configure.config import tr, logger, app_cfg
 from videotrans.configure.constants import FASTER_MODELS_DICT
 from urllib.parse import urlparse
@@ -143,7 +146,7 @@ def check_and_down_hf(model_id, repo_id, local_dir, callback=None, allow_list=No
                             tqdm_class=QtAwareTqdm if callback else None,
                             local_files_only=False,
                             # max_workers=1,
-                            ignore_patterns=["*.msgpack", "*.h5", ".git*", "*.md"],
+                            ignore_patterns=["*.msgpack", "*.h5", ".git*", "*.md","*.gguf","*.nemo"],
                             token=token,
                             allow_patterns=allow_list
                         )
@@ -466,4 +469,27 @@ def check_and_down_ms(model_id, callback=None, local_dir=None, allow_patterns=No
             tr("hf_model error", local_dir, f'https://modelscope.cn/models/{model_id}/files')) from e
     finally:
         ms_sd._download_file_lists = _orig_download_file_lists
+    return True
+
+
+# 下载 audio_cpp
+
+def down_audiocpp_bin(process_callback=None):
+    _os=platform.system()
+    cli_name="audiocpp_cli.exe" if _os=='Windows' else 'audiocpp_cli'
+    p=Path(f'{ROOT_DIR}/audio_cpp/{cli_name}')
+    if p.exists():return True
+    if _os=='Linux' and not p.exists():
+        raise RuntimeError(tr("The audio.cpp binary file does not exist",f'{ROOT_DIR}/audio_cpp','audiocpp_cli','https://github.com/0xShug0/audio.cpp/releases'))
+
+    from videotrans.configure.constants import AUDIO_CPP_MAC_MS,AUDIO_CPP_WIN_MS,AUDIO_CPP_WIN_HF,AUDIO_CPP_MAC_HF
+
+    urls={
+        "Darwin":{"ms":AUDIO_CPP_MAC_MS,"hf":AUDIO_CPP_MAC_HF},
+        "Windows":{"ms":AUDIO_CPP_WIN_MS,"hf":AUDIO_CPP_WIN_HF}
+    }
+    from .help_misc import is_connect_hf
+    is_con=is_connect_hf()
+    if not p.exists():
+        down_zip(f'{ROOT_DIR}/audio_cpp', urls[_os]['hf']  if is_con else urls[_os]['ms'], callback=process_callback)
     return True

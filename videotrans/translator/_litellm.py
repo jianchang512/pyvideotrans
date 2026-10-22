@@ -23,8 +23,9 @@ class LiteLLM(OpenAICampat):
         self.model_name = params.get('litellm_model', "")
         self.api_url = params.get('litellm_api', '') or DEFAULT_LITELLM_API
         self.api_key = params.get('litellm_key', '')
-        _reason = params.get('litellm_reasoning_effort')
-        self.reasoning_effort = None if not _reason or _reason == 'default' else _reason
+        effort = params.get('litellm_reasoning_effort')
+        if effort!='default':
+            self.reasoning_effort = effort
 
         super().__post_init__()
 

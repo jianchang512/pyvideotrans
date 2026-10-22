@@ -23,6 +23,7 @@ def openwin():
     def test():
         key = winobj.camb_api_key.text().strip()
         params['camb_api_key'] = key
+        params.save()
         try:
             from videotrans import tts
             from videotrans.util.help_role import get_camb_role

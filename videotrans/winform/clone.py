@@ -27,6 +27,7 @@ def openwin():
 
     def test():
         params['clone_api'] = _fix_url(winobj.clone_address.text().strip())
+        params.save()
         winobj.test.setText(tr("Testing..."))
         from videotrans import tts
         import time

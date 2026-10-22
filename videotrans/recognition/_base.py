@@ -116,8 +116,7 @@ class BaseRecogn(BaseCon):
             raise
 
     # 对转录结果进行简单后处理
-    @staticmethod
-    def _post_fix(res: List[SrtItem]) -> List[SrtItem]:
+    def _post_fix(self,res: List[SrtItem]) -> List[SrtItem]:
         srt_list = []
         for i, it in enumerate(res):
             text = it['text'].strip()
@@ -142,16 +141,22 @@ class BaseRecogn(BaseCon):
         _post_fix_srt=[]
         for it in srt_list:
             # 移除末尾标点
-            if it['end_time']<=it['start_time']:
+            if it['end_time']<it['start_time']:
                 logger.warning(f'结束时间小于开始时间，丢弃该字幕:{it=}')
                 continue
+
             if settings.get('del_end_punc'):
                 it['text'] = it['text'].strip('。，？！,.?!').strip()
+
             if not it['text'].strip():
                 logger.warning(f'无有效字符，丢弃该字幕:{it=}')
                 continue
-            _post_fix_srt.append(it)
 
+            if it['end_time']==it['start_time'] and it['text'] and _post_fix_srt:
+                _post_fix_srt[-1]['text']+=self.join_word_flag+it['text']
+                continue
+
+            _post_fix_srt.append(it)
 
         return _post_fix_srt
 

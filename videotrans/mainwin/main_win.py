@@ -11,7 +11,7 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QMainWindow
 from videotrans.configure import config
 config.init_run()
-from videotrans.configure.config import tr, params, settings, app_cfg, logger, ROOT_DIR
+from videotrans.configure.config import tr, params, settings, app_cfg, logger, ROOT_DIR,REDUBB_STATUS_FILE, IPC_STATUS_FILE
 from videotrans import VERSION
 from videotrans.util.checkgpu import AiLoaderThread
 from videotrans.ui.en import Ui_MainWindow
@@ -184,6 +184,11 @@ class MainWindow(BindSignalsMixin, LifecycleMixin, QMainWindow, Ui_MainWindow):
             self.worker_threads = start_thread()
             self.startbtn.setDisabled(False)
             self.startbtn.setText(tr("Start"))
+            try:
+                Path(REDUBB_STATUS_FILE).unlink(missing_ok=True)
+                Path(IPC_STATUS_FILE).unlink(missing_ok=True)
+            except:
+                pass
         else:
             from videotrans.util.help_misc import show_error
             show_error(status)

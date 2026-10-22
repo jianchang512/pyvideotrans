@@ -52,12 +52,16 @@ class Ui_zhipuai(QDialog):
 
         h_token.addWidget(label_token)
         h_token.addWidget(self.max_token)
-        
-        self.zhipuai_thinking = QtWidgets.QCheckBox()
-        self.zhipuai_thinking.setObjectName("zhipuai_thinking")
-        self.zhipuai_thinking.setText(tr('Thinking'))
-        h_token.addWidget(self.zhipuai_thinking)
+
         v1.addLayout(h_token)
+
+        hreason = QtWidgets.QHBoxLayout()
+        hreason.addWidget(QtWidgets.QLabel(tr('Reasoning Effort')))
+        self.reasoning_effort=QtWidgets.QComboBox()
+        self.reasoning_effort.addItems(['default','none','low','medium','high','max'])
+        self.reasoning_effort.setToolTip(tr('none_effort'))
+        hreason.addWidget(self.reasoning_effort)
+        v1.addLayout(hreason)
 
         h_model = QtWidgets.QHBoxLayout()
         self.label_selectmodel = QtWidgets.QLabel()
@@ -124,7 +128,7 @@ class Ui_zhipuai(QDialog):
         self.zhipuai_key.setText(str(params.get("zhipuai_key",'')))
         self.zhipuai_model.setCurrentText(params.get("zhipuai_model",''))
         self.max_token.setText(str(params.get("zhipuai_max_token",'')))
-        self.zhipuai_thinking.setChecked(bool(params.get("zhipuai_thinking",False)))
+        self.reasoning_effort.setCurrentText(params.get("zhipuai_reasoning_effort","default"))
         
         
     def retranslateUi(self, form):

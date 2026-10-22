@@ -9,9 +9,9 @@ from videotrans.util.help_misc import vail_file
 @dataclass(repr=False)
 class CosyVoice(GradioBase):
     def __post_init__(self):
-        super().__post_init__()
         self.ainame = "cosyvoice"
         self.speed = max(0.5, min(2.0, self.get_speed()))
+        super().__post_init__()
 
     def _run(self, data_item: Union[Dict, List, None], idx: int = -1)->Union[str, None]:
         if vail_file(data_item['filename']):return

@@ -11,5 +11,8 @@ class SILICONFLOW(OpenAICampat):
         self.model_name = params.get('siliconflow_model', '')
         self.api_url = "https://api.siliconflow.cn/v1"
         self.api_key = params.get('siliconflow_key', '')
-        self.extra_body={"enable_thinking": bool(params.get('siliconflow_thinking'))}
+        effort=params.get('siliconflow_reasoning_effort')
+        if effort!='default':
+            self.reasoning_effort=effort
+            self.extra_body={"enable_thinking": effort!='none' }
         super().__post_init__()

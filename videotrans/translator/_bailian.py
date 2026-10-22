@@ -102,11 +102,17 @@ class BianlianMT(BaseTrans):
                 base_url=self.api_url,
                 http_client=httpx.Client(proxy=None)
             )
-
-            response = client.chat.completions.create(
-                model=self.model_name,
-                messages=message,
-            )
+            kwargs={
+                "model":self.model_name,
+                "messages":message
+            }
+            effort=params.get('bailian_reasoning_effort')
+            if effort!='default':
+                kwargs["reasoning_effort"]=effort
+                kwargs["extra_body"]={"enable_thinking": effort != 'none'}
+            logger.debug(f'[bailian]: {self.model_name=},reasoning_effort={effort}')
+            response = client.chat.completions.create(**kwargs)
+            logger.debug(f'{response=}')
             if not response or not response.choices or not response.choices[0] or not response.choices[0].message.content:
                 raise TranslateSrtError(f'qwen-mt returned empty choices {response}')
 
