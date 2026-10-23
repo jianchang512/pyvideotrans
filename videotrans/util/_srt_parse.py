@@ -54,7 +54,7 @@ def cleartext(text: str) -> str:
 
 
 def delete_punc(text):
-    pattern = r'''[,?/;\':，。？、：；！!"""()（）]+|(?<!\d)\.|\.(?!\d)'''
+    pattern = r'''[,?/;:，。？、：；！!]+|(?<!\d)\.|\.(?!\d)'''
     res = re.sub(pattern, ' ', text)
     return re.sub(r'\s+', ' ', res).strip()
 
