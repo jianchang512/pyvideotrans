@@ -1022,12 +1022,12 @@
   "Get API Key": "Get API Key",
 
 
-    "common_head": "General Settings",
-    "video_head": "Video Output Settings",
+    "common_head": "General",
+    "video_head": "Video Output",
     "whisper_head": "Speech Recognition (ASR)",
     "justify_head": "A/V & Subtitle Sync",
     "trans_head": "Subtitle Translation",
-    "dubbing_head": "Dubbing Settings",
+    "dubbing_head": "Dubbing",
     "prompt_init_head": "Whisper Initial Prompt",
     "process_max_title": "Max Concurrent CPU Tasks [Restart Required]",
     "process_max_gpu_title": "Max Concurrent GPU Tasks [Restart Required]",
