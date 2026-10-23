@@ -85,13 +85,17 @@ class Ui_minimaxi(QDialog):
         self.max_token.setMinimumSize(QtCore.QSize(0, 35))
         self.max_token.setObjectName("max_token")
 
-        self.minimaxi_thinking = QtWidgets.QCheckBox()
-        self.minimaxi_thinking.setObjectName("minimaxi_thinking")
-        self.minimaxi_thinking.setText(tr('Thinking'))
         h_token.addWidget(label_token)
         h_token.addWidget(self.max_token)
-        h_token.addWidget(self.minimaxi_thinking)
         v1.addLayout(h_token)
+
+        hreason = QtWidgets.QHBoxLayout()
+        hreason.addWidget(QtWidgets.QLabel(tr('Reasoning Effort')))
+        self.reasoning_effort=QtWidgets.QComboBox()
+        self.reasoning_effort.addItems(['default','none','low','medium','high','max'])
+        self.reasoning_effort.setToolTip(tr('none_effort'))
+        hreason.addWidget(self.reasoning_effort)
+        v1.addLayout(hreason)
 
         label_allmodels = QtWidgets.QLabel()
         label_allmodels.setObjectName("label_allmodels")
@@ -152,7 +156,7 @@ class Ui_minimaxi(QDialog):
 
         self.max_token.setText(str(params.get("minimax_max_token",'8192')))
         self.text_model.setCurrentText(str(params.get("minimaxi_text_model",'')))
-        self.minimaxi_thinking.setChecked(bool(params.get("minimaxi_thinking",False)))
+        self.reasoning_effort.setCurrentText(params.get("minimaxi_reasoning_effort","default"))
 
 
     def retranslateUi(self, form):

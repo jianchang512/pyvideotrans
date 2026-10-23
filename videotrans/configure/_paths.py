@@ -18,6 +18,7 @@ DUBBING_CACHE = f'{TEMP_ROOT}/dubbing_cache'
 # 单视频模式时重新进行配音，队列数据文件和停止标识文件
 REDUBB_QUEUE_FILE=f'{TEMP_ROOT}/redubbing.json'
 REDUBB_STATUS_FILE=f'{TEMP_ROOT}/stopredubbing.pid'
+IPC_STATUS_FILE=f'{TEMP_ROOT}/exit.pid'
 
 Path(f"{ROOT_DIR}/models").mkdir(parents=True, exist_ok=True)
 Path(f"{ROOT_DIR}/logs").mkdir(parents=True, exist_ok=True)

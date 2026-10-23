@@ -13,6 +13,7 @@ def openwin():
 
     def test():
         params["audexum_key"] = winobj.audexum_key.text().strip()
+        params.save()
         winobj.test.setText(tr("Testing..."))
         task = TestSTT(parent=winobj, recogn_type=recognition.AUDEXUM_API)
         task.uito.connect(feed)

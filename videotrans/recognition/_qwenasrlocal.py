@@ -87,8 +87,8 @@ class QwenasrlocalRecogn(BaseRecogn):
     def _cut(self,cut_audio_list_file):
         audio = AudioSegment.from_wav(self.audio_file)
         _len=len(audio)
-        _min_segments=60000#最小1分钟
-        _max_segments=120000#最大2分钟，减少显存占用
+        _min_segments=30000#最小30s
+        _max_segments=60000#最大1分钟，减少显存占用
         if _len<=_max_segments:
             _endraw=ms_to_time_string(ms=_len)
             Path(cut_audio_list_file).write_text(json.dumps([

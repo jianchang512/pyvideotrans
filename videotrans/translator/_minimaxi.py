@@ -17,6 +17,10 @@ class MiniMax(OpenAICampat):
         if not api_url.endswith('/v1'):
             api_url = api_url.strip('/')+"/v1"
         self.api_url=api_url
-        self.extra_body={"thinking": {"type": "adaptive" if params.get('minimaxi_thinking') else "disabled"}}
+        effort=params.get('minimaxi_reasoning_effort')
+        if effort!='default':
+            self.reasoning_effort=effort
+            self.extra_body={"thinking": {"type": "adaptive" if effort !='none' else "disabled"}}
+
         super().__post_init__()
 

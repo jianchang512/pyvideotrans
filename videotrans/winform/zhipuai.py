@@ -22,7 +22,8 @@ def openwin():
         params["zhipuai_key"] = key
         params["zhipuai_model"] = winobj.zhipuai_model.currentText()
         params["zhipuai_max_token"] = winobj.max_token.text().strip()
-        params["zhipuai_thinking"] = winobj.zhipuai_thinking.isChecked()
+        params["zhipuai_reasoning_effort"] = winobj.reasoning_effort.currentText()
+        params.save()
         winobj.test.setText(tr("Testing..."))
         task = TestSrtTrans(parent=winobj, translator_type=translator.ZHIPUAI_INDEX)
         task.uito.connect(feed)
@@ -32,7 +33,7 @@ def openwin():
         params["zhipuai_key"] = winobj.zhipuai_key.text().strip()
         params["zhipuai_model"] = winobj.zhipuai_model.currentText()
         params["zhipuai_max_token"] = winobj.max_token.text().strip()
-        params["zhipuai_thinking"] = winobj.zhipuai_thinking.isChecked()
+        params["zhipuai_reasoning_effort"] = winobj.reasoning_effort.currentText()
         params.save()
         winobj.close()
 

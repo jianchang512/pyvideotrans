@@ -170,6 +170,9 @@ def faster_whisper(
             raws = _resegment(texts, info.language, max_speech_ms,min_speech_ms, logs_file,no_resegment=no_resegment)
             Path(f'{TEMP_ROOT}/detect_language_source_{kw.get("uuid")}.txt').write_text(info.language)
             logger.debug('由字级时间戳重新断句完毕' if not no_resegment else '未重新断句，直接使用 faster-whisper 模型返回句子')
+        if not raws:
+            logger.error(f'重新断句失败，原始结果:{texts=}')
+            return False,f"re-segment result is empty, original result: {texts[:2]}..."
         if jianfan and raws:
             for it in raws:
                 it['text'] = zhconv.convert(it['text'], 'zh-hans')

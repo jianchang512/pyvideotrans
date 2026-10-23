@@ -18,6 +18,7 @@ def openwin():
 
     def test():
         params['sttapi_url'] = _fix_url(winobj.sttapi_url.text().strip())
+        params.save()
         winobj.test.setText(tr("Testing..."))
         task = TestSTT(parent=winobj, recogn_type=recognition.STT_API, model_name=winobj.stt_model.currentText())
         task.uito.connect(feed)

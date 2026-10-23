@@ -16,12 +16,14 @@ def check_hw_on_start(force=False):
 
 
 def get_video_codec(compat=None,force=False) -> str:
-    import torch
-    _codec_cache = app_cfg.codec_cache
+
+    _codec_cache = app_cfg.codec_cache or {}
+    if app_cfg.codec_cache:
+        logger.debug(f'上次缓存的{compat}编码器:{app_cfg.codec_cache=}')
     try:
         if not _codec_cache and Path(f'{ROOT_DIR}/videotrans/codec.json').exists():
             _codec_cache = json.loads(Path(f'{ROOT_DIR}/videotrans/codec.json').read_text(encoding='utf-8-sig'))
-    except Exception as e:
+    except BaseException as e:
         logger.error(f'parse codec.json error:{e}')
 
     plat = platform.system()
@@ -36,7 +38,7 @@ def get_video_codec(compat=None,force=False) -> str:
 
     cache_key = f'{plat}-{video_codec_pref}'
     if not force and cache_key in _codec_cache:
-        logger.debug(f"返回缓存的编解码器 {cache_key}: {_codec_cache[cache_key]}")
+        logger.debug(f"返回缓存的{compat}编解码器 {cache_key}: {_codec_cache[cache_key]}")
         return _codec_cache[cache_key]
 
     h_prefix, default_codec = ('hevc', 'libx265') if video_codec_pref == 265 else ('h264', 'libx264')
@@ -53,9 +55,12 @@ def get_video_codec(compat=None,force=False) -> str:
         test_input_file = Path(ROOT_DIR) / "videotrans/styles/no-remove.mp4"
         temp_dir = Path(config.TEMP_DIR)
     except Exception as e:
-        logger.warning(f"准备测试硬件编码器时出错: {e}。将使用软件编码 {default_codec}。")
-        _codec_cache[cache_key] = default_codec
-        return default_codec
+        _bak_codec = _codec_cache[cache_key] if _codec_cache and cache_key in _codec_cache else  default_codec
+        logger.warning(f"准备测试{compat}硬件编码器时出错: {e}。将使用缓存编码器或软件编码 {_bak_codec}。")
+
+        _codec_cache[cache_key] = _bak_codec
+        app_cfg.codec_cache=_codec_cache
+        return _bak_codec
 
     def test_encoder_internal(encoder_to_test: str, timeout: int = 20) -> bool:
         timestamp = int(time.time() * 1000)
@@ -108,30 +113,31 @@ def get_video_codec(compat=None,force=False) -> str:
     else:
         logger.debug(f"平台: {plat}。正在按优先级检测最佳的 '{h_prefix}' 编码器: {encoders_to_test}")
         try:
+            update_cache=True
             for encoder_suffix in encoders_to_test:
                 if encoder_suffix == 'nvenc':
-                    try:
-                        if not torch.cuda.is_available():
-                            logger.debug("CUDA 不可用，跳过 nvenc 测试。")
-                            continue
-                    except ImportError:
-                        logger.error("未找到 torch 模块，将直接尝试 nvenc 测试。")
+                    import torch
+                    if not torch.cuda.is_available():
+                        logger.debug("CUDA 不可用，跳过 nvenc 测试。")
+                        continue
 
                 full_encoder_name = f"{h_prefix}_{encoder_suffix}"
                 if test_encoder_internal(full_encoder_name):
                     selected_codec = full_encoder_name
-                    logger.debug(f"已选择硬件编码器: {selected_codec}")
+                    logger.debug(f"{compat}已选择硬件编码器: {selected_codec}")
                     break
             else:
-                logger.debug(f"所有硬件加速器均未通过测试。将使用软件编码器: {selected_codec}")
-
-            _codec_cache[cache_key] = selected_codec
-            Path(f"{ROOT_DIR}/videotrans/codec.json").write_text(json.dumps(_codec_cache))
+                update_cache=False
+                selected_codec = _codec_cache[cache_key] if _codec_cache and cache_key in _codec_cache else  default_codec
+                logger.debug(f"所有硬件加速器均未通过测试。{compat}将使用缓存编码器或软编码: {selected_codec}")
+            if update_cache or not _codec_cache:
+                _codec_cache[cache_key] = selected_codec
+                Path(f"{ROOT_DIR}/videotrans/codec.json").write_text(json.dumps(_codec_cache))
         except Exception as e:
-            logger.exception(f"在编码器测试期间发生意外，将使用软件编码: {e}", exc_info=True)
-            selected_codec = default_codec
+            logger.exception(f"在编码器测试期间发生意外: {e}", exc_info=True)
+            selected_codec = _codec_cache[cache_key] if _codec_cache and cache_key in _codec_cache else  default_codec
 
     _codec_cache[cache_key] = selected_codec
-
-    logger.debug(f"最终确定使用的编码器: {selected_codec}")
+    app_cfg.codec_cache=_codec_cache
+    logger.debug(f"最终{compat}确定使用的编码器: {selected_codec}")
     return selected_codec

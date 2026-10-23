@@ -1,6 +1,6 @@
 from dataclasses import dataclass
-from typing import List, Union, Any
-
+from typing import Any
+from pathlib import Path
 from videotrans.configure.config import  logger, settings, ROOT_DIR
 from videotrans.translator._base import BaseTrans
 import torch
@@ -60,7 +60,7 @@ class HYMT2(BaseTrans):
         if self._exit(): return
         text = data
 
-        prompt = f"""Please translate the following text accurately into {self.target_code}. You must retain the same number of line breaks in the translation; do not omit, merge, or delete line breaks, and pay attention to their placement.\n\n{text}"""
+        prompt=Path(f'{ROOT_DIR}/videotrans/prompts/text/hymt.txt').read_text(encoding="utf-8").replace("{lang}",self.target_code).replace('{batch_input}',text)
 
         messages = [{"role": "user", "content": prompt}]
         inputs = self.hy.hymt2_tokenizer.apply_chat_template(messages, add_generation_prompt=True, return_tensors="pt").to(

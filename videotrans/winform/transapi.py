@@ -19,6 +19,7 @@ def openwin():
     def test():
         params["transapi_url"] = _fix_url(winobj.api_url.text().strip())
         params["transapi_key"] = winobj.miyue.text().strip()
+        params.save()
         winobj.test.setText(tr("Testing..."))
         task = TestSrtTrans(parent=winobj, translator_type=translator.TRANSAPI_INDEX)
         task.uito.connect(feed)

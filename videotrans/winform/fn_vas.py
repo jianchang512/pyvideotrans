@@ -279,26 +279,6 @@ def openwin():
                     self.post(text='get video without voice...')
                     runffmpeg(cmd)
                     if app_cfg.exit_soft: return
-                    # if self.audio_process == 2 and audio_time > self.video_time:
-                    #     # 如果定格视频并且音频时长大于视频时长
-                    #     sec = max((audio_time - self.video_time) / 1000, 1)
-                    #     cmd = [
-                    #         '-y', "-progress", protxt,
-                    #         '-i',
-                    #         novoice_mp4,
-                    #         '-vf',
-                    #         f'tpad=stop_mode=clone:stop_duration={sec}',
-                    #         '-c:v',
-                    #         f'libx264',
-                    #         f'{novoice_mp4}-clone.mp4'
-                    #     ]
-                    #     try:
-                    #         self.post(text=f'clone video {sec}s...')
-                    #         runffmpeg(cmd)
-                    #         if app_cfg.exit_soft: return
-                    #         novoice_mp4 = f'{novoice_mp4}-clone.mp4'
-                    #     except Exception as e:
-                    #         logger.exception(f'VAS合并期间，延长视频末端失败，将保持原样:{e}')
 
                     # 视频音频合并
                     audiovideoend_mp4 = config.TEMP_DIR + f"/vad-end-{time.time()}.mp4"
@@ -391,7 +371,6 @@ def openwin():
                 self.is_end = True
 
         def _subprocess(self, cmd):
-            print(f'[尝试硬件编解码执行命令]\n{" ".join(cmd)}\n')
 
             if app_cfg.exit_soft: return
             cmd = ["ffmpeg", '-nostdin'] + cmd

@@ -19,6 +19,7 @@ def openwin():
         params["atlascloud_key"] = key
         params["atlascloud_model"] = winobj.atlascloud_model.currentText()
         params["atlascloud_max_token"] = winobj.max_token.text().strip()
+        params.save()
         winobj.test.setText(tr("Testing..."))
         task = TestSrtTrans(parent=winobj, translator_type=translator.ATLASCLOUD_INDEX)
         task.uito.connect(feed)

@@ -7,7 +7,7 @@ from typing import Any, Union
 
 import aiohttp
 from edge_tts import Communicate
-from edge_tts.exceptions import NoAudioReceived
+from edge_tts.exceptions import EdgeTTSException
 
 from videotrans.configure.config import tr, settings, app_cfg, logger, ROOT_DIR
 from videotrans.configure.excepts import DubbingSrtError
@@ -34,6 +34,18 @@ class _Control:
 
 
 _control_obj = _Control()
+
+
+async def _save_atomic(communicate, mp3_path):
+    # 先写临时文件，成功后再改名，防止连接中断/超时留下不完整的mp3被当作成功并写入缓存
+    part_path = mp3_path + ".part"
+    try:
+        await asyncio.wait_for(communicate.save(part_path), timeout=SAVE_TIMEOUT)
+        if not vail_file(part_path):
+            raise EdgeTTSException(f'empty audio: {mp3_path}')
+        os.replace(part_path, mp3_path)
+    finally:
+        Path(part_path).unlink(missing_ok=True)
 
 
 @dataclass(repr=False)
@@ -75,10 +87,7 @@ class EdgeTTS(BaseTTS):
                             volume=self.volume, proxy=_control_obj.useproxy, pitch=self.pitch, connect_timeout=5
                         )
                         # 防止WebSocket连接或数据读取无限挂起
-                        await asyncio.wait_for(
-                            communicate.save(item['filename'] + ".mp3"),
-                            timeout=SAVE_TIMEOUT
-                        )
+                        await _save_atomic(communicate, item['filename'] + ".mp3")
 
                         if _control_obj._stop_event.is_set(): return
                         loop = asyncio.get_running_loop()
@@ -107,7 +116,7 @@ class EdgeTTS(BaseTTS):
                             self.error = e
                             # 失败也是一种完成，直接返回
                             return
-                    except (NoAudioReceived, aiohttp.ClientError) as e:
+                    except (EdgeTTSException, aiohttp.ClientError, OSError) as e:
                         self.error = e if not _control_obj.useproxy else f'proxy={_control_obj.useproxy}, {tr("Please turn off the clear proxy and try again")}:{e}'
                         # 强制禁用代理重试
                         _control_obj.useproxy = None
@@ -148,17 +157,26 @@ class EdgeTTS(BaseTTS):
         _control_obj.ends_counter = 0
         total_tasks = len(self.queue_tts)
         if total_tasks == 1:
-            communicate = Communicate(
-                self.queue_tts[0]['text'],
-                voice=get_edge_rolelist(self.queue_tts[0]['role'], self.language),
-                rate=self.rate,
-                volume=self.volume,
-                proxy=_control_obj.useproxy,
-                pitch=self.pitch,
-                connect_timeout=5
-            )
             mp3_path = self.queue_tts[0]['filename'] + ".mp3"
-            await communicate.save(mp3_path)
+            for attempt in range(RETRY_NUMS + 1):
+                communicate = Communicate(
+                    self.queue_tts[0]['text'],
+                    voice=get_edge_rolelist(self.queue_tts[0]['role'], self.language),
+                    rate=self.rate,
+                    volume=self.volume,
+                    proxy=_control_obj.useproxy,
+                    pitch=self.pitch,
+                    connect_timeout=5
+                )
+                try:
+                    await _save_atomic(communicate, mp3_path)
+                    break
+                except (asyncio.TimeoutError, EdgeTTSException, aiohttp.ClientError, OSError) as e:
+                    if attempt >= RETRY_NUMS or self._exit():
+                        raise
+                    logger.warning(f'EdgeTTS配音失败，{RETRY_DELAY}s后重试: {e}')
+                    _control_obj.useproxy = None
+                    await asyncio.sleep(RETRY_DELAY)
             if vail_file(mp3_path):
                 self.convert_to_wav(mp3_path, self.queue_tts[0]['filename'])
             return

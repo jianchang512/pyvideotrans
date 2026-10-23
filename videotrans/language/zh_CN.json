@@ -84,7 +84,7 @@
   "Custom Speech Recognition API": "自定义语音识别API",
   "Custom api address must be filled in": "必须填写自定义api地址",
   "Customize API": "自定义TTS API",
-  "Customize each configuration to batch video translation. When selecting a single video, you can pause to edit subtitles during processing.": "支持单个或批量翻译视频。若仅选一个视频，处理中会弹出编辑界面，可对字幕或配音进行修改。鼠标放在各组件3s会显示帮助文字\n[发音语言]是指视频中的人类说话语言，[目标语言]是指想翻译到的语言，若要配音，必须选择[目标语言]。点击[设置更多参数]，可查看更多设置",
+  "Customize each configuration to batch video translation. When selecting a single video, you can pause to edit subtitles during processing.": "支持单个或批量翻译视频。若选单个视频，处理中会弹出编辑界面。点击[设置更多参数]，可设置降噪/分离背景音等",
   "Customized API": "自定义翻译API",
   "Customizing TTS-API": "自定义TTS API",
   "Customizing the TTS-API": "自定义TTS-API/无编码能力勿使用该功能",
@@ -714,7 +714,7 @@
   "Translation results saved to:": "翻译结果保存到: ",
   "may not support": "可能尚不支持",
   "Modify secondary recognition results": "二次语音识别结果：可在此修改字幕",
-  "Reasoning Effort": "推理深度",
+  "Reasoning Effort": "思考深度(none是关闭)",
   "This channel needs deployed and started before available": "该渠道需另行部署并启动后可用",
   "Default punctuation": "默认标点",
   "Restore punctuation": "恢复标点(cn/en)",
@@ -1105,13 +1105,19 @@
     "chattts_voice_title": "ChatTTS音色值",
     "gemini_model_title": "Gemini模型列表",
     "lang_notice": "设置软件界面语言，修改后需要重启软件",
+	
+	"noise_model_title":"降噪模型",
+    "ultimate_mini_title": "进一步精简翻译",
+    "ultimate_mini_notice": "选中后将追加AI翻译提示词，要求翻译结果极致精简以避免配音过长",
+	"noise_model_notice":"zipenhancer将使用audio.cpp自动选择最佳设备执行，其他为纯CPU执行，默认dpdfnet2，速度快，dpdfnet8质量最高",
+	
     "countdown_sec_notice": "当单视频交互翻译时，暂停倒计时秒数(设为0将跳过编辑窗口)",
     "homedir_notice": "用于设置 批量语音转录 / 批量为字幕配音 / 批量翻译srt字幕 等功能的输出结果位置，非视频翻译结果保存位置，默认软件安装目录下output文件夹",
     "retry_nums_notice": "失败后重试次数(针对重试可能恢复的错误，在此设定重试次数)",
     "llm_chunk_size_notice": "LLM大模型纠错时，每次发送多少条字幕，该值越大断句效果越好，一次性发送全部字幕最佳，但受限于最大输出token和上下文(max_token)，过长输入可能导致超出AI限制而失败，默认20条字幕",
     "llm_ai_type_notice": "LLM纠错时使用的AI渠道",
     "dont_notify_notice": "任务完成或失败后不显示桌面通知",
-    "uvr_models_notice": "选择分离背景声时所用模型",
+    "uvr_models_notice": "选择分离背景声时所用模型，默认spleeter,除mel_band_roformer外均为onnx模型，cpu运行，效果相近",
     "noise_separate_nums_notice": "人声背景声分离/降噪线程数，越大越快但占用资源越多",
     "batch_nums_notice": "批量翻译视频时，在此设置每批次同时翻译几个，默认0即不限制",
     "show_more_settings_notice": "为避免过多参数造成困扰，主界面默认隐藏大部分参数，如果选中这里将切换为默认显示所有参数",
@@ -1127,7 +1133,7 @@
     "force_lib_notice": "强制ffmpeg使用软编解码?（速度慢但兼容性好不易出错，默认优选硬件编码）",
     "hw_decode_notice": "最后一步视频合成时，强制使用cuda解码视频，更快但易出错",
     "ffmpeg_cmd_notice": "自定义ffmpeg命令参数， 将添加在输出文件之前的位置,例如  -bf 7 -b_ref_mode middle",
-    "vad_type_notice": "选择要使用的VAD",
+    "vad_type_notice": "选择要使用的VAD,默认silero，适合大多数情况，tenvad号称更快",
     "threshold_notice": "表示音频片段被认为是语音的最低概率。VAD 会为每个音频片段计算语音概率，超过此阈值的部分被视为语音，反之视为静音或噪音。越小越灵敏但可能误将噪声视为语音",
     "no_speech_threshold_notice": "减小可降低幻觉但可能遗漏文字",
     "max_speech_duration_s_notice": "最长语音持续时长(秒),限制单个语音片段的最大长度。超过此时长时强制分割。填写数字，单位是秒",
@@ -1170,6 +1176,9 @@
     "cjk_len_notice": "中日韩字幕单行字符数，多于将换行，仅针对视频翻译中的目标字幕或单独的语音转录功能字幕",
     "other_len_notice": "其他语言字幕单行字符数，多于将换行，仅针对视频翻译中的目标字幕或单独的语音转录功能字幕",
     "llm_resegment_notice": "使用LLM重新断句替代LLM纠错,若选中将使用AI模型重新断句，而非仅仅修正错别字",
+
+
+
 
     "Initial prompt for the Whisper model for speech": "发音语言为 {} 时发送给whisper模型的提示词",
     "Thinking": "思考模式",

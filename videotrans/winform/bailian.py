@@ -23,6 +23,8 @@ def openwin():
         params["bailian_model"] = winobj.bailian_model.currentText()
         params["bailian_ttsmodel"] = winobj.bailian_ttsmodel.currentText()
         params["bailian_domains"] = winobj.bailian_domains.text()
+        params["bailian_reasoning_effort"] = winobj.reasoning_effort.currentText()
+        params.save()
         winobj.test.setText(tr("Testing..."))
         from videotrans import translator
         task = TestSrtTrans(parent=winobj, translator_type=translator.BAILIAN_INDEX)
@@ -35,6 +37,7 @@ def openwin():
         params["bailian_model"] = winobj.bailian_model.currentText()
         params["bailian_ttsmodel"] = winobj.bailian_ttsmodel.currentText()
         params["bailian_domains"] = winobj.bailian_domains.text()
+        params["bailian_reasoning_effort"] = winobj.reasoning_effort.currentText()
         params.save()
         winobj.close()
 

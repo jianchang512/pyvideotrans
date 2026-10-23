@@ -24,6 +24,7 @@ class OpenAICampat(BaseTrans):
         super().__post_init__()
         self.temperature=float(settings.get('aitrans_temperature', 1.0))
         self.prompt=self._set_context()
+        logger.debug(f'{self.prompt=}')
 
         try:
             self.max_tokens=int(self.max_tokens)
@@ -82,10 +83,8 @@ class OpenAICampat(BaseTrans):
         if self.reasoning_effort:
             kwargs["reasoning_effort"]=self.reasoning_effort
             
-        logger.debug(f'字幕翻译:{self.ainame=},{kwargs=},{self.extra_body=}')
         kwargs["messages"]=message
 
-        
         try:
             response = self._create_completion(kwargs)
             result = response.choices[0].message.content.strip()
@@ -129,8 +128,8 @@ class OpenAICampat(BaseTrans):
             kwargs["max_completion_tokens"]=int(self.max_tokens)
         else:
             kwargs["max_tokens"]=int(self.max_tokens)
-        logger.debug(f'{self.ainame=},{kwargs=},{self.model_name=},{self.api_url=},{step=}')
-        
+
+
         @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(2)),
                wait=wait_fixed(5), before=before_log(logger, logging.INFO),
                after=after_log(logger, logging.INFO))
@@ -155,14 +154,12 @@ class OpenAICampat(BaseTrans):
             
         
         new_sublist = []
-        logger.debug(f'{flag}:{srt_list=}')
         for idx in range(0, len(srt_list), chunk_size):
             self.signal(text=f'[{idx}] {self.ainame} ' + tr("Re-segmenting..."))
             srt_str = "\n\n".join(
                 [f"{line + 1}\n{it['time']}\n{it['text']}" for line, it in enumerate(srt_list[idx: idx + chunk_size])])
             new_sublist.append(_send(srt_str))
 
-        logger.debug(f'{flag}:{new_sublist=}')
         _srtlist = get_subtitle_from_srt("\n\n".join(new_sublist), is_file=False)
         # 修正可能存在的时间戳错误
         _len = len(_srtlist)

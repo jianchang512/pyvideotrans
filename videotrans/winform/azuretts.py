@@ -30,6 +30,7 @@ def openwin():
             region = winobj.azuretts_area.currentText()
         params['azuretts_key'] = key
         params['azuretts_region'] = region
+        params.save()
         from videotrans import tts
         import time
         wk = ListenVoice(parent=winobj, queue_tts=[{"text":  LISTEN_TEXT.get('zh'), "role": 'zh-CN-YunjianNeural',

@@ -64,8 +64,8 @@ TTS_API = 35
 SILICONFLOW_API = 36
 OPENROUTER_API = 37
 DEEPGRAM_TTS = 38
-CLONE_VOICE_TTS = 39
-FISHAUDIOAPI_TTS=40
+FISHAUDIOAPI_TTS=39
+CLONE_VOICE_TTS = 40
 
 # 支持克隆的渠道，即存在 clone 配音角色
 SUPPORT_CLONE = [
@@ -247,14 +247,14 @@ ID_NAME_DICT = {
                                   imp="._deepgram",
                                   key_name="deepgram_key",
                                   win="deepgram"),
-    CLONE_VOICE_TTS: ChannelProvider(f"clone-voice({tr('Local')}API)",
-                                     imp="._clone",
-                                     key_name="clone_api",
-                                     win="clone"),
     FISHAUDIOAPI_TTS: ChannelProvider(f"Fish-Audio API",
                                      imp="._fishaudio",
                                      key_name="fishaudio_key",
                                      win="fishaudio"),
+    CLONE_VOICE_TTS: ChannelProvider(f"clone-voice({tr('Local')}API)",
+                                     imp="._clone",
+                                     key_name="clone_api",
+                                     win="clone"),
 }
 
 # 强制保持按照每个常量值大小排序

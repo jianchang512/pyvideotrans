@@ -58,7 +58,7 @@ def openwin():
         # 创建文件夹
         Path(outdir).mkdir(parents=True,exist_ok=True)
         winobj.url.setText(outdir)
-        
+        winobj.logs.setText('')
         # 开始分离
         from videotrans.task.separate_worker import SeparateWorker
         winobj.task = SeparateWorker(parent=winobj, file=file, out=outdir, uuid=uuid)

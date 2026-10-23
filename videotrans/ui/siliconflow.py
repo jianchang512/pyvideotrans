@@ -54,14 +54,16 @@ class Ui_siliconflow(QDialog):
         h_token.addWidget(label_token)
         h_token.addWidget(self.max_token)
         
-        
-        self.siliconflow_thinking = QtWidgets.QCheckBox()
-        self.siliconflow_thinking.setObjectName("siliconflow_thinking")
-        self.siliconflow_thinking.setText(tr('Thinking'))
-        h_token.addWidget(self.siliconflow_thinking)
-        
+
         v1.addLayout(h_token)
 
+        hreason = QtWidgets.QHBoxLayout()
+        hreason.addWidget(QtWidgets.QLabel(tr('Reasoning Effort')))
+        self.reasoning_effort=QtWidgets.QComboBox()
+        self.reasoning_effort.addItems(['default','none','low','medium','high','max'])
+        self.reasoning_effort.setToolTip(tr('none_effort'))
+        hreason.addWidget(self.reasoning_effort)
+        v1.addLayout(hreason)
 
         h_model = QtWidgets.QHBoxLayout()
         label_selectmodel = QtWidgets.QLabel()
@@ -140,7 +142,7 @@ class Ui_siliconflow(QDialog):
         self.edit_allmodels.setPlainText(allmodels_str)
         self.siliconflow_key.setText(str(params.get("siliconflow_key",'')))
         self.max_token.setText(str(params.get("siliconflow_max_token",'')))
-        self.siliconflow_thinking.setChecked(bool(params.get("siliconflow_thinking",False)))
+        self.reasoning_effort.setCurrentText(params.get("siliconflow_reasoning_effort","default"))
         if params.get("siliconflow_model"):
             self.siliconflow_model.setCurrentText(params.get("siliconflow_model"))
         if params.get("siliconflow_tts_model"):

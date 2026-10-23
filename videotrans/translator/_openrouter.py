@@ -12,8 +12,9 @@ class OpenRouter(OpenAICampat):
         self.model_name = params.get('openrouter_model', "")
         self.api_url = 'https://openrouter.ai/api/v1'
         self.api_key = params.get('openrouter_key', '')
-        _reason=params.get('openrouter_reasoning_effort')
-        self.reasoning_effort=None if not _reason or _reason=='default' else _reason
-        
+        effort=params.get('openrouter_reasoning_effort')
+        if effort!='default':
+            self.reasoning_effort = effort
+
         super().__post_init__()
 

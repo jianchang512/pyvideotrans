@@ -18,6 +18,7 @@ def openwin():
 
     def test():
         params['whisperxapi_api'] = _fix_url(winobj.api_url.text().strip())
+        params.save()
         winobj.test.setText(tr("Testing..."))
         task = TestSTT(parent=winobj, recogn_type=recognition.WHISPERX_API, model_name='tiny')
         task.uito.connect(feed)

@@ -19,6 +19,7 @@ def openwin():
         params["infistar_key"] = key
         params["infistar_model"] = winobj.infistar_model.currentText()
         params["infistar_max_token"] = winobj.max_token.text().strip()
+        params.save()
         winobj.test.setText(tr("Testing..."))
         task = TestSrtTrans(parent=winobj, translator_type=translator.INFISTAR_INDEX)
         task.uito.connect(feed)

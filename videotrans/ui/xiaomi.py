@@ -51,14 +51,18 @@ class Ui_xiaomi(QDialog):
         self.xiaomi_max_token = QtWidgets.QLineEdit()
         self.xiaomi_max_token.setObjectName("xiaomi_max_token")
         
-        self.xiaomi_thinking = QtWidgets.QCheckBox()
-        self.xiaomi_thinking.setText(tr('Thinking'))
-        
+
         h_token.addWidget(label_token)
         h_token.addWidget(self.xiaomi_max_token)
-        h_token.addWidget(self.xiaomi_thinking)
-
         v1.addLayout(h_token)
+
+        hreason = QtWidgets.QHBoxLayout()
+        hreason.addWidget(QtWidgets.QLabel(tr('Reasoning Effort')))
+        self.reasoning_effort=QtWidgets.QComboBox()
+        self.reasoning_effort.addItems(['default','none','low','medium','high','max'])
+        self.reasoning_effort.setToolTip(tr('none_effort'))
+        hreason.addWidget(self.reasoning_effort)
+        v1.addLayout(hreason)
         
         self.label_allmodels = QtWidgets.QLabel()
         self.label_allmodels.setObjectName("label_allmodels")
@@ -127,7 +131,7 @@ class Ui_xiaomi(QDialog):
         self.edit_allmodels.setPlainText(allmodels_str)
         self.xiaomi_key.setText(str(params.get("xiaomi_key",'')))
         self.model.setCurrentText(params.get("xiaomi_model",''))
-        self.xiaomi_thinking.setChecked(bool(params.get("xiaomi_thinking",False)))
+        self.reasoning_effort.setCurrentText(params.get("xiaomi_reasoning_effort","default"))
         
         self.xiaomi_max_token.setText(str(params.get("xiaomi_max_token",'18192')))
 

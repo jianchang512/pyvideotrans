@@ -125,7 +125,6 @@ class XXLRecogn(BaseRecogn):
                 cwd=self.cache_folder,
                 env=env,                    
                 stdin=subprocess.DEVNULL
-
             )
             if not res or not res.stdout:
                 raise SpeechToTextError(f"{res.stderr}\n{res.stdout}" if res else "Faster_Whisper_XXL error")

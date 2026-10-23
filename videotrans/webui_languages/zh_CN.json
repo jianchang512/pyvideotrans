@@ -397,7 +397,9 @@
   "API Route Translation": "API Route 翻译",
   "Cheaper Inference Translation": "Cheaper Inference 翻译",
   "Infistar Translation": "Infistar 翻译",
-      "common_head": "通用设置",
+
+
+    "common_head": "通用设置",
     "video_head": "视频输出控制",
     "whisper_head": "语音识别参数",
     "justify_head": "字幕声音画面对齐",
@@ -478,10 +480,15 @@
     "best_of_title": "识别准确度best_of",
     "condition_on_previous_text_title": "启用上下文感知",
     "hotwords_title": "热词",
+     "llm_resegment_title": "使用LLM重新断句替代LLM纠错",
     "zh_hant_s_title": "字幕繁体转简体",
     "chattts_voice_title": "ChatTTS音色值",
     "gemini_model_title": "Gemini模型列表",
     "lang_notice": "设置软件界面语言，修改后需要重启软件",
+	
+	"noise_model_title":"降噪模型",
+	"noise_model_notice":"zipenhancer将使用audio.cpp自动选择最佳设备执行，其他为纯CPU执行",
+	
     "countdown_sec_notice": "当单视频交互翻译时，暂停倒计时秒数(设为0将跳过编辑窗口)",
     "homedir_notice": "用于设置 批量语音转录 / 批量为字幕配音 / 批量翻译srt字幕 等功能的输出结果位置，非视频翻译结果保存位置，默认软件安装目录下output文件夹",
     "retry_nums_notice": "失败后重试次数(针对重试可能恢复的错误，在此设定重试次数)",
@@ -546,8 +553,9 @@
     "max_video_pts_rate_notice": "视频慢放最大倍数，默认10，不可大于10",
     "cjk_len_notice": "中日韩字幕单行字符数，多于将换行，仅针对视频翻译中的目标字幕或单独的语音转录功能字幕",
     "other_len_notice": "其他语言字幕单行字符数，多于将换行，仅针对视频翻译中的目标字幕或单独的语音转录功能字幕",
-    "Initial prompt for the Whisper model for speech": "发音语言为 {} 时发送给whisper模型的提示词",
-  "llm_resegment_notice": "使用LLM重新断句替代LLM纠错",
-  "llm_resegment_title": "使用LLM重新断句替代LLM纠错"
+    "llm_resegment_notice": "使用LLM重新断句替代LLM纠错,若选中将使用AI模型重新断句，而非仅仅修正错别字"
+
+
+
 
 }
