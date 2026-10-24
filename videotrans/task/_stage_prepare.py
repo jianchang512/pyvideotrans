@@ -92,18 +92,25 @@ class PrepareMixin:
                 source_srt_list = get_subtitle_from_srt(self.cfg.source_sub, is_file=True)
                 if source_srt_list:
                     spk_list=[]
+                    edge_line=len(source_srt_list)/3
+                    no_speak_line=0
                     for i,it in enumerate(source_srt_list):
-                        groups=re.search(r'^\[\s*?(sp[a-zA-Z]+\s*?\d+)\s*?\]',it['text'].strip(),flags=re.I)
+                        # 无说话人的行多于 1/3 时，停止提取说话人
+                        if no_speak_line>=edge_line:
+                            spk_list=[]
+                            break
+                        groups=re.search(r'^\[(.*?)\]',it['text'].strip(),flags=re.I)
                         if not groups:
-                            if i==0:
-                                break
+                            if i==0: break
+                            no_speak_line+=1
                             if i>0 and spk_list:
                                 spk_list.append(spk_list[0])
                         else:
                             spk_list.append(groups.group(1))
                             # 从字幕中删掉说话人标识
-                            it['text']=it['text'].replace(groups.group(0),'')
-                    if spk_list:                            
+                            p=rf"^\[{groups.group(1)}\]"
+                            it['text']=re.sub(p,'',it['text'])
+                    if spk_list:
                         Path(self.cfg.target_dir + "/speaker.json").write_text(json.dumps(spk_list), encoding='utf-8')
                         txt = get_srt_from_list(source_srt_list)
                         with open(self.cfg.source_sub, "w", encoding="utf-8", errors="ignore") as f:

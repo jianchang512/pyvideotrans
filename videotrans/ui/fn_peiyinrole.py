@@ -94,22 +94,36 @@ class Ui_fn_peiyinrole(QtWidgets.QWidget):
         for row in range(self.subtitle_table.rowCount()):
             self.subtitle_table.item(row, 3).setText('')
 
-    def parse_and_display_srt(self, srt_path):
+    # srt_path 可能是由ass转换而来，此时 origin_path 是原始ass
+    def parse_and_display_srt(self, srt_path,origin_path=None):
         self.clear_all_ui()
-        self.srt_path = srt_path
+        self.srt_path = origin_path or srt_path
         try:
             subs = get_subtitle_from_srt(srt_path)
-            patter_str = r'(?:\s*?\[)((?:spk|speaker|说话人|speaker_|\w{1,10})\s*?\d*?)(?:\])\s*?[:：]?'
+            patter_str = r'^\[(.*?)\]'
             self.subtitle_table.setSortingEnabled(False)
             self.subtitle_table.setRowCount(len(subs))
             default_role_text = ''
+
+            edge_line=len(subs)/3
+            no_speak_line=0
+            spk_list=[]
             for row_idx, sub in enumerate(subs):
-                spk_name = None
+                if no_speak_line>=edge_line:
+                    spk_list=[]
+                    break
                 match = re.match(patter_str, sub['text'].strip(), flags=re.I)
-                if match:
-                    spk_name = match.group(1)
-                    sub['text'] = sub['text'][len(match.group(0)):]
+                if not match:
+                    no_speak_line+=1
+                    spk_list.append(None)
+                else:
+                    spk_list.append(match.group(1))
+
+            for row_idx, sub in enumerate(subs):
+                spk_name = spk_list[row_idx]
                 if spk_name:
+                    pattern = rf"^\[{re.escape(spk_name)}\]"
+                    sub['text']=re.sub(pattern,'',sub['text'])
                     if spk_name not in self.spk_role:
                         self.spk_role[spk_name] = None
                     if spk_name not in self.spk_lines:
@@ -128,7 +142,6 @@ class Ui_fn_peiyinrole(QtWidgets.QWidget):
                 item_time.setFlags(item_time.flags() & ~Qt.ItemIsEditable)
                 self.subtitle_table.setItem(row_idx, 2, item_time)
                 item_role = QTableWidgetItem(default_role_text)
-                #item_role.setFlags(item_role.flags() & Qt.ItemIsEditable)
                 self.subtitle_table.setItem(row_idx, 3, item_role)
                 item_spk = QTableWidgetItem(spk_name if spk_name else "")
                 item_spk.setFlags(item_time.flags() & ~Qt.ItemIsEditable)
@@ -146,7 +159,8 @@ class Ui_fn_peiyinrole(QtWidgets.QWidget):
                     spk_widget = SpkRowWidget(spk)
                     self.subtitle_layout2.addWidget(spk_widget, ix // 6, ix % 6)
                 self.container_frame.setStyleSheet("""QFrame#container_frame{border: 1px solid #455364;}""")
-            self.hecheng_importbtn.setText(f"{os.path.basename(srt_path)}")
+
+            self.hecheng_importbtn.setText(os.path.basename(self.srt_path))
             self.subtitles = subs
         except Exception as e:
             self.clear_all_ui()

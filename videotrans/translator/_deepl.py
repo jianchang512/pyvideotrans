@@ -8,7 +8,7 @@ import deepl
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
 from videotrans.configure.config import params, logger, settings
-from videotrans.configure.excepts import NO_RETRY_EXCEPT
+from videotrans.configure.excepts import NO_RETRY_EXCEPT, TranslateSrtError
 from videotrans.translator._base import BaseTrans
 
 
@@ -36,13 +36,16 @@ class DeepL(BaseTrans):
         elif target_code == 'PT':
             target_code = 'PT-PT'
         sourcecode = self.source_code.upper() if self.source_code else None
-        sourcecode = sourcecode if sourcecode != 'AUTO' else None
-        result = deepltranslator.translate_text(
-            text,
-            source_lang=sourcecode,
-            target_lang=target_code,
-            glossary=params.get('deepl_gid')
-        )
+        sourcecode = sourcecode.split('-')[0] if sourcecode  else None
+        try:
+            result = deepltranslator.translate_text(
+                text,
+                source_lang=sourcecode ,
+                target_lang=target_code,
+                glossary=params.get('deepl_gid')
+            )
+            logger.debug(f'[DeepL]返回:{result=}')
+            return result.text
+        except deepl.exceptions.DeepLException as e:
+            raise TranslateSrtError(getattr(e,'message',str(e)) + f' {sourcecode=},{target_code=}') from e
 
-        logger.debug(f'[DeepL]返回:{result=}')
-        return result.text

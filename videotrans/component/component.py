@@ -6,6 +6,7 @@ from PySide6.QtWidgets import QFileDialog, QPushButton, QPlainTextEdit
 
 from videotrans.configure.config import tr, params
 from videotrans.configure import constants
+from videotrans.util._srt_parse import ass_to_srt
 
 
 class DropButton(QPushButton):
@@ -58,13 +59,20 @@ class PeiyinDropButton(QPushButton):
 
     def get_file(self):
         fnames, _ = QFileDialog.getOpenFileNames(self, "Select srt/txt", params['last_opendir'],
-                                                 "Text files(*.srt *.txt)")
+                                                 "Text files(*.srt *.txt *.ass)")
         namestr = []
+        filelist=[]
         for (i, it) in enumerate(fnames):
-            fnames[i] = it.replace('\\', '/')
+            it= it.replace('\\', '/')
+            if it.endswith('.ass'):
+                new_it=it[:-4]+"-from-ass.srt"
+                ass_to_srt(it,new_it)
+                filelist.append(new_it)
+            else:
+                filelist.append(it)
             namestr.append(os.path.basename(it))
             params['last_opendir']=os.path.dirname(it)
-        self.filelist = fnames
+        self.filelist = filelist
         self.setText(f'{len(self.filelist)} files \n' + "\n".join(namestr))
 
     def dragEnterEvent(self, event):

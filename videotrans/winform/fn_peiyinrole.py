@@ -1,3 +1,4 @@
+from videotrans.util._srt_parse import ass_to_srt
 
 
 def openwin():
@@ -306,15 +307,19 @@ def openwin():
 
     def hecheng_import_fun():
         fname, _ = QFileDialog.getOpenFileName(winobj, "SRT", params.get('last_opendir', '.'),
-                                               "SRT files (*.srt)")
+                                               "SRT files (*.srt *.ass)")
         if not fname:
             return
 
         fname = fname.replace('\\', '/')
         params['last_opendir'] = os.path.dirname(fname)
         params.save()
-
-        winobj.parse_and_display_srt(fname)
+        if fname.endswith(".ass"):
+            fname_new=config.TEMP_ROOT+f"/multi-role-from-ass-{time.time()}.srt"
+            ass_to_srt(fname,fname_new,True)
+            winobj.parse_and_display_srt(fname_new,fname)
+        else:
+            winobj.parse_and_display_srt(fname,None)
 
     def opendir_fn():
         nonlocal RESULT_DIR

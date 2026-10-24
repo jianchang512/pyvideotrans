@@ -1,3 +1,4 @@
+import time
 from pathlib import Path
 
 from PySide6 import QtWidgets
@@ -5,6 +6,7 @@ from PySide6.QtCore import QTimer
 
 from videotrans.configure.config import tr, settings, params, app_cfg, ROOT_DIR, TEMP_ROOT
 from videotrans.configure import constants
+from videotrans.util._srt_parse import ass_to_srt
 from videotrans.util.help_misc import  set_proxy, set_process
 
 
@@ -109,8 +111,12 @@ class WinActionBaseFileMixin:
         fname,_ = QtWidgets.QFileDialog.getOpenFileName(self.main,
                                                                 _title,
                                                                 params.get('last_opendir', ''),
-                                                                f'Files(*.srt)')
-        
+                                                                f'Files(*.srt *.ass)')
+        if srt_type=='spoken' and fname.endswith(".ass"):
+            _new=TEMP_ROOT+f"/from-ass-spoken-{time.time()}.srt"
+            ass_to_srt(fname,_new,True)
+            fname=_new
+
         if srt_type=='spoken':
             app_cfg.onlyone_importsrtfile=fname if fname else None        
         else:

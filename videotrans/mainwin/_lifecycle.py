@@ -66,18 +66,7 @@ class LifecycleMixin:
         os.chdir(ROOT_DIR)
         self.cleanup_and_accept()
 
-        try:
-            shutil.rmtree(TEMP_DIR, ignore_errors=True)
-        except OSError:
-            pass
-        # 清理 TEMP_ROOT 下的 txt srt json 文件，
-        # 不直接删除 tmp 文件夹，避免同时启动多个实例导致其他报错，保留 pid 状态文件，防止其他实例出错
-        for it in Path(TEMP_ROOT).iterdir():
-            if it.is_file() and it.suffix.lower()!='pid':
-                try:
-                    it.unlink()
-                except Exception:
-                    pass
+
 
         if not self.is_restarting:
             event.accept()
@@ -93,7 +82,7 @@ class LifecycleMixin:
 
     def cleanup_and_accept(self):
         from PySide6.QtCore import QCoreApplication, QSettings, QThreadPool
-        from videotrans.configure.config import app_cfg, logger
+        from videotrans.configure.config import app_cfg, logger,TEMP_ROOT,TEMP_DIR
 
         QCoreApplication.processEvents()
         sets = QSettings("pyvideotrans", "settings")
@@ -123,4 +112,16 @@ class LifecycleMixin:
 
         self.kill_processes('ffmpeg')
 
+        # 清理 TEMP_ROOT 下的 txt srt json 文件，
+        # 不直接删除 tmp 文件夹，避免同时启动多个实例导致其他报错，保留 pid 状态文件，防止其他实例出错
+        for it in Path(TEMP_ROOT).iterdir():
+            if it.is_file() and it.suffix.lower()!='pid':
+                try:
+                    it.unlink()
+                except Exception:
+                    pass
+        try:
+            shutil.rmtree(TEMP_DIR, ignore_errors=True)
+        except OSError as e:
+            pass
         QThreadPool.globalInstance().waitForDone(5000)

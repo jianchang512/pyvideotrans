@@ -226,7 +226,7 @@ class Ui_fn_fanyisrt(QtWidgets.QWidget):
         self.label_614.setText(tr("Proxy"))
         self.fanyi_proxy.setPlaceholderText(
             tr("Failed to access Google services. Please set up the proxy correctly"))
-        self.fanyi_import.setText(tr("Import text to be translated from a file.."))
+        self.fanyi_import.setText(tr("tuodongfanyi"))
         self.daochu.setText(tr('dakaizimubaocunmulu'))
         self.fanyi_start.setText(tr("Start>"))
         self.exportsrt.setText(tr("Save"))
