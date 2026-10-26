@@ -1017,6 +1017,7 @@
   "Audexum: the API key is invalid. Get a key at {}": "Audexum：API Key 无效，请在 {} 获取",
   "Audexum: not enough credits for this audio. Top up at {}": "Audexum：余额不足，无法识别该音频，请在 {} 充值",
   "OpenAI-compatible gateway, one Key for GPT, Claude, Gemini, DeepSeek, Qwen": "兼容 OpenAI 的模型中转，一个 Key 调用 GPT、Claude、Gemini、DeepSeek、Qwen",
+  "GPU cloud with an OpenAI-compatible API, open models are free with your GitHub account": "GPU 云，提供兼容 OpenAI 的 API，用 GitHub 账号即可免费使用开源模型",
   "Get API Key": "获取 API Key",
 
     "common_head": "通用设置",

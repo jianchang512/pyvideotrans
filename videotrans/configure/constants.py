@@ -59,6 +59,7 @@ OPENROUTER_MODELS = "~deepseek/deepseek-flash-latest,~deepseek/deepseek-pro-late
 LITELLM_MODELS = "gpt-4o-mini,gpt-4o,claude-sonnet-4-6,claude-haiku-4-5,deepseek-chat"
 APIROUTE_MODELS = "gpt-5.4-mini,gpt-5.4,claude-sonnet-4-6,deepseek-chat,glm-5"
 OPPER_MODELS = "gpt-5.4-mini,claude-sonnet-4-6,gemini-3.8-flash,deepseek-v4-pro,kimi-k3,mistral-large-2512"
+RUNCRATE_MODELS = "deepseek-ai/DeepSeek-V4.1-Flash,zai-org/GLM-5.3-Flash,zai-org/GLM-5.3,Qwen/Qwen3.8-Flash,openai/gpt-oss-120b,moonshotai/Kimi-K2.6"
 ATLASCLOUD_MODELS = "deepseek-ai/deepseek-v4-flash,zai-org/glm-5.3-flash,moonshotai/kimi-k2.6,qwen/qwen3.5-flash,minimaxai/minimax-m2.5"
 CheaperInference_MODELS = "gpt-5.4-mini,gpt-5.4,claude-sonnet-5,gemini-3.1-pro,deepseek-v4-flash"
 SILICONFLOW_MODELS = "tencent/Hy4-preview,zai-org/GLM-5.3,deepseek-ai/DeepSeek-V4-Flash,meituan-longcat/LongCat-2.0,zai-org/GLM-5.2,deepseek-ai/DeepSeek-V4-Pro,Qwen/Qwen3.8-27B"

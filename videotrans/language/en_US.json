@@ -1019,6 +1019,7 @@
   "Audexum: the API key is invalid. Get a key at {}": "Audexum: the API key is invalid. Get a key at {}",
   "Audexum: not enough credits for this audio. Top up at {}": "Audexum: not enough credits for this audio. Top up at {}",
   "OpenAI-compatible gateway, one Key for GPT, Claude, Gemini, DeepSeek, Qwen": "OpenAI-compatible gateway, one Key for GPT, Claude, Gemini, DeepSeek, Qwen",
+  "GPU cloud with an OpenAI-compatible API, open models are free with your GitHub account": "GPU cloud with an OpenAI-compatible API, open models are free with your GitHub account",
   "Get API Key": "Get API Key",
 
 

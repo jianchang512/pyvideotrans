@@ -32,6 +32,7 @@ MENU_CFG_TRANS = [
     ("infistar", 'Infistar', None),
     ("atlascloud", 'Atlas Cloud', None),
     ("opper", 'Opper', None),
+    ("runcrate", 'Runcrate', None),
 
     ("deepl", "DeepL API", None),
     ("deeplx", "DeepLX API", None),
