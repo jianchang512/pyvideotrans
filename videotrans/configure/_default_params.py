@@ -12,7 +12,7 @@ from videotrans.configure.constants import (
     MINIMAX_MODELS,
     XIAOMI_MODELS, AI302_MODELS, BAILIAN_MODELS, CHATGPT_MODELS, AZURE_MODELS, LOCALLLM_MODELS,
     ZHIPUAI_MODELS, DEEPSEEK_MODELS, OPENROUTER_MODELS, LITELLM_MODELS, APIROUTE_MODELS, CheaperInference_MODELS,
-    SILICONFLOW_MODELS, ZIJIEHUOSHAN_MODELS, GEMINI_MODELS, OPENAI_TTS_MODELS, INFISTAR_MODELS, ATLASCLOUD_MODELS, OPPER_MODELS
+    SILICONFLOW_MODELS, ZIJIEHUOSHAN_MODELS, GEMINI_MODELS, OPENAI_TTS_MODELS, INFISTAR_MODELS, ATLASCLOUD_MODELS, OPPER_MODELS, RUNCRATE_MODELS
 
 )
 
@@ -146,6 +146,12 @@ _default = {
         "opper_key": "",
         "opper_model": OPPER_MODELS.split(',')[0],
         "opper_max_token": 16384,
+    },
+    "runcrate": {
+        # runcrate.ai
+        "runcrate_key": "",
+        "runcrate_model": RUNCRATE_MODELS.split(',')[0],
+        "runcrate_max_token": 16384,
     },
     "siliconflow": {
         # 硅基流动

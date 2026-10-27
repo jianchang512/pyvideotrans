@@ -143,6 +143,11 @@ class TestTranslatorIndexConstants:
         assert OPPER_INDEX == 30
         assert OPPER_INDEX in AI_TRANS_CHANNELS
 
+    def test_runcrate_index(self):
+        from videotrans.translator import RUNCRATE_INDEX, AI_TRANS_CHANNELS
+        assert RUNCRATE_INDEX == 31
+        assert RUNCRATE_INDEX in AI_TRANS_CHANNELS
+
     def test_infistar_index(self):
         from videotrans.translator import INFISTAR_INDEX, AI_TRANS_CHANNELS
         assert INFISTAR_INDEX == 28
