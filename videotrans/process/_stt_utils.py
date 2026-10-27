@@ -153,7 +153,7 @@ def _resegment(texts, language='en', max_speech_ms=6000, min_speech_ms=3000, log
     _write_log(logs_file, json.dumps({"type": "logs", "text": f'Resegment:start'}))
     # 最长可能句子: max_speech_ms  + min_speech_ms
     # 最短句子: min_speech_ms
-    _rc = min_speech_ms  # 超过 max_speech_ms + _rc ，强制分割
+    _rc = min(int(max_speech_ms*0.3),2000)  # 超过 max_speech_ms + _rc ，强制分割
     _min_words = 1  # 大于该数量的词，才考虑分割
 
     # 东方中日韩等语言通常无需空格，其他字母系语言需空格
@@ -260,7 +260,7 @@ def _resegment(texts, language='en', max_speech_ms=6000, min_speech_ms=3000, log
                 elif current_duration >= _mid_duration and has_punc(prev_word_text, _comma_punc):
                     should_split = True
                 # 当前时长已大于最大的 0.9
-                elif current_duration>=max(min_speech_ms,max_speech_ms//2):
+                elif current_duration>max_speech_ms*0.9:
                     should_split=True
 
             # 仍未找到断句，再次弱化判断，可能 pause_ms 是0，但存在标点，也切

@@ -34,27 +34,27 @@ GEMINI_SPEECH = 17
 Faster_Whisper_XXL = 18
 WHISPERX_API = 19
 PARAKEET = 20
+AUDIOCPP_API= 21
 
 # 在线API
-AI_302 = 21
-ElevenLabs = 22
-GOOGLE_SPEECH = 23
-Deepgram = 24
-CAMB_ASR = 25
-STT_API = 26
-
+AI_302 = 22
+ElevenLabs = 23
+GOOGLE_SPEECH = 24
+Deepgram = 25
+CAMB_ASR = 26
+STT_API = 27
 # .net
-WHISPER_NET = 27
+WHISPER_NET = 28
 
 # 自定义API
-CUSTOM_API = 28
+CUSTOM_API = 29
 
 # 在线API
-SILICONFLOW_API = 29
-OPENROUTER_API = 30
-MINIMAX_API = 31
-FISHAUDIO_API = 32
-AUDEXUM_API = 33
+SILICONFLOW_API = 30
+OPENROUTER_API = 31
+MINIMAX_API = 32
+FISHAUDIO_API = 33
+AUDEXUM_API = 34
 
 # 允许切换不同模型的渠道
 ALLOW_CHANGE_MODEL = [
@@ -62,7 +62,7 @@ ALLOW_CHANGE_MODEL = [
     OPENAI_WHISPER, FUNASR_CN, Deepgram,
     WHISPERX_API, HUGGINGFACE_ASR, QWENASR,
     WHISPER_NET, QWEN3ASR, SILICONFLOW_API, OPENROUTER_API, MINIMAX_API, GEMINI_SPEECH, ElevenLabs, CAMB_ASR,
-    OPENAI_API, STT_API, XIAOMIASR]
+    OPENAI_API, STT_API, XIAOMIASR,AUDIOCPP_API]
 
 # 允许所有语言，无需语言支持检测
 ALLOW_ALL_LANGUAGES = [FASTER_WHISPER, OPENAI_WHISPER, WHISPERX_API, Faster_Whisper_XXL, Whisper_CPP, OPENAI_API,
@@ -131,6 +131,7 @@ ID_NAME_DICT = {
                               key_name="parakeet_api",
                               win="parakeet",
                               imp="._parakeet"),
+    AUDIOCPP_API: ChannelProvider(f"Audio.cpp({tr('Local')})", imp="._audiocpp"),
 
     AI_302: ChannelProvider("302.ai",
                             key_name="ai302_key",

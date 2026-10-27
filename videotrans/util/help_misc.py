@@ -606,11 +606,6 @@ def is_dir_not_empty(dir_path: str) -> bool:
 # 调用 audio.cpp
 def exec_audiocpp(cmd):
     logger.debug(f'audio.cpp start: {cmd=}')
-    # win下可能存在因权限问题抽取配置文件失败，预先复制
-    psrt=Path(f'{ROOT_DIR}/models/audiocpp-gguf')
-    pdst=Path(tempfile.gettempdir()) / "audiocpp-gguf"
-    if not pdst.exists() and psrt.exists():
-        shutil.copytree(psrt,pdst,dirs_exist_ok=True)
     proc = subprocess.Popen(
         cmd,
         encoding="utf-8",

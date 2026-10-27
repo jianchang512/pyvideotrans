@@ -47,6 +47,8 @@ def get_model_by_type(recogn_type: int) -> List[str]:
         return constants.XIAOMO_ASR_MODELS.split(',')
     if recogn_type==ZHIPUAI_API:
         return constants.ZHIPUAI_ASR_MODELS.split(',')
+    if recogn_type == AUDIOCPP_API:
+        return list(constants.AUDIOCPP_ASR_MODELS.keys())
 
     return constants.WHISPER_MODELS.split(',')
 
@@ -57,6 +59,11 @@ def get_model_by_type(recogn_type: int) -> List[str]:
 # model_name=模型名字
 def is_allow_lang(langcode: str = None, recogn_type: int = None, model_name=None):
     if recogn_type in ALLOW_ALL_LANGUAGES :
+        return True
+    if recogn_type == AUDIOCPP_API:
+        _lang=constants.AUDIOCPP_ASR_MODELS.get(model_name,{}).get('languages')
+        if _lang and langcode!='auto' and langcode.split('-')[0] not in _lang:
+            return f"{model_name} {tr('may not support')} {tr(langcode)}"
         return True
 
     # huggingface_asr 渠道里的 openai 和 Systran 模型也支持所有语言

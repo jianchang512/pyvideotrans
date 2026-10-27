@@ -18,16 +18,16 @@ def get_speech_timestamp_silero(input_wav,
                                 **kw):
     vad_p = {
         "threshold": threshold,
-        "min_speech_duration_ms": 100,# 超过该值直接丢弃，不可过大，否则会吞字
+        "min_speech_duration_ms": 50,# 超过该值直接丢弃，不可过大，否则会吞字
         "max_speech_duration_s": float(max_speech_duration_ms / 1000.0),
         "min_silence_duration_ms": int(max(min_silent_duration_ms, 140)),#静音分割区间
         "speech_pad_ms": speech_pad_ms  # 仅 faster-whisper时在此处进行边缘补白，因无需cut_audio
     }
     logger.debug(f'[silero-VAD]:最终断句参数：{vad_p=}')
-    _rc=max(int(max_speech_duration_ms*0.2),1500)
+    _rc=min(int(max_speech_duration_ms*0.3),2000)
 
     sampling_rate = 16000
-    min_isolated_duration_ms=140  # 前后孤立，并且片段时长小于此，则丢弃
+    min_isolated_duration_ms=100  # 前后孤立，并且片段时长小于此，则丢弃
 
     from faster_whisper.audio import decode_audio
     from faster_whisper.vad import (
@@ -132,7 +132,7 @@ def get_speech_timestamp(
         return None
 
     logger.debug(f'[ten-vad]最终参数:{threshold=},{max_speech_duration_ms=},{min_speech_duration_ms},{min_silent_duration_ms=},{speech_pad_ms=},{max_merge_gap_ms=},{min_isolated_duration_ms=}')
-    _rc=max(int(max_speech_duration_ms*0.2),1500)
+    _rc=min(int(max_speech_duration_ms*0.3),2000)
     if data.ndim > 1:
         data = np.mean(data, axis=1)
 

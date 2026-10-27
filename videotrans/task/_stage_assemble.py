@@ -46,14 +46,22 @@ class AssembleMixin:
                              f"{self.cfg.target_dir}/{self.cfg.target_language_code}-{self.cfg.noextname}.wav")
             except shutil.SameFileError:
                 pass
+            return self.set_end(True)
 
-        try:
-            if self.cfg.only_out_mp4:
-                shutil.move(self.cfg.targetdir_mp4, Path(self.cfg.target_dir).parent / Path(self.cfg.targetdir_mp4).name)
+        if not Path(self.cfg.targetdir_mp4).exists():
+            return self.set_end(False)
+        
+        if self.cfg.only_out_mp4:
+            dst=Path(self.cfg.target_dir).parent / Path(self.cfg.targetdir_mp4).name
+            try:
+                shutil.move(self.cfg.targetdir_mp4, dst)
+            except OSError as e:
+                shutil.copy2(self.cfg.targetdir_mp4, dst)
+                logger.exception(f'仅输出mp4时清理临时文件移动视频位置出错，跳过 {e}', exc_info=True)
+            
+            if dst.exists():
                 shutil.rmtree(self.cfg.target_dir, ignore_errors=True)
-        except OSError as e:
-            logger.exception(f'仅输出mp4时清理临时文件移动视频位置出错，跳过 {e}', exc_info=True)
-
+        
         self.set_end(True)
 
 
@@ -66,7 +74,7 @@ class AssembleMixin:
             raise VideoTransError(f'{self.cfg.novoice_mp4} 不存在')
 
         if self.should_dubbing and not vail_file(self.cfg.target_wav):
-            raise VideoTransError(f"{tr('Dubbing')}{tr('anerror')}:{self.cfg.target_wav}")
+            raise VideoTransError(f"{tr('The audio file does not exist')}:{self.cfg.target_wav}")
 
         self.precent = min(max(90, self.precent), 98)
         target_m4a = self.cfg.cache_folder + "/will_embed.m4a"
@@ -256,20 +264,16 @@ class AssembleMixin:
             raise VideoTransError(tr('Error in embedding the final step of the subtitle dubbing')+str(e)) from e
 
         if Path(tmp_target_mp4).exists():
+            self.cfg.targetdir_mp4=self.cfg.targetdir_mp4[:-4]+_video_output_ext
             try:
-                self.cfg.targetdir_mp4=self.cfg.targetdir_mp4[:-4]+_video_output_ext
                 shutil.move(tmp_target_mp4, self.cfg.targetdir_mp4)
             except Exception as e:
                 logger.exception(e,exc_info=True)
                 try:
-                    shutil.move(tmp_target_mp4, f'{self.cfg.target_dir}/0{_video_output_ext}')
+                    shutil.copy2(tmp_target_mp4, self.cfg.targetdir_mp4)
                 except Exception as e:
                     logger.exception(e,exc_info=True)
-                    try:
-                        shutil.copy2(tmp_target_mp4,self.cfg.targetdir_mp4)
-                    except Exception as e:
-                        logger.exception(e,exc_info=True)
-                        raise VideoTransError(tr('Translation successful but transfer failed.', tmp_target_mp4)) from e
+                    raise VideoTransError(tr('Translation successful but transfer failed.', tmp_target_mp4)) from e
 
         while output_source_output is not True:
             if app_cfg.exit_soft:return

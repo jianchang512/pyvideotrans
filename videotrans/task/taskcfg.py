@@ -298,9 +298,11 @@ class TaskCfgVTT(TaskCfgSTT, TaskCfgTTS, TaskCfgSTS):
                 _msg.append('未选 配音角色，不进行配音')
             else:
                 _msg.append(
-                    f"{tr('Dubbing channel')}:{get_tts_type(self.tts_type)}, 角色:{self.voice_role}, 配音语言:{self.target_language}, {isTrue[self.recogn2pass]} 二次语音识别")
-                if self.recogn2pass and self.subtitle_type > 2:
-                    _msg.append('\t[已选中 二次语音识别，但不会生效，因已选择 嵌入双字幕，需保证原始和目标字幕时间轴一致，而二次语音识别会重新生成时间轴不同的目标字幕]')
+                    f"{tr('Dubbing channel')}:{get_tts_type(self.tts_type)}, 角色:{self.voice_role}, 配音语言:{self.target_language}")
+                if self.recogn2pass:
+                    _msg.append(f"{isTrue[self.recogn2pass]} 二次语音识别")
+                    if self.subtitle_type > 2:
+                        _msg.append('\t已选二次语音识别但不会生效，因已选择 嵌入双字幕，需保证原始和目标字幕时间轴一致，而二次语音识别会重新生成时间轴不同的目标字幕]')
                 _msg.append(
                     f'音量:{self.volume}, 语速:{self.voice_rate}, {isTrue[self.voice_autorate]} 音频加速, {isTrue[self.video_autorate]} 视频慢速')
 

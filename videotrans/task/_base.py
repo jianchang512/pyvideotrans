@@ -136,11 +136,11 @@ class BaseTask(BaseCon):
     # 手动调用设为结束，成功完成或出错时
     def set_end(self, succeed=False):
         self.hasend = True
+        self.precent = 100
+        self.signal(text=f"{self.cfg.name}", type='succeed')
         if succeed:
-            self.precent = 100
             if self.uuid in app_cfg.stoped_uuid_set:
                 return
-            self.signal(text=f"{self.cfg.name}", type='succeed')
             if app_cfg.exec_mode == "cli":
                 print(f'Save to:[ {self.cfg.target_dir} ]')
             else:

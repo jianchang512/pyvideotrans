@@ -47,6 +47,54 @@ MINIMAX_ASR_MODELS = "asr-1.0"
 XIAOMO_ASR_MODELS="mimo-v2.5-asr"
 ZHIPUAI_ASR_MODELS="glm-asr-2512"
 
+AUDIOCPP_ASR_MODELS={
+    "fun_asr_nano":{
+        "url":"https://huggingface.co/FunAudioLLM/Fun-ASR-Nano-2512-GGUF/resolve/main/fun-asr-nano-2512-q8_0.gguf?download=true", #下载地址
+        "file":"Fun-ASR-Nano-2512-GGUF/fun-asr-nano-2512-q8_0.gguf", # 本地模型位置
+        "languages":["zh","en","ja","yue"],
+        "allow_language_tag":True, # 有些模型不支持使用 language标签
+        "extra":["--request-option","audio_chunk_mode=none"] # 某些模型需要禁用vad
+    },
+    "qwen3_asr":{
+        "url":"https://huggingface.co/audio-cpp/audio.cpp-gguf/resolve/main/Qwen3-ASR-1.7B-GGUF/qwen3-asr-1.7b-q8_0.gguf?download=true",
+        "languages":["zh", "en", "yue", "ar", "de", "fr", "es", "pt", "id", "it", "ko", "ru", "th", "vi", "ja", "tr", "hi", "ms", "nl", "sv", "da", "fi", "pl", "cs", "fil", "fa", "el", "hu", "mk", "ro"],
+        "allow_language_tag":True,
+        "file":"Qwen3-ASR-1.7B-GGUF/qwen3-asr-1.7b-q8_0.gguf",
+        "extra":["--request-option","audio_chunk_mode=none"]
+    },
+    "sense_asr":{
+        "url":"https://huggingface.co/FunAudioLLM/SenseVoiceSmall-GGUF-audiocpp/resolve/main/sensevoice-small-q8-audiocpp-v1.gguf?download=true",
+        "file":"SenseVoice-Small-GGUF/sensevoice-small-q8-audiocpp-v1.gguf",
+        "languages":["zh", "en", "yue", "ja", "ko", "pt", "ru", "es", "it", "fr", "de", "nl", "pl", "tr", "ar", "hi", "vi", "th", "id", "ms", "fa"],
+        "allow_language_tag":True,
+        "extra":["--request-option","audio_chunk_mode=none"]
+    },
+    "vibevoice_asr":{
+      "url":"https://huggingface.co/audio-cpp/audio.cpp-gguf/resolve/main/VibeVoice-ASR-GGUF/vibevoice-asr-q8_0.gguf?download=true",
+        "file":"VibeVoice-ASR-GGUF/vibevoice-asr-q8_0.gguf",
+        "allow_language_tag":True,
+        "extra":["--request-option","audio_chunk_mode=none"]
+    },
+    "moss_transcribe_diarize":{
+        "url":"https://huggingface.co/audio-cpp/audio.cpp-gguf/resolve/main/MOSS-Transcribe-Diarize-GGUF/moss-transcribe-diarize-q8_0.gguf?download=true",
+        "allow_language_tag":False,
+        "file":"MOSS-Transcribe-Diarize-GGUF/moss-transcribe-diarize-q8_0.gguf"
+    },
+    "parakeet_tdt":{
+        "url":"https://huggingface.co/audio-cpp/audio.cpp-gguf/resolve/main/Parakeet-TDT-0.6B-v3-GGUF/parakeet-tdt-0.6b-v3-q8_0.gguf?download=true",
+        "languages":["bg", "hr", "cs", "da", "nl", "en", "et", "fi", "fr", "de", "el", "hu", "it", "lv", "lt", "mt", "pl", "pt", "ro", "sk", "sl", "es", "sv", "ru", "uk"],
+        "allow_language_tag":False,
+        "file":"Parakeet-TDT-0.6B-v3-GGUF/parakeet-tdt-0.6b-v3-q8_0.gguf",
+        "extra":["--request-option","audio_chunk_mode=none"]
+    },
+    "nemotron_asr":{
+        "url":"https://huggingface.co/audio-cpp/audio.cpp-gguf/resolve/main/Nemotron-3.5-ASR-Streaming-0.6B-GGUF/nemotron-3.5-asr-streaming-0.6b-q8_0.gguf?download=true",
+        "allow_language_tag":True,
+        "file":"Nemotron-3.5-ASR-Streaming-0.6B-GGUF/nemotron-3.5-asr-streaming-0.6b-q8_0.gguf"
+    }
+}
+
+
 #---------文本模型 字幕翻译模型 =====================================
 GEMINI_MODELS = "gemini-3.8-flash,gemini-3.7-flash,gemini-3.6-flash,gemini-3.5-flash,gemini-pro-latest,gemini-flash-latest,gemini-2.5-pro,gemini-2.5-flash"
 BAILIAN_MODELS = "qwen-mt-turbo,qwen-mt-plus,qwen-mt-flash,qwen-mt-lite,qwen3.8-flash,qwen3.8-max,qwen3.7-plus,qwen3.7-flash,qwen3.7-max,qwen3.6-flash,qwen3.5-flash"
