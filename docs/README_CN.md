@@ -172,6 +172,10 @@ uv add nvidia-cublas-cu12 nvidia-cudnn-cu12
 
 | 类别 | 渠道/模型 | 说明 |
 | :--- | :--- | :--- |
+| **翻译 (LLM/MT)** | CloudGPU | GPU 云，兼容 OpenAI 的模型 API（DeepSeek、Kimi、GLM、MiniMax）（不对中国大陆提供服务） |
+
+| 类别 | 渠道/模型 | 说明 |
+| :--- | :--- | :--- |
 | **语音识别 (ASR)** | **Faster-Whisper** (本地) | 推荐，速度快，精度高 |
 | | WhisperX / Parakeet | 支持时间轴对齐与说话人分离 |
 | | 阿里 Qwen3-ASR / 字节火山 | 在线 API，中文效果极佳 |

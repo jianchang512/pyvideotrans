@@ -285,3 +285,6 @@ SUCCEED_STATUS = "succeed"
 STOP_STATUS = "stop"
 ING_STATUS = "ing"
 
+# CloudGPU (cloudgpu.app) chat models. Ids taken from GET /v1/models.
+CLOUDGPU_MODELS = "deepseek-v4.1-flash,deepseek-v4-pro,kimi-k3,kimi-k2.6,glm-5.3-flash,glm-5.2,minimax-m3"
+

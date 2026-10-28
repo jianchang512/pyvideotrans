@@ -98,6 +98,7 @@ class AppSettings:
 
     @staticmethod
     def _models_dict():
+        from videotrans.configure.constants import CLOUDGPU_MODELS
 
         # 存储用于在设置界面手动填写的、用于供选择当前使用的n个模型，一般用于文本生成模型
         return {
@@ -120,6 +121,7 @@ class AppSettings:
             "openrouter_model": OPENROUTER_MODELS,
             "opper_model": OPPER_MODELS,
             "runcrate_model": RUNCRATE_MODELS,
+            "cloudgpu_model": CLOUDGPU_MODELS,
             "siliconflow_model": SILICONFLOW_MODELS,
             "xiaomi_model": XIAOMI_MODELS,
             "zhipuai_model": ZHIPUAI_MODELS,

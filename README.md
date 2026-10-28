@@ -173,6 +173,10 @@ uv add nvidia-cublas-cu12 nvidia-cudnn-cu12
 
 | Category | Channel/Model | Description |
 | :--- | :--- | :--- |
+| **Translation (LLM/MT)** | CloudGPU | a GPU cloud with an OpenAI-compatible model API (DeepSeek, Kimi, GLM, MiniMax) |
+
+| Category | Channel/Model | Description |
+| :--- | :--- | :--- |
 | **ASR (Speech Recognition)** | **Faster-Whisper** (Local) | Recommended, fast speed, high accuracy |
 | | WhisperX / Parakeet | Supports timestamp alignment & speaker diarization |
 | | Alibaba Qwen3-ASR / ByteDance Volcano | Online API, excellent for Chinese |

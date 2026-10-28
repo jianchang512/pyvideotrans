@@ -1028,6 +1028,7 @@
     "whisper_head": "Speech Recognition (ASR)",
     "justify_head": "A/V & Subtitle Sync",
     "trans_head": "Subtitle Translation",
+    "a GPU cloud with an OpenAI-compatible model API (DeepSeek, Kimi, GLM, MiniMax)": "a GPU cloud with an OpenAI-compatible model API (DeepSeek, Kimi, GLM, MiniMax)",
     "dubbing_head": "Dubbing",
     "prompt_init_head": "Whisper Initial Prompt",
     "process_max_title": "Max Concurrent CPU Tasks [Restart Required]",

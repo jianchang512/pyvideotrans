@@ -1025,6 +1025,7 @@
     "whisper_head": "语音识别参数",
     "justify_head": "字幕声音画面对齐",
     "trans_head": "字幕翻译调整",
+    "a GPU cloud with an OpenAI-compatible model API (DeepSeek, Kimi, GLM, MiniMax)": "GPU 云，提供兼容 OpenAI 的模型 API（DeepSeek、Kimi、GLM、MiniMax）。CloudGPU 不对中国大陆提供服务。",
     "dubbing_head": "字幕配音调整",
     "prompt_init_head": "Whisper模型提示词",
     "process_max_title": "CPU同时任务数[重启生效]",
