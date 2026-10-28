@@ -172,10 +172,6 @@ uv add nvidia-cublas-cu12 nvidia-cudnn-cu12
 
 | 类别 | 渠道/模型 | 说明 |
 | :--- | :--- | :--- |
-| **翻译 (LLM/MT)** | CloudGPU | GPU 云，兼容 OpenAI 的模型 API（DeepSeek、Kimi、GLM、MiniMax）（不对中国大陆提供服务） |
-
-| 类别 | 渠道/模型 | 说明 |
-| :--- | :--- | :--- |
 | **语音识别 (ASR)** | **Faster-Whisper** (本地) | 推荐，速度快，精度高 |
 | | WhisperX / Parakeet | 支持时间轴对齐与说话人分离 |
 | | 阿里 Qwen3-ASR / 字节火山 | 在线 API，中文效果极佳 |
@@ -184,6 +180,7 @@ uv add nvidia-cublas-cu12 nvidia-cudnn-cu12
 | | Atlas Cloud | OpenAI 兼容网关，一个 Key 调用 DeepSeek、GLM、Kimi、Qwen、MiniMax 及代理的闭源模型 |
 | | Opper | 欧盟托管的 OpenAI 兼容网关，一个 Key 调用 50+ 家供应商的 700+ 个模型 |
 | | Runcrate | GPU 云，兼容 OpenAI 的 API：DeepSeek、GLM、Qwen、Kimi、gpt-oss，用 GitHub 账号即可免费使用开源模型 |
+| | CloudGPU | GPU 云，兼容 OpenAI 的模型 API（DeepSeek、Kimi、GLM、MiniMax） |
 | | MiniMax AI | MiniMax M3 大模型，最新旗舰模型，OpenAI兼容接口 |
 | | Google / Microsoft | 传统机器翻译，速度快 |
 | | Ollama / M2M100 | 完全本地离线翻译 |
