@@ -1190,6 +1190,7 @@
 	"toggle audiocpp model":"可在 菜单-TTS设置-Audio.cpp 中切换不同配音模型",
 	"use admin run":"使用该配音渠道时，建议以管理员权限运行本软件，否则可能报错权限不足",
   "fishaudio update role tips": "仅仅更新我的声音库里自己创建的，软件默认自带fish.audio上每个语言按评分排名的前100个声音，若需其他声音，请点击帮助按钮",
+  "Continue dubbing with this TTS channel anyway?": "仍要使用该配音渠道继续配音吗？",
   "Update my voice": "更新[我的声音]"
 
 }
