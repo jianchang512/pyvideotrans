@@ -428,8 +428,7 @@ class SpeedRate:
 
             # 设置配音文件时长
             if not current.get('filename') or not Path(current['filename']).exists():
-                dummy_wav = Path(self.cache_folder, f'silent_place_{i}.wav').as_posix()
-                AudioSegment.silent(duration=source_duration).export(dummy_wav, format="wav")
+                dummy_wav = self._create_silen_file(f'place_{i}', source_duration)
                 current['filename'] = dummy_wav
                 current['dubb_time'] = source_duration
                 logger.debug(f"[Prepare] 字幕[{current['line']}] 无配音，生成 {source_duration}ms 静音占位")
@@ -833,8 +832,7 @@ class TtsSpeedRate(SpeedRate):
             # 检查配音文件
             if not current.get('filename') or not Path(current['filename']).exists():
                 # 生成占位静音
-                dummy_wav = Path(self.cache_folder, f'silent_place_{i}.wav').as_posix()
-                AudioSegment.silent(duration=current['source_duration']).export(dummy_wav, format="wav")
+                dummy_wav = self._create_silen_file(f'place_{i}', current['source_duration'])
                 current['filename'] = dummy_wav
                 current['dubb_time'] = current['source_duration']
                 logger.debug(f"[Prepare] 字幕[{current['line']}] 无配音，生成 {current['source_duration']}ms 静音占位")

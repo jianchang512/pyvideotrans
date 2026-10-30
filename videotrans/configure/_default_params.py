@@ -312,6 +312,15 @@ _default = {
     },
 }
 
+from videotrans.configure.constants import CLOUDGPU_MODELS
+
+_default["cloudgpu"] = {
+    # cloudgpu.app
+    "cloudgpu_key": "",
+    "cloudgpu_model": CLOUDGPU_MODELS.split(',')[0],
+    "cloudgpu_max_token": 16384,
+}
+
 
 # todo: 根据 name 返回配置dict???
 # 返回默认值
