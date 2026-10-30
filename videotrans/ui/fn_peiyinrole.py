@@ -109,8 +109,9 @@ class Ui_fn_peiyinrole(QtWidgets.QWidget):
             no_speak_line=0
             spk_list=[]
             for row_idx, sub in enumerate(subs):
+                # 无说话人的行达到 1/3 时，停止提取说话人，每行都按无说话人处理
                 if no_speak_line>=edge_line:
-                    spk_list=[]
+                    spk_list=[None]*len(subs)
                     break
                 match = re.match(patter_str, sub['text'].strip(), flags=re.I)
                 if not match:
