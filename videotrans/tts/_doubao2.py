@@ -115,6 +115,7 @@ class Doubao2TTS(BaseTTS):
                 return str(data)
 
         if audio_data:
-            self._save_pcm_to_wav(audio_data, data_item['filename'])
+            self._save_pcm_to_wav(audio_data, data_item['filename'] + '.wav')
+            self.convert_to_wav(data_item['filename'] + '.wav', data_item['filename'])
         else:
             return "No audio data"
