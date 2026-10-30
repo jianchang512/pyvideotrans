@@ -36,6 +36,12 @@ class Doubao2TTS(BaseTTS):
             output_filename += '.wav'
 
         try:
+            # The API sends mono PCM. Write each sample to every channel: a stereo
+            # header on mono data halves the duration and doubles the pitch (#1002)
+            if channels > 1:
+                import numpy as np
+                samples = np.frombuffer(audio_data, dtype=f'<i{sample_width}', count=len(audio_data) // sample_width)
+                audio_data = np.repeat(samples, channels).tobytes()
             with wave.open(output_filename, 'wb') as wf:
                 wf.setnchannels(channels)  # 设置声道数
                 wf.setsampwidth(sample_width)  # 设置采样宽度 (2 bytes = 16 bits)
