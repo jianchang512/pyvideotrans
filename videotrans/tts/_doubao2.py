@@ -30,7 +30,7 @@ class Doubao2TTS(BaseTTS):
 
     @staticmethod
     def _save_pcm_to_wav(audio_data, output_filename: str,
-                         channels: int = 1, sample_rate: int = 48000, sample_width: int = 2):
+                         channels: int = 2, sample_rate: int = 48000, sample_width: int = 2):
         import wave
         if not output_filename.lower().endswith('.wav'):
             output_filename += '.wav'
