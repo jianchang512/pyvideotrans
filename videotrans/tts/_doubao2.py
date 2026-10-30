@@ -29,24 +29,16 @@ class Doubao2TTS(BaseTTS):
 
 
     @staticmethod
-    def _save_pcm_to_wav(audio_data, output_filename: str,
-                         channels: int = 2, sample_rate: int = 48000, sample_width: int = 2):
+    def _save_pcm_to_wav(audio_data, output_filename: str,sample_rate: int = 48000, sample_width: int = 2):
         import wave
         if not output_filename.lower().endswith('.wav'):
             output_filename += '.wav'
 
         try:
-            # The API sends mono PCM. Write each sample to every channel: a stereo
-            # header on mono data halves the duration and doubles the pitch (#1002)
-            if channels > 1:
-                import numpy as np
-                samples = np.frombuffer(audio_data, dtype=f'<i{sample_width}', count=len(audio_data) // sample_width)
-                audio_data = np.repeat(samples, channels).tobytes()
             with wave.open(output_filename, 'wb') as wf:
-                wf.setnchannels(channels)  # 设置声道数
+                wf.setnchannels(1)  # 设置声道数
                 wf.setsampwidth(sample_width)  # 设置采样宽度 (2 bytes = 16 bits)
                 wf.setframerate(sample_rate)  # 设置采样率
-
                 wf.writeframes(audio_data)
 
         except Exception as e:
