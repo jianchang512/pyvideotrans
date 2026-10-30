@@ -1020,6 +1020,7 @@
   "Audexum: not enough credits for this audio. Top up at {}": "Audexum: not enough credits for this audio. Top up at {}",
   "OpenAI-compatible gateway, one Key for GPT, Claude, Gemini, DeepSeek, Qwen": "OpenAI-compatible gateway, one Key for GPT, Claude, Gemini, DeepSeek, Qwen",
   "GPU cloud with an OpenAI-compatible API, open models are free with your GitHub account": "GPU cloud with an OpenAI-compatible API, open models are free with your GitHub account",
+  "a GPU cloud with an OpenAI-compatible model API (DeepSeek, Kimi, GLM, MiniMax)": "a GPU cloud with an OpenAI-compatible model API (DeepSeek, Kimi, GLM, MiniMax)",
   "Get API Key": "Get API Key",
 
 
@@ -1193,6 +1194,7 @@
   "toggle audiocpp model":"You can switch between different models in the Menu - TTS Settings - Audio.cpp",
   "use admin run":"When using this voice-over channel, it is recommended to run this software with administrator privileges; otherwise, you may encounter a permission insufficient error.",
   "fishaudio update role tips": "This software only updates the audio I created in my own audio library. By default, it includes the top 100 audio tracks from fish.audio, ranked by score for each language. If you need other audio tracks, please click the help button.",
+  "Continue dubbing with this TTS channel anyway?": "Continue dubbing with this TTS channel anyway?",
   "Update my voice": "Update my voice"
 
 

@@ -44,6 +44,26 @@ class WinActionCheckMixin:
             return False
         return True
 
+    # 开始前确认配音渠道是否支持目标语言，不支持时询问是否继续，避免识别翻译完成后才在配音阶段失败
+    def check_tts_lang(self):
+        if self.main.voice_role.currentText() in ['No', '', ' ']:
+            return True
+        langcode = translator.get_code(show_text=self.main.target_language.currentText())
+        if not langcode or langcode in ['-', 'No']:
+            return True
+        rs = tts.is_allow_lang(langcode=langcode, tts_type=self.main.tts_type.currentIndex())
+        if rs is True:
+            return True
+        from PySide6.QtWidgets import QMessageBox
+        reply = QMessageBox.question(
+            self.main,
+            tr('may not support'),
+            f"{rs}\n\n{tr('Continue dubbing with this TTS channel anyway?')}",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No
+        )
+        return reply == QMessageBox.StandardButton.Yes
+
     def check_reccogn(self):
         langcode = translator.get_audio_code(show_source=self.main.source_language.currentText())
         recogn_type = self.main.recogn_type.currentIndex()
@@ -184,6 +204,10 @@ class WinActionCheckMixin:
 
         if self.check_tts() is not True:
             self.main.tts_type.setCurrentIndex(0)
+            self.main.startbtn.setDisabled(False)
+            return
+
+        if self.check_tts_lang() is not True:
             self.main.startbtn.setDisabled(False)
             return
 

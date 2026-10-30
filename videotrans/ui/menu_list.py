@@ -33,6 +33,7 @@ MENU_CFG_TRANS = [
     ("atlascloud", 'Atlas Cloud', None),
     ("opper", 'Opper', None),
     ("runcrate", 'Runcrate', None),
+    ("cloudgpu", 'CloudGPU', None),
 
     ("deepl", "DeepL API", None),
     ("deeplx", "DeepLX API", None),

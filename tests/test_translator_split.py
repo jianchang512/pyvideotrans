@@ -148,6 +148,11 @@ class TestTranslatorIndexConstants:
         assert RUNCRATE_INDEX == 31
         assert RUNCRATE_INDEX in AI_TRANS_CHANNELS
 
+    def test_cloudgpu_index(self):
+        from videotrans.translator import CLOUDGPU_INDEX, AI_TRANS_CHANNELS
+        assert CLOUDGPU_INDEX == 32
+        assert CLOUDGPU_INDEX in AI_TRANS_CHANNELS
+
     def test_infistar_index(self):
         from videotrans.translator import INFISTAR_INDEX, AI_TRANS_CHANNELS
         assert INFISTAR_INDEX == 28
