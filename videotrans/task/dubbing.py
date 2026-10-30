@@ -293,6 +293,7 @@ class DubbingSrt(BaseTask):
                 volume = 1 + float(volume.replace('%', '')) / 100
                 tmp_name = self.cfg.cache_folder + f'/volume-{volume}-{Path(self.cfg.target_wav).name}'
                 runffmpeg(['-y', '-i', self.cfg.target_wav, '-af', f"volume={volume}", tmp_name])
+                shutil.copy2(tmp_name, self.cfg.target_wav)
             except Exception as e:
                 logger.exception(f'配音完毕后调节音量失败 {e}', exc_info=True)
 
