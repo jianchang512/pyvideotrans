@@ -107,7 +107,7 @@ class Ui_api_route(QDialog):
 
     def update_ui(self):
         allmodels_str = settings.get('api_route_model', '')
-        allmodels = str(settings.get('api_route_model', '')).split(',')
+        allmodels = [x.strip() for x in str(settings.get('api_route_model', '')).split(',')]
         self.api_route_model.clear()
         self.api_route_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)

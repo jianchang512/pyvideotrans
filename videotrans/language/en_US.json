@@ -113,7 +113,7 @@
   "Edge-TTS(free)": "Edge-TTS (Free)",
   "Embedded Soft Subtitles": "Embed Soft Subtitles",
   "Emotion": "Emotion",
-  "Enable CUDA?": "Enable CUDA?",
+  "Enable CUDA?": "Enable CUDA",
   "Ended": "Completed",
   "Ended/Start operate": "Finished / Start",
   "Error in embedding the final step of the subtitle dubbing": "Error during final step of subtitle/TTS embedding",
@@ -1193,7 +1193,9 @@
   "toggle audiocpp model":"You can switch between different models in the Menu - TTS Settings - Audio.cpp",
   "use admin run":"When using this voice-over channel, it is recommended to run this software with administrator privileges; otherwise, you may encounter a permission insufficient error.",
   "fishaudio update role tips": "This software only updates the audio I created in my own audio library. By default, it includes the top 100 audio tracks from fish.audio, ranked by score for each language. If you need other audio tracks, please click the help button.",
-  "Update my voice": "Update my voice"
+  "Update my voice": "Update my voice",
+  "Selected": "Selected",
+  "Not-Selected": "Not-Selected"
 
 
 }

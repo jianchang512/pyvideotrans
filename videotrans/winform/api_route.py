@@ -17,7 +17,7 @@ def openwin():
         if not key:
             return show_error(tr("Please input Secret"))
         params["api_route_key"] = key
-        params["api_route_model"] = winobj.api_route_model.currentText()
+        params["api_route_model"] = winobj.api_route_model.currentText().strip()
         params["api_route_max_token"] = winobj.max_token.text().strip()
         params.save()
         winobj.test.setText(tr("Testing..."))
@@ -27,7 +27,7 @@ def openwin():
 
     def save():
         params["api_route_key"] = winobj.api_route_key.text().strip()
-        params["api_route_model"] = winobj.api_route_model.currentText()
+        params["api_route_model"] = winobj.api_route_model.currentText().strip()
         params["api_route_max_token"] = winobj.max_token.text().strip()
         params.save()
         winobj.close()

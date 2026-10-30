@@ -25,7 +25,7 @@ def openwin():
     def test():
         params["openaitts_key"] = winobj.openaitts_key.text().strip()
         params["openaitts_api"] = process_openai_api(winobj.openaitts_api.text().strip())
-        params["openaitts_model"] = winobj.openaitts_model.currentText()
+        params["openaitts_model"] = winobj.openaitts_model.currentText().strip()
         params["openaitts_instructions"] = winobj.openaitts_instructions.text()
         params.save()
         winobj.test_openaitts.setText(tr("Testing..."))
@@ -45,7 +45,7 @@ def openwin():
     def save():
         params["openaitts_key"] = winobj.openaitts_key.text().strip()
         params["openaitts_api"] = process_openai_api(winobj.openaitts_api.text().strip())
-        params["openaitts_model"] = winobj.openaitts_model.currentText()
+        params["openaitts_model"] = winobj.openaitts_model.currentText().strip()
         params["openaitts_instructions"] = winobj.openaitts_instructions.text()
         params.save()
         set_process(text='', type="refreshtts")

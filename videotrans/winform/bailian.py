@@ -20,8 +20,8 @@ def openwin():
             return show_error(tr("Please input Secret"))
         params["bailian_key"] = key
         params["bailian_spaceid"] = winobj.bailian_spaceid.text().strip()
-        params["bailian_model"] = winobj.bailian_model.currentText()
-        params["bailian_ttsmodel"] = winobj.bailian_ttsmodel.currentText()
+        params["bailian_model"] = winobj.bailian_model.currentText().strip()
+        params["bailian_ttsmodel"] = winobj.bailian_ttsmodel.currentText().strip()
         params["bailian_domains"] = winobj.bailian_domains.text()
         params["bailian_reasoning_effort"] = winobj.reasoning_effort.currentText()
         params.save()
@@ -34,8 +34,8 @@ def openwin():
     def save():
         params["bailian_key"] = winobj.bailian_key.text().strip()
         params["bailian_spaceid"] = winobj.bailian_spaceid.text().strip()
-        params["bailian_model"] = winobj.bailian_model.currentText()
-        params["bailian_ttsmodel"] = winobj.bailian_ttsmodel.currentText()
+        params["bailian_model"] = winobj.bailian_model.currentText().strip()
+        params["bailian_ttsmodel"] = winobj.bailian_ttsmodel.currentText().strip()
         params["bailian_domains"] = winobj.bailian_domains.text()
         params["bailian_reasoning_effort"] = winobj.reasoning_effort.currentText()
         params.save()

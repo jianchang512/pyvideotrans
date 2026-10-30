@@ -4,18 +4,17 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List
 
-from videotrans.configure.config import tr, HOME_DIR,logger
+from videotrans.configure.config import tr, HOME_DIR, logger, settings
 from videotrans.task._base import BaseTask
 from videotrans.task.taskcfg import TaskCfgSTS, SrtItem
-from videotrans.translator import run
-
+from videotrans.translator import run, AI_TRANS_CHANNELS, HYMT2_INDEX
 
 """
-批量翻译srt字幕面板
+批量 翻译字幕 面板
 """
 
 
-@dataclass(repr=False)
+@dataclass
 class TranslateSrt(BaseTask):
     cfg: TaskCfgSTS = field(default_factory=TaskCfgSTS, repr=False)
     # 输出格式，例如单语字幕 双语字幕等。
@@ -39,6 +38,27 @@ class TranslateSrt(BaseTask):
         if self.cfg.cache_folder:
             Path(self.cfg.cache_folder).mkdir(parents=True, exist_ok=True)
         logger.debug(f'{self}')
+
+    def __repr__(self):
+        _msg = []
+        isTrue = {True: tr("Selected"), False: tr("Not-Selected")}
+        outs=[
+            tr("Monolingual subtitles"),
+            tr("Target language up(Bilingual)"),
+            tr("Target language under(Bilingual)")
+        ]
+        from videotrans.util.tools import get_tanslate_type
+        _msg.append(tr("Text  Or Srt  Translation"))
+        _msg.append(f'{self.cfg.name=}, \n{self.cfg.target_dir=}')
+        _msg.append(f"{tr('Translate channel')}:{get_tanslate_type(self.cfg.translate_type)},{tr('Speech language')}:{self.cfg.source_language},{tr('Target lang')}:{self.cfg.target_language}")
+        if self.cfg.translate_type in AI_TRANS_CHANNELS and self.cfg.translate_type != HYMT2_INDEX:
+            _msg.append(f"{isTrue[settings['aisendsrt']]} {tr('Send SRT')}, {tr('aitrans_thread_title')}:{settings.get('aitrans_thread')}")
+        else:
+            _msg.append(f'{tr("trans_thread_title")}: {settings.get("trans_thread")}')
+        _msg.append(f'{tr("Out format")}: {outs[self.out_format]}')
+        _msg.append(f'{self.cfg=}')
+        return "\n".join(_msg)
+
 
     def trans(self):
         if self._exit(): return

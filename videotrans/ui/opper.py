@@ -113,7 +113,7 @@ class Ui_opper(QDialog):
 
     def update_ui(self):
         allmodels_str = settings.get('opper_model', '')
-        allmodels = str(settings.get('opper_model', '')).split(',')
+        allmodels = [x.strip() for x in str(settings.get('opper_model', '')).split(',')]
         self.opper_model.clear()
         self.opper_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)

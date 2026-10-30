@@ -133,7 +133,7 @@ class Ui_gemini(QDialog):
 
     def update_ui(self):
         allmodels_str = settings.get('gemini_model','')
-        allmodels = str(settings.get('gemini_model','')).split(',')
+        allmodels = [x.strip() for x in str(settings.get('gemini_model','')).split(',')]
         self.model.clear()
         self.model.addItems(allmodels)
         self.edit_allmodels.setPlainText(str(allmodels_str))

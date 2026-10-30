@@ -136,7 +136,7 @@ class Ui_siliconflow(QDialog):
 
     def update_ui(self):
         allmodels_str = settings.get('siliconflow_model','')
-        allmodels = str(settings.get('siliconflow_model','')).split(',')
+        allmodels = [x.strip() for x in str(settings.get('siliconflow_model','')).split(',')]
         self.siliconflow_model.clear()
         self.siliconflow_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)

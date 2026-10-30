@@ -86,7 +86,7 @@ class ClickableProgressBar(QLabel):
         if text:
             self.error = text.strip()
         show_msg=self.error.strip().split('\n')[0]+f'[{tr("Click to view the detailed error report")}] {self.basename} '
-        self.progress_bar.setFormat(show_msg[0:210])
+        self.progress_bar.setFormat(show_msg[0:120])
 
     # 设置按钮显示文字，如果已结束，则不设置，直接返回
     # 进度 set_precent 后将仅传进来时间，此时使用上次保留的msg消息

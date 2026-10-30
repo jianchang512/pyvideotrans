@@ -163,8 +163,8 @@ class AppSettings:
             "max_speech_duration_s": 5,
             "min_silence_duration_ms": 600,
 
-            "min_speech_duration_ms2": 300,
             "max_speech_duration_s2": 1.0,
+            "min_speech_duration_ms2": 300,
             "model_for_recogn2":"large-v3-turbo",
 
             "vad_type": "silero",

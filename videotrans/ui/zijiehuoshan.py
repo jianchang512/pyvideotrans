@@ -109,7 +109,7 @@ class Ui_zijiehuoshan(QDialog):
 
     def update_ui(self):
         allmodels_str = str(settings.get('zijiehuoshan_model',''))
-        allmodels = str(settings.get('zijiehuoshan_model','')).split(',')
+        allmodels = [x.strip() for x in str(settings.get('zijiehuoshan_model','')).split(',')]
         self.zijiehuoshan_model.clear()
         self.zijiehuoshan_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)

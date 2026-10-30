@@ -17,7 +17,7 @@ def openwin():
         if not key:
             return show_error(tr("Please input Secret"))
         params["opper_key"] = key
-        params["opper_model"] = winobj.opper_model.currentText()
+        params["opper_model"] = winobj.opper_model.currentText().strip()
         params["opper_max_token"] = winobj.max_token.text().strip()
         params.save()
         winobj.test.setText(tr("Testing..."))
@@ -27,7 +27,7 @@ def openwin():
 
     def save():
         params["opper_key"] = winobj.opper_key.text().strip()
-        params["opper_model"] = winobj.opper_model.currentText()
+        params["opper_model"] = winobj.opper_model.currentText().strip()
         params["opper_max_token"] = winobj.max_token.text().strip()
         params.save()
         winobj.close()

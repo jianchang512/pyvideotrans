@@ -24,8 +24,6 @@ class OpenAICampat(BaseTrans):
         super().__post_init__()
         self.temperature=float(settings.get('aitrans_temperature', 1.0))
         self.prompt=self._set_context()
-        logger.debug(f'{self.prompt=}')
-
         try:
             self.max_tokens=int(self.max_tokens)
         except (ValueError,TypeError) as e:

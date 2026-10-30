@@ -147,7 +147,7 @@ class Ui_bailian(QDialog):
 
     def update_ui(self):
         allmodels_str = settings.get('bailian_model','')
-        allmodels = str(settings.get('bailian_model','')).split(',')
+        allmodels = [x.strip() for x in str(settings.get('bailian_model','')).split(',')]
         self.bailian_model.clear()
         self.bailian_model.addItems([ it  for it in allmodels if "-asr" not in it])
         self.edit_allmodels.setPlainText(allmodels_str)

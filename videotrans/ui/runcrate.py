@@ -113,7 +113,7 @@ class Ui_runcrate(QDialog):
 
     def update_ui(self):
         allmodels_str = settings.get('runcrate_model', '')
-        allmodels = str(settings.get('runcrate_model', '')).split(',')
+        allmodels = [x.strip() for x in str(settings.get('runcrate_model', '')).split(',')]
         self.runcrate_model.clear()
         self.runcrate_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)

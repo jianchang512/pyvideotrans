@@ -20,7 +20,7 @@ def openwin():
         if not key:
             return show_error(tr("Please input Secret"))
         params["deepseek_key"] = key
-        params["deepseek_model"] = winobj.deepseek_model.currentText()
+        params["deepseek_model"] = winobj.deepseek_model.currentText().strip()
         params["deepseek_max_token"] = winobj.deepseek_max_token.text()
         params["deepseek_reasoning_effort"] = winobj.reasoning_effort.currentText()
         params.save()
@@ -32,7 +32,7 @@ def openwin():
 
     def save():
         params["deepseek_key"] = winobj.deepseek_key.text().strip()
-        params["deepseek_model"] = winobj.deepseek_model.currentText()
+        params["deepseek_model"] = winobj.deepseek_model.currentText().strip()
         params["deepseek_max_token"] = winobj.deepseek_max_token.text()
         params["deepseek_reasoning_effort"] = winobj.reasoning_effort.currentText()
         params.save()

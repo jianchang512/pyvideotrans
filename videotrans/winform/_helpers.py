@@ -40,7 +40,7 @@ def make_setallmodels(form, model_widget_name, settings_key):
         model_widget = getattr(form, model_widget_name)
         current_text = model_widget.currentText()
         model_widget.clear()
-        model_widget.addItems([x for x in t.split(',') if x.strip()])
+        model_widget.addItems([x.strip() for x in t.split(',') if x.strip()])
         if current_text:
             model_widget.setCurrentText(current_text)
         settings[settings_key] = t

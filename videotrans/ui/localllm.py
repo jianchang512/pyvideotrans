@@ -130,7 +130,7 @@ class Ui_localllm(QDialog):
 
     def update_ui(self):
         allmodels_str = settings.get('localllm_model','')
-        allmodels = str(settings.get('localllm_model','')).split(',')
+        allmodels = [x.strip() for x in str(settings.get('localllm_model','')).split(',')]
         self.localllm_model.clear()
         self.localllm_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(str(allmodels_str))

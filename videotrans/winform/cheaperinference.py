@@ -17,7 +17,7 @@ def openwin():
         if not key:
             return show_error(tr("Please input Secret"))
         params["cheaperinference_key"] = key
-        params["cheaperinference_model"] = winobj.cheaperinference_model.currentText()
+        params["cheaperinference_model"] = winobj.cheaperinference_model.currentText().strip()
         params["cheaperinference_max_token"] = winobj.max_token.text().strip()
         params.save()
         winobj.test.setText(tr("Testing..."))
@@ -27,7 +27,7 @@ def openwin():
 
     def save():
         params["cheaperinference_key"] = winobj.cheaperinference_key.text().strip()
-        params["cheaperinference_model"] = winobj.cheaperinference_model.currentText()
+        params["cheaperinference_model"] = winobj.cheaperinference_model.currentText().strip()
         params["cheaperinference_max_token"] = winobj.max_token.text().strip()
         params.save()
         winobj.close()

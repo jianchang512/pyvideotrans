@@ -132,7 +132,7 @@ class Ui_chatgpt(QDialog):
 
     def update_ui(self):
         allmodels_str = settings.get('chatgpt_model','')
-        allmodels = str(settings.get('chatgpt_model','')).split(',')
+        allmodels = [x.strip() for x in str(settings.get('chatgpt_model','')).split(',')]
         self.chatgpt_model.clear()
         self.chatgpt_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(str(allmodels_str))

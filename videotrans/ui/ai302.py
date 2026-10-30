@@ -92,7 +92,7 @@ class Ui_ai302(QDialog):
 
     def update_ui(self):
         allmodels_str = settings.get('ai302_model', '')
-        allmodels = str(settings.get('ai302_model', '')).split(',')
+        allmodels = [x.strip() for x in str(settings.get('ai302_model', '')).split(',')]
 
         self.ai302_model.clear()
         self.ai302_model.addItems(allmodels)

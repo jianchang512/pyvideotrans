@@ -113,7 +113,7 @@ class Ui_atlascloud(QDialog):
 
     def update_ui(self):
         allmodels_str = settings.get('atlascloud_model', '')
-        allmodels = str(settings.get('atlascloud_model', '')).split(',')
+        allmodels = [x.strip() for x in str(settings.get('atlascloud_model', '')).split(',')]
         self.atlascloud_model.clear()
         self.atlascloud_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)

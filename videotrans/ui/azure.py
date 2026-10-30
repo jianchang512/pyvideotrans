@@ -100,7 +100,7 @@ class Ui_azure(QDialog):
     def update_ui(self):
 
         allmodels_str = settings.get('azure_model','')
-        allmodels = str(settings.get('azure_model','')).split(',')
+        allmodels = [x.strip() for x in str(settings.get('azure_model','')).split(',')]
         self.azure_model.clear()
         self.azure_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(str(allmodels_str))

@@ -20,7 +20,7 @@ def openwin():
         params["chatgpt_key"] = key
         params["chatgpt_api"] = url
         params["chatgpt_max_token"] = winobj.chatgpt_max_token.text().strip()
-        params["chatgpt_model"] = winobj.chatgpt_model.currentText()
+        params["chatgpt_model"] = winobj.chatgpt_model.currentText().strip()
         params["chatgpt_reasoning_effort"] = winobj.reasoning_effort.currentText()
         params.save()
         winobj.test_chatgpt.setText(tr("Testing..."))
@@ -33,7 +33,7 @@ def openwin():
         params["chatgpt_max_token"] = winobj.chatgpt_max_token.text().strip()
         params["chatgpt_key"] = winobj.chatgpt_key.text().strip()
         params["chatgpt_api"] = process_openai_api(winobj.chatgpt_api.text().strip())
-        params["chatgpt_model"] = winobj.chatgpt_model.currentText()
+        params["chatgpt_model"] = winobj.chatgpt_model.currentText().strip()
         params["chatgpt_reasoning_effort"] = winobj.reasoning_effort.currentText()
         params.save()
         winobj.close()

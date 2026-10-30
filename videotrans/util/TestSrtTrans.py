@@ -2,7 +2,7 @@ from typing import List
 
 from PySide6.QtCore import Signal, QThread
 
-
+from videotrans.util.help_misc import get_tanslate_type
 
 
 class TestSrtTrans(QThread):
@@ -27,6 +27,7 @@ class TestSrtTrans(QThread):
             from videotrans.configure.excepts import get_msg_from_except
             import traceback
             except_msg=get_msg_from_except(e)
-            msg = f'{except_msg}:' + traceback.format_exc()
+
+            msg = f'{get_tanslate_type(self.translator_type)}: {except_msg},\n' + traceback.format_exc()
             self.uito.emit(msg)
 

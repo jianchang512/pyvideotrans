@@ -17,7 +17,7 @@ def openwin():
         if not key:
             return show_error(tr("Please input Secret"))
         params["infistar_key"] = key
-        params["infistar_model"] = winobj.infistar_model.currentText()
+        params["infistar_model"] = winobj.infistar_model.currentText().strip()
         params["infistar_max_token"] = winobj.max_token.text().strip()
         params.save()
         winobj.test.setText(tr("Testing..."))
@@ -27,7 +27,7 @@ def openwin():
 
     def save():
         params["infistar_key"] = winobj.infistar_key.text().strip()
-        params["infistar_model"] = winobj.infistar_model.currentText()
+        params["infistar_model"] = winobj.infistar_model.currentText().strip()
         params["infistar_max_token"] = winobj.max_token.text().strip()
         params.save()
         winobj.close()

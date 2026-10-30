@@ -1,6 +1,7 @@
 from PySide6.QtCore import QThread, Signal
 
 from videotrans.configure._i18n import tr
+from videotrans.util.help_misc import get_tts_type
 
 
 class ListenVoice(QThread):
@@ -29,5 +30,5 @@ class ListenVoice(QThread):
             from videotrans.configure.excepts import get_msg_from_except
             import traceback
             except_msg=get_msg_from_except(e)
-            msg = f'{except_msg}:\n{self.queue_tts[0]}\n' + traceback.format_exc()
+            msg = f'{get_tts_type(self.tts_type)}: {except_msg}\n{self.queue_tts[0]}\n' + traceback.format_exc()
             self.uito.emit(msg)

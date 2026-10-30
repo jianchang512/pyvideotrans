@@ -126,7 +126,7 @@ class Ui_deepseek(QDialog):
 
     def update_ui(self):
         allmodels_str = settings.get('deepseek_model','')
-        allmodels = str(settings.get('deepseek_model','')).split(',')
+        allmodels = [x.strip() for x in str(settings.get('deepseek_model','')).split(',')]
         self.deepseek_model.clear()
         self.deepseek_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)

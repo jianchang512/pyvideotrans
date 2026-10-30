@@ -133,7 +133,7 @@ class Ui_litellm(QDialog):
 
     def update_ui(self):
         allmodels_str = settings.get('litellm_model', '')
-        allmodels = str(settings.get('litellm_model', '')).split(',')
+        allmodels = [x.strip() for x in str(settings.get('litellm_model', '')).split(',')]
         self.litellm_model.clear()
         self.litellm_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)

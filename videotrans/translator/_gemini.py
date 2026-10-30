@@ -43,7 +43,6 @@ class Gemini(BaseTrans):
             )
             
             message=self.prompt.replace('{batch_input}', f'{text}')
-            logger.debug(f'{message=}')
             result = client.interactions.create(
                 model=model,
                 input=message,

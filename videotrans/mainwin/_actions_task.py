@@ -57,7 +57,7 @@ class WinActionTaskMixin:
             self.uuid_queue_mp4[obj['uuid']] = (obj['name'], target_dir)
         self.main.show_tips.setText('')
         if is_editable:
-
+            cfg['batch']=False
             task = Worker(
                 parent=self.main,
                 file=self.obj_list[0],
@@ -96,6 +96,7 @@ class WinActionTaskMixin:
             )
 
         cfg['clear_cache'] = False
+        cfg['batch'] = True
         from videotrans.task.mult_video import MultVideo
         task = MultVideo(parent=self.main, cfg=cfg, input_file_list=self.obj_list)
         task.start()

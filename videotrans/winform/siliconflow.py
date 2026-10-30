@@ -19,8 +19,8 @@ def openwin():
         if not key:
             return show_error(tr("Please input Secret"))
         params["siliconflow_key"] = key
-        params["siliconflow_model"] = winobj.siliconflow_model.currentText()
-        params["siliconflow_tts_model"] = winobj.siliconflow_tts_model.currentText()
+        params["siliconflow_model"] = winobj.siliconflow_model.currentText().strip()
+        params["siliconflow_tts_model"] = winobj.siliconflow_tts_model.currentText().strip()
         params["siliconflow_max_token"] = winobj.max_token.text().strip()
         params["siliconflow_reasoning_effort"] = winobj.reasoning_effort.currentText()
         params.save()
@@ -31,10 +31,10 @@ def openwin():
 
     def save():
         params["siliconflow_key"] = winobj.siliconflow_key.text().strip()
-        params["siliconflow_model"] = winobj.siliconflow_model.currentText()
+        params["siliconflow_model"] = winobj.siliconflow_model.currentText().strip()
         params["siliconflow_max_token"] = winobj.max_token.text().strip()
         params["siliconflow_reasoning_effort"] = winobj.reasoning_effort.currentText()
-        params["siliconflow_tts_model"] = winobj.siliconflow_tts_model.currentText()
+        params["siliconflow_tts_model"] = winobj.siliconflow_tts_model.currentText().strip()
         params.save()
         winobj.close()
 

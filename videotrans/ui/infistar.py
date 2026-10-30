@@ -113,7 +113,7 @@ class Ui_infistar(QDialog):
 
     def update_ui(self):
         allmodels_str = settings.get('infistar_model', '')
-        allmodels = str(settings.get('infistar_model', '')).split(',')
+        allmodels = [x.strip() for x in str(settings.get('infistar_model', '')).split(',')]
         self.infistar_model.clear()
         self.infistar_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)

@@ -16,11 +16,11 @@ from videotrans.tts import SUPPORT_VOLUME
 from videotrans.util.help_misc import vail_file
 
 """
-仅配音任务：对应 批量为字幕配音 面板
+仅配音任务：对应 文字配音 面板
 """
 
 
-@dataclass(repr=False)
+@dataclass
 class DubbingSrt(BaseTask):
     cfg: TaskCfgTTS = field(default_factory=TaskCfgTTS, repr=False)
     out_ext: str = "wav"
@@ -48,6 +48,34 @@ class DubbingSrt(BaseTask):
         Path(self.cfg.cache_folder).mkdir(parents=True, exist_ok=True)
         logger.debug(f'{self}')
 
+    def __repr__(self):
+        _msg = []
+        from videotrans.util.tools import get_tts_type
+        isTrue = {True: tr("Selected"), False: tr("Not-Selected")}
+
+        _msg.append(tr('From  Text  Into  Speech') + f' {tr("Multi voice dubbing for SRT") if self.is_multi_role else ""}')
+        _msg.append(f'{self.cfg.name=}, \n{tr("Output directory")}: {self.cfg.target_dir if not self.output_folder else self.output_folder},\n{self.cfg.cache_folder=}')
+        _msg.append(f'{self.cfg.is_cuda=}')
+        _msg.append(
+            f"{tr('Dubbing channel')}:{get_tts_type(self.cfg.tts_type)}, {tr('Dubbing role')}:{self.cfg.voice_role}, {tr('Target lang')}:{self.cfg.target_language_code}")
+        _msg.append(
+            f'Volume:{self.cfg.volume}, Speed:{self.cfg.voice_rate}, {isTrue[self.cfg.voice_autorate]} {tr("Dubbing acceler")}')
+        _msg.append(f'{tr("Out format")}: {self.out_ext}')
+
+        if not self.cfg.voice_autorate and not self.cfg.video_autorate:
+            _msg.append(
+                f'{isTrue[self.cfg.remove_silent_mid]} {tr("Del inline mute?")},  {isTrue[self.cfg.align_sub_audio]} {tr("Align subtitles and audio")}')
+
+        _se, _all = settings.get('remove_dubb_silence', True), settings.get('remove_dubb_all_silence', True)
+        if _se:
+            _msg.append(f'{isTrue[True]}  {tr("remove_dubb_silence_title")}')
+        if _all:
+            _msg.append(f'{isTrue[True]}  {tr("remove_dubb_all_silence_title")}')
+        if _se or _all:
+            _msg.append(
+                f"{tr('remove_dubb_silence_level_title')}: {settings.get('remove_dubb_silence_level', 'default')}")
+        _msg.append(f'{self.cfg=}')
+        return "\n".join(_msg)
 
 
     def dubbing(self):

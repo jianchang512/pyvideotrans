@@ -100,7 +100,7 @@ class Ui_openairecognapi(QDialog):
 
     def update_ui(self):
         allmodels_str = settings.get('openairecognapi_model','')
-        allmodels = str(settings.get('openairecognapi_model','')).split(',')
+        allmodels = [x.strip() for x in str(settings.get('openairecognapi_model','')).split(',')]
         self.openairecognapi_model.clear()
         self.openairecognapi_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)

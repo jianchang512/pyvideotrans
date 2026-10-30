@@ -4,7 +4,6 @@
 > | :--- | :--- |
 > | [Recall.ai Meeting Transcription API](https://www.recall.ai/product/meeting-transcription-api?utm_source=github&utm_medium=sponsorship&utm_campaign=jianchang512-pyvideotrans)   | If you’re looking for a transcription API for meetings, consider checking out **[Recall.ai](https://www.recall.ai/product/meeting-transcription-api?utm_source=github&utm_medium=sponsorship&utm_campaign=jianchang512-pyvideotrans)** , an API that works with Zoom, Google Meet, Microsoft Teams, and more |
 > | [OfoxAI: Text, speech, image and video model APIs](https://ofox.ai/zh?utm_source=github&utm_medium=sponsorship&utm_content=pyvideotrans) | Access GPT, Claude, Gemini and DeepSeek text models, ElevenLabs speech models, and image and video generation models with one API key—choose the models that fit your creative needs. |
-> | [infistar - 160+ 模型,一个 Key](https://www.infistar.cc/register?aff=9H6H7RR9&ref_source=link) | infistar 是 OpenAI 兼容中转,一个 Key 随时切 160+ 模型,挑出翻得最准又最省的那个 |
 
 
 ---
@@ -176,18 +175,14 @@ uv add nvidia-cublas-cu12 nvidia-cudnn-cu12
 | **ASR (Speech Recognition)** | **Faster-Whisper** (Local) | Recommended, fast speed, high accuracy |
 | | WhisperX / Parakeet | Supports timestamp alignment & speaker diarization |
 | | Alibaba Qwen3-ASR / ByteDance Volcano | Online API, excellent for Chinese |
-| **Translation (LLM/MT)** | **DeepSeek** / ChatGPT | Supports context understanding, more natural translation |
-| | [infistar AI](https://www.infistar.cc/register?aff=9H6H7RR9&ref_source=link) | infistar - 160+ models, one Key, OpenAI compatible gateway, switch to 160+ models at any time with one Key |
-| | Atlas Cloud | OpenAI-compatible gateway, one Key for DeepSeek, GLM, Kimi, Qwen, MiniMax and proxied vendor models |
-| | Opper | EU-hosted OpenAI-compatible gateway, one Key for 700+ models from 50+ providers |
-| | Runcrate | GPU cloud with an OpenAI-compatible API: DeepSeek, GLM, Qwen, Kimi and gpt-oss, open models are free with your GitHub account |
-| | MiniMax AI | MiniMax M3 LLM, latest flagship model, OpenAI-compatible |
+| **Translation (LLM/MT)** | **DeepSeek** / OpenAIChatGPT | Supports context understanding, more natural translation |
+| | MiniMax/Zhipu/Xiaomi/Gemini  | latest flagship model, OpenAI-compatible |
 | | Google / Microsoft | Traditional machine translation, fast speed |
-| | Ollama / M2M100 | Fully local offline translation |
+| | HY-MT2 / M2M100 | Fully local offline translation |
 | **TTS (Speech Synthesis)** | **Edge-TTS** | Microsoft free interface, natural effect |
 | | **F5-TTS / OmniVoice / Qwen3-TTS** | Supports **Voice Cloning** |
 | | GPT-SoVITS / Index-TTS / ChatTTS | High-quality open-source TTS, requires local deployment |
-| | 302.AI / OpenAI / Azure | High-quality commercial API |
+| | 302.AI / OpenAI / Azure / ElevenLabs | High-quality commercial API |
 
 ---
 

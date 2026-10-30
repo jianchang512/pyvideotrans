@@ -81,120 +81,120 @@ NO_RETRY_EXCEPT = (
 )
 
 """检查错误信息中是否包含本地地址"""
-def _is_local_address(url_or_message):
-    if not url_or_message:
-        return False
-
-    text = str(url_or_message).lower()
-    local_indicators = ['127.0.0.1', 'localhost', '0.0.0.0', '::1', '[::1]']
-
-    return any(indicator in text for indicator in local_indicators)
-
+# def _is_local_address(url_or_message):
+#     if not url_or_message:
+#         return False
+#
+#     text = str(url_or_message).lower()
+#     local_indicators = ['127.0.0.1', 'localhost', '0.0.0.0', '::1', '[::1]']
+#
+#     return any(indicator in text for indicator in local_indicators)
+#
 
 """尝试从错误信息中提取API地址"""
 
-
-def _extract_api_url_from_error(error):
-    error_str = str(error)
-
-    # 查找URL模式
-    url_patterns = [
-        r'https?://[^\s\'"]+',
-        r'www\.[^\s\'"]+\.[a-z]{2,}',
-        r'[a-zA-Z0-9.-]+\.[a-z]{2,}',
-    ]
-
-    for pattern in url_patterns:
-        matches = re.findall(pattern, error_str)
-        if matches:
-            return matches[0]
-
-    return None
-
+#
+# def _extract_api_url_from_error(error):
+#     error_str = str(error)
+#
+#     # 查找URL模式
+#     url_patterns = [
+#         r'https?://[^\s\'"]+',
+#         r'www\.[^\s\'"]+\.[a-z]{2,}',
+#         r'[a-zA-Z0-9.-]+\.[a-z]{2,}',
+#     ]
+#
+#     for pattern in url_patterns:
+#         matches = re.findall(pattern, error_str)
+#         if matches:
+#             return matches[0]
+#
+#     return None
+#
 
 """处理连接错误的详细信息"""
 
-
-def _handle_connection_error_detail(error, lang):
-    error_str = str(error).lower()
-
-    # 检查是否为本地地址
-    is_local = _is_local_address(error_str)
-    api_url = _extract_api_url_from_error(error)
-
-    base_message = ""
-
-    if "dns" in error_str or "name or service not known" in error_str:
-        base_message = (
-            "域名解析失败，无法找到服务器地址" if lang == 'zh'
-            else "Domain name resolution failed, cannot find server address"
-        )
-    elif "ProxyError" in error_str:
-        base_message = (
-            "代理设置不正确或代理不可用，请检查代理或关闭代理并删掉代理文本框中所填内容" if lang == 'zh'
-            else "The proxy address is not available, please check"
-        )
-
-    elif "refused" in error_str or "10061" in error_str or "积极拒绝" in error_str:
-        if is_local:
-            base_message = (
-                "连接被拒绝，请确保本地服务已启动并正在运行" if lang == 'zh'
-                else "Connection refused, please ensure the local service is started and running"
-            )
-        else:
-            base_message = (
-                "连接被拒绝，无法连接目标服务" if lang == 'zh'
-                else "Connection refused"
-            )
-    elif "reset" in error_str:
-        base_message = (
-            "连接被重置，网络可能不稳定" if lang == 'zh'
-            else "Connection reset, network may be unstable"
-        )
-    elif "timeout" in error_str or "timed out" in error_str:
-        base_message = (
-            "连接超时，请检查网络连接是否稳定" if lang == 'zh'
-            else "Connection timeout, please check network stability"
-        )
-    elif "max retries exceeded" in error_str:
-        if is_local:
-            if "0.0.0.0" in error_str:
-                base_message = (
-                    "API 地址不可是 0.0.0.0 ，请修改为 127.0.0.1 " if lang == 'zh'
-                    else "The API address cannot be 0.0.0.0, please change it to 127.0.0.1"
-                )
-            else:
-                base_message = (
-                    "多次重试连接失败，请确保本地服务已正确启动" if lang == 'zh'
-                    else "Multiple connection retries failed, please ensure local service is properly started"
-                )
-        else:
-            base_message = (
-                "多次重试连接失败，服务可能暂时不可用" if lang == 'zh'
-                else "Multiple connection retries failed, service may be temporarily unavailable"
-            )
-
-    else:
-        base_message = (
-            "网络连接失败" if lang == 'zh'
-            else "Network connection failed"
-        )
-
-    # 为中文用户添加额外提示
-    if lang == 'zh' and api_url and not is_local:
-        if "api.msedgeservices.com" in api_url.lower():
-            base_message += ". EdgeTTS使用频繁可能触发限流，请稍等段时间重试。"
-            return base_message
-        if "edge.microsoft.com" in api_url.lower():
-            base_message += ". 微软翻译使用频繁可能触发限流，请稍等段时间重试。"
-            return base_message
-        # 检查是否为国外知名API服务
-        foreign_apis = ['openai', 'anthropic', 'claude', 'elevenlabs', 'deepgram', 'google', 'aws.amazon']
-        if any(api in api_url.lower() for api in foreign_apis):
-            base_message += "。注意：某些国外服务需要科学上网才能访问"
-
-    return base_message
-
+#
+# def _handle_connection_error_detail(error, lang):
+#     error_str = str(error).lower()
+#
+#     # 检查是否为本地地址
+#     is_local = _is_local_address(error_str)
+#     api_url = _extract_api_url_from_error(error)
+#
+#     base_message = ""
+#
+#     if "dns" in error_str or "name or service not known" in error_str:
+#         base_message = (
+#             "域名解析失败，无法找到服务器地址" if lang == 'zh'
+#             else "Domain name resolution failed, cannot find server address"
+#         )
+#     elif "ProxyError" in error_str:
+#         base_message = (
+#             "代理设置不正确或代理不可用，请检查代理或关闭代理并删掉代理文本框中所填内容" if lang == 'zh'
+#             else "The proxy address is not available, please check"
+#         )
+#
+#     elif "refused" in error_str or "10061" in error_str or "积极拒绝" in error_str:
+#         if is_local:
+#             base_message = (
+#                 "连接被拒绝，请确保本地服务已启动并正在运行" if lang == 'zh'
+#                 else "Connection refused, please ensure the local service is started and running"
+#             )
+#         else:
+#             base_message = (
+#                 "连接被拒绝，无法连接目标服务" if lang == 'zh'
+#                 else "Connection refused"
+#             )
+#     elif "reset" in error_str:
+#         base_message = (
+#             "连接被重置，网络可能不稳定" if lang == 'zh'
+#             else "Connection reset, network may be unstable"
+#         )
+#     elif "timeout" in error_str or "timed out" in error_str:
+#         base_message = (
+#             "连接超时，请检查网络连接是否稳定" if lang == 'zh'
+#             else "Connection timeout, please check network stability"
+#         )
+#     elif "max retries exceeded" in error_str:
+#         if is_local:
+#             if "0.0.0.0" in error_str:
+#                 base_message = (
+#                     "API 地址不可是 0.0.0.0 ，请修改为 127.0.0.1 " if lang == 'zh'
+#                     else "The API address cannot be 0.0.0.0, please change it to 127.0.0.1"
+#                 )
+#             else:
+#                 base_message = (
+#                     "多次重试连接失败，请确保本地服务已正确启动" if lang == 'zh'
+#                     else "Multiple connection retries failed, please ensure local service is properly started"
+#                 )
+#         else:
+#             base_message = (
+#                 "多次重试连接失败，服务可能暂时不可用" if lang == 'zh'
+#                 else "Multiple connection retries failed, service may be temporarily unavailable"
+#             )
+#
+#     else:
+#         base_message = (
+#             "网络连接失败" if lang == 'zh'
+#             else "Network connection failed"
+#         )
+#
+#     # 为中文用户添加额外提示
+#     if lang == 'zh' and api_url and not is_local:
+#         if "api.msedgeservices.com" in api_url.lower():
+#             base_message += ". EdgeTTS使用频繁可能触发限流，请稍等段时间重试。"
+#             return base_message
+#         if "edge.microsoft.com" in api_url.lower():
+#             base_message += ". 微软翻译使用频繁可能触发限流，请稍等段时间重试。"
+#             return base_message
+#         # 检查是否为国外知名API服务
+#         foreign_apis = ['openai', 'anthropic', 'claude', 'elevenlabs', 'deepgram', 'google', 'aws.amazon']
+#         if any(api in api_url.lower() for api in foreign_apis):
+#             base_message += "。注意：某些国外服务需要科学上网才能访问"
+#
+#     return base_message
+#
 
 
 def _nofoundfile(e,lang):
@@ -261,9 +261,7 @@ def get_msg_from_except(ex:BaseException)->str:
         ApiError_11: lambda e: e.body.get('detail', {}).get('message', e.body) if hasattr(e, 'body') else str(e),
         # === 网络连接问题 ===
         (ReqConnectionError, ConnectionError, ConnectionResetError, ConnectionRefusedError, ConnectionAbortedError,
-         httpcore.ConnectTimeout, httpx.ConnectTimeout, httpx.ConnectError, httpx.ReadError, Timeout): lambda e: (
-            _handle_connection_error_detail(e, lang)
-        ),
+         httpcore.ConnectTimeout, httpx.ConnectTimeout, httpx.ConnectError, httpx.ReadError, Timeout): lambda e: str(e),
 
         (RuntimeError, ValueError, requests.exceptions.RequestException): lambda e: f"{e}",
 
@@ -348,14 +346,6 @@ def get_msg_from_except(ex:BaseException)->str:
         if isinstance(ex, exc_types):
             return handler(ex)
 
-    # === 后备处理逻辑 ===
-    error_str = str(ex)
-    if any(keyword in error_str.lower() for keyword in [
-        'connection', 'connect', 'refused', 'reset', 'timeout', 'retries',
-        '连接', '拒绝', '重置', '超时', '重试', 'host', 'port', 'http', 'tcp', 'ProxyError'
-    ]):
-        return _handle_connection_error_detail(ex, lang)
-
     _msg = None
     if hasattr(ex, 'detail') and ex.detail:
         _msg = ex.detail
@@ -373,4 +363,4 @@ def get_msg_from_except(ex:BaseException)->str:
             return str(error_info)
         return str(_msg)
     # 默认错误消息
-    return ''
+    return str(ex) if not _msg else str(_msg)

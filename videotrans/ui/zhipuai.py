@@ -121,7 +121,7 @@ class Ui_zhipuai(QDialog):
 
     def update_ui(self):
         allmodels_str = settings.get('zhipuai_model','')
-        allmodels = str(settings.get('zhipuai_model','')).split(',')
+        allmodels = [x.strip() for x in str(settings.get('zhipuai_model','')).split(',')]
         self.zhipuai_model.clear()
         self.zhipuai_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)

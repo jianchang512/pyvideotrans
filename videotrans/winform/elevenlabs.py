@@ -46,7 +46,7 @@ def openwin():
 
     def test():
         params['elevenlabstts_key'] = winobj.elevenlabstts_key.text().strip()
-        params['elevenlabstts_model'] = winobj.elevenlabstts_model.currentText()
+        params['elevenlabstts_model'] = winobj.elevenlabstts_model.currentText().strip()
         params.save()
         try:
             from videotrans import tts
@@ -72,7 +72,7 @@ def openwin():
 
     def save():
         params['elevenlabstts_key'] = winobj.elevenlabstts_key.text().strip()
-        params['elevenlabstts_model'] = winobj.elevenlabstts_model.currentText()
+        params['elevenlabstts_model'] = winobj.elevenlabstts_model.currentText().strip()
         params.save()
         set_process(text='', type="refreshtts")
         set_process(text='', type="refreshmodel_list")

@@ -41,14 +41,11 @@ class BaseWorker(QThread):
 
     def handle_error(self, e, trk):
         """统一的错误处理逻辑"""
-
         logger.exception(e, exc_info=True)
         # 简单的错误消息
         except_msg = get_msg_from_except(e)
         # 错误堆栈
         detail_back = "\n".join(traceback.format_exception(e)).strip()
-        if not except_msg:
-            except_msg = detail_back.split("\n")[-1]
 
         # 获取子类可能自定义的错误前缀 (如识别引擎名称、动作名称)
         prefix = self.get_error_prefix(trk)
@@ -160,6 +157,8 @@ class WorkerAlign(BaseWorker):
     def __init__(self):
         super().__init__("AlignVieoAudioSrt", app_cfg.align_queue)
 
+    def get_error_prefix(self, trk):
+        return f'{tr("Sound & video speed alignment stage")} {tr("anerror")}'
     def process_task(self, trk):
         trk.align()
         if hasattr(trk, 'recogn2pass'):

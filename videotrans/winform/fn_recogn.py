@@ -95,7 +95,7 @@ def openwin():
         uuid_list = []
         Path(config.TEMP_DIR).mkdir(parents=True, exist_ok=True)
         winobj.has_done = False
-        model = winobj.shibie_model.currentText()
+        model = winobj.shibie_model.currentText().strip()
         recogn_type = winobj.shibie_recogn_type.currentIndex()
         if recogn_type == recognition.Faster_Whisper_XXL and not show_xxl_select():
             return

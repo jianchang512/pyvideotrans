@@ -1,6 +1,6 @@
 from PySide6.QtCore import QThread, Signal
 
-
+from videotrans.util.help_misc import get_recogn_type
 
 
 class TestSTT(QThread):
@@ -31,5 +31,5 @@ class TestSTT(QThread):
             from videotrans.configure.excepts import get_msg_from_except
             import traceback
             except_msg=get_msg_from_except(e)
-            msg = f'{except_msg}:\n' + traceback.format_exc()
+            msg = f'{get_recogn_type(self.recogn_type)}: {except_msg}\n' + traceback.format_exc()
             self.uito.emit(msg)

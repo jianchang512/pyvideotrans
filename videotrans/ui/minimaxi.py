@@ -144,7 +144,7 @@ class Ui_minimaxi(QDialog):
 
     def update_ui(self):
         allmodels_str = settings.get('minimaxi_model','')
-        allmodels = str(allmodels_str).split(',')
+        allmodels = [x.strip() for x in str(allmodels_str).split(',')]
         self.text_model.clear()
         self.text_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(str(allmodels_str))

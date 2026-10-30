@@ -111,7 +111,7 @@ class Ui_cheaperinference(QDialog):
 
     def update_ui(self):
         allmodels_str = settings.get('cheaperinference_model', '')
-        allmodels = str(settings.get('cheaperinference_model', '')).split(',')
+        allmodels = [x.strip() for x in str(settings.get('cheaperinference_model', '')).split(',')]
         self.cheaperinference_model.clear()
         self.cheaperinference_model.addItems(allmodels)
         self.edit_allmodels.setPlainText(allmodels_str)

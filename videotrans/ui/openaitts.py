@@ -118,7 +118,7 @@ class Ui_openaitts(QDialog):
 
     def update_ui(self):
         allmodels_str = settings.get('openaitts_model','')
-        allmodels = str(settings.get('openaitts_model','')).split(',')
+        allmodels = [x.strip() for x in str(settings.get('openaitts_model','')).split(',')]
 
         self.openaitts_model.clear()
         self.openaitts_model.addItems(allmodels)

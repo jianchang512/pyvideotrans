@@ -14,14 +14,15 @@ from videotrans.configure.constants import PUNC_RESTORE_MS, PUNC_RESTORE_HF
 from videotrans.recognition import run
 from videotrans.task._base import BaseTask
 from videotrans.task.taskcfg import TaskCfgSTT
+from videotrans.translator import LLM_CONCERT_DICT
 from videotrans.util.help_misc import is_connect_hf
 
 """
-仅语音识别
+对应 语音转录 面板
 """
 
 
-@dataclass(repr=False)
+@dataclass
 class SpeechToText(BaseTask):
     cfg: TaskCfgSTT = field(default_factory=TaskCfgSTT, repr=False)
     # 识别后输出的字幕格式，srt txt 等
@@ -38,7 +39,7 @@ class SpeechToText(BaseTask):
     def __post_init__(self):
         super().__post_init__()
         # -1=不启用说话人，0=启用并且不限制说话人数量，>0+1是最大说话人数量
-        self.max_speakers = max(self.cfg.nums_diariz,0) if self.cfg.enable_diariz else -1
+        self.max_speakers = max(self.cfg.nums_diariz, 0) if self.cfg.enable_diariz else -1
         if self.max_speakers > 0:
             self.max_speakers += 1
         # 存放目标文件夹
@@ -52,6 +53,55 @@ class SpeechToText(BaseTask):
         self.cfg.shibie_audio = self.cfg.cache_folder + f'/{self.cfg.noextname}-{time.time()}.wav'
         self.signal(text=tr("Speech Recognition to Word Processing"))
         logger.debug(f'{self}')
+
+    def __repr__(self):
+        from videotrans.recognition import ALLOW_CHANGE_MODEL
+        from videotrans.util.tools import get_recogn_type
+        isTrue = {True: tr("Selected"), False: tr("Not-Selected")}
+
+        _msg = [tr('Speech Recognition Text'), f'{self.cfg.name=}, \n{self.cfg.target_dir=},\n{self.cfg.cache_folder=}',
+                f'{self.cfg.is_cuda=}']
+
+        if self.cfg.remove_noise:
+            _msg.append(f'{isTrue[True]} {tr("Noise reduction")},{tr("noise_model_title")}:{settings.get("noise_model")}')
+
+        if self.cfg.fix_punc > 0:
+            _msg.append(
+                f'{isTrue[True]} {tr("Restore punctuation") if self.cfg.fix_punc == 1 else tr("Delete punctuation")}')
+        if self.cfg.enable_diariz:
+            _msg.append(
+                f'{isTrue[True]} {tr("Speaker classification")}: {tr("No limit") if self.cfg.nums_diariz < 1 else self.cfg.nums_diariz + 1} {tr("Insert speaker") if self.spk_insert else ""}')
+        if self.cfg.rephrase:
+            ai_type = settings.get('llm_ai_type', 1)
+            ai_dict=LLM_CONCERT_DICT[ai_type]
+            _msg.append(f'{isTrue[True]} {tr("LLM Rephrase")},{tr("llm_chunk_size_title")}:{settings.get("llm_chunk_size")}, {tr("llm_ai_type_title")}: {ai_dict["name"]}')
+            if settings.get('llm_resegment_title'):
+                _msg.append(f'{isTrue[True]} {tr("llm_resegment_title")}')
+
+        _msg.append(
+            f"{tr('Speech Recognit')}:{get_recogn_type(self.cfg.recogn_type)}, {self.cfg.model_name if self.cfg.recogn_type in ALLOW_CHANGE_MODEL else ''}, {tr('Speech language')}: {self.cfg.detect_language}")
+        _msg.extend([
+            f'{tr("max_speech_duration_s_title")}: {settings.get("max_speech_duration_s")}s',
+            f'{tr("min_speech_duration_ms_title")}: {settings.get("min_speech_duration_ms")}ms',
+            f'{tr("min_silence_duration_ms_title")}: {settings.get("min_silence_duration_ms")}ms',
+            f'{tr("threshold_title")}: {settings.get("threshold")}',
+            f'{tr("vad_type_title")}: {settings.get("vad_type")}',
+        ])
+
+        if self.cfg.recogn_type==0:
+            _msg.append(f'{tr("cuda_com_type_title")}:{settings.get("cuda_com_type")}')
+            _msg.append(f'{tr("beam_size_title")}:{settings.get("beam_size")}')
+            _msg.append(f'{tr("best_of_title")}:{settings.get("best_of")}')
+            _msg.append(f'{tr("condition_on_previous_text_title")}:{settings.get("condition_on_previous_text")}')
+            _msg.append(f'{tr("repetition_penalty_title")}:{settings.get("repetition_penalty")}')
+            _msg.append(f'{tr("compression_ratio_threshold_title")}:{settings.get("compression_ratio_threshold")}')
+
+        _msg.append(f'{tr("Out format")}: {self.out_format}')
+        _msg.append(f'{tr("cjk_len_title")}:{settings.get("cjk_len")}, {tr("other_len_title")}:{settings.get("other_len")}')
+        if self.copysrt_rawvideo:
+            _msg.append(f'{isTrue[True]}: {tr("Save to original location")}')
+        _msg.append(f'{self.cfg=}')
+        return "\n".join(_msg)
 
     # 预先处理
     def prepare(self):
@@ -80,11 +130,11 @@ class SpeechToText(BaseTask):
                 title = tr('Starting to process speech noise reduction, which may take a long time, please be patient')
                 _noise_wav = f"{config.TEMP_DIR}/{self.cfg.noextname}-{os.path.getsize(self.cfg.name)}-removed_noise.wav"
                 kw = {
-                        "input_file": self.cfg.shibie_audio,
-                        "output_file": _noise_wav,
-                        "is_cuda": self.cfg.is_cuda,
-                        "model_name":settings.get('noise_model')
-                    }
+                    "input_file": self.cfg.shibie_audio,
+                    "output_file": _noise_wav,
+                    "is_cuda": self.cfg.is_cuda,
+                    "model_name": settings.get('noise_model')
+                }
                 _rs = self._new_process(callback=remove_noise, title=title, is_cuda=self.cfg.is_cuda, kwargs=kw)
                 if _rs:
                     self.cfg.shibie_audio = _noise_wav
@@ -109,24 +159,25 @@ class SpeechToText(BaseTask):
         self.source_srt_list = raw_subtitles
         self._save_srt_target(self.source_srt_list, self.cfg.target_sub)
 
-
         # 中英恢复标点符号
-        if self.cfg.fix_punc==1:
+        if self.cfg.fix_punc == 1:
             try:
                 from videotrans.process.prepare_audio import fix_punc
-                down_file_from_hf(f'{ROOT_DIR}/models/puntc', PUNC_RESTORE_MS if not is_connect_hf() else PUNC_RESTORE_HF, callback=self._process_callback)
+                down_file_from_hf(f'{ROOT_DIR}/models/puntc',
+                                  PUNC_RESTORE_MS if not is_connect_hf() else PUNC_RESTORE_HF,
+                                  callback=self._process_callback)
                 text_dict = {f'{it["line"]}': re.sub(r'[,.?!，。？！]', ' ', it["text"]) for it in self.source_srt_list}
                 # 序列化后传递文件路径
-                text_dict_file=f'{self.cfg.cache_folder}/text_dict_file_{time.time()}.json'
-                Path(text_dict_file).write_text(json.dumps(text_dict),encoding="utf-8")
+                text_dict_file = f'{self.cfg.cache_folder}/text_dict_file_{time.time()}.json'
+                Path(text_dict_file).write_text(json.dumps(text_dict), encoding="utf-8")
                 kw = {"text_dict_file": text_dict_file, "is_cuda": self.cfg.is_cuda}
                 _rs = self._new_process(callback=fix_punc, title=tr("Restoring punct"), kwargs=kw)
                 if _rs:
-                    text_dict_obj=json.loads(Path(text_dict_file).read_text(encoding='utf-8'))
-                    _lang=self.cfg.detect_language.split('-')[0]
+                    text_dict_obj = json.loads(Path(text_dict_file).read_text(encoding='utf-8'))
+                    _lang = self.cfg.detect_language.split('-')[0]
                     for it in self.source_srt_list:
                         it['text'] = text_dict_obj.get(f'{it["line"]}', it['text'])
-                        if  _lang == 'en':
+                        if _lang == 'en':
                             it['text'] = it['text'].replace('，', ',').replace('。', '. ').replace('？', '?').replace(
                                 '！', '!')
                     self._save_srt_target(self.source_srt_list, self.cfg.target_sub)
@@ -140,7 +191,7 @@ class SpeechToText(BaseTask):
 
         # LLM纠错
         if self.cfg.rephrase:
-            self.source_srt_list=self._llmpost(self.source_srt_list)
+            self.source_srt_list = self._llmpost(self.source_srt_list)
 
     def diariz(self):
         if self._exit() or not self.cfg.enable_diariz or Path(self.cfg.cache_folder + "/speaker.json").exists():
@@ -159,11 +210,10 @@ class SpeechToText(BaseTask):
                 it['text'] = simple_wrap(it['text'], maxlen, self.cfg.detect_language)
 
         # 移除标点符号
-        if self.cfg.fix_punc==2:
+        if self.cfg.fix_punc == 2:
             from videotrans.util.help_srt import delete_punc
             for i, it in enumerate(self.source_srt_list):
                 it['text'] = delete_punc(it['text'])
-
 
         if self.cfg.enable_diariz and self.spk_insert and Path(
                 self.cfg.cache_folder + "/speaker.json").exists():

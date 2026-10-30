@@ -4,7 +4,6 @@
 > | :--- | :--- |
 > | [Recall.ai Meeting Transcription API](https://www.recall.ai/product/meeting-transcription-api?utm_source=github&utm_medium=sponsorship&utm_campaign=jianchang512-pyvideotrans)   | If you’re looking for a transcription API for meetings, consider checking out **[Recall.ai](https://www.recall.ai/product/meeting-transcription-api?utm_source=github&utm_medium=sponsorship&utm_campaign=jianchang512-pyvideotrans)** , an API that works with Zoom, Google Meet, Microsoft Teams, and more |
 > | [OfoxAI：文本、语音、图像、视频，多模型 API 资源](https://ofox.ai/zh?utm_source=github&utm_medium=sponsorship&utm_content=pyvideotrans) | 一个 API Key 接入 GPT、Claude、Gemini、DeepSeek 等文本模型及 ElevenLabs 语音模型，同时提供图像与视频生成模型，按创作需求灵活选择。|
-> | [infistar - 160+ 模型,一个 Key](https://www.infistar.cc/register?aff=9H6H7RR9&ref_source=link) | infistar 是 OpenAI 兼容中转,一个 Key 随时切 160+ 模型,挑出翻得最准又最省的那个 |
 
 
 ---
@@ -175,18 +174,14 @@ uv add nvidia-cublas-cu12 nvidia-cudnn-cu12
 | **语音识别 (ASR)** | **Faster-Whisper** (本地) | 推荐，速度快，精度高 |
 | | WhisperX / Parakeet | 支持时间轴对齐与说话人分离 |
 | | 阿里 Qwen3-ASR / 字节火山 | 在线 API，中文效果极佳 |
-| **翻译 (LLM/MT)** | **DeepSeek** / ChatGPT | 支持上下文理解，翻译更自然 |
-| | [infistar AI](https://www.infistar.cc/register?aff=9H6H7RR9&ref_source=link) | infistar - 160+ 模型,一个 Key, OpenAI 兼容中转,一个 Key 随时切 160+ 模型 |
-| | Atlas Cloud | OpenAI 兼容网关，一个 Key 调用 DeepSeek、GLM、Kimi、Qwen、MiniMax 及代理的闭源模型 |
-| | Opper | 欧盟托管的 OpenAI 兼容网关，一个 Key 调用 50+ 家供应商的 700+ 个模型 |
-| | Runcrate | GPU 云，兼容 OpenAI 的 API：DeepSeek、GLM、Qwen、Kimi、gpt-oss，用 GitHub 账号即可免费使用开源模型 |
-| | MiniMax AI | MiniMax M3 大模型，最新旗舰模型，OpenAI兼容接口 |
+| **翻译 (LLM/MT)** | **DeepSeek** / OpenAiChatGPT | 支持上下文理解，翻译更自然 |
+| | MiniMax/Zhipu/Gemini/Xiaomi | 多家主流AI大模型，OpenAI兼容接口 |
 | | Google / Microsoft | 传统机器翻译，速度快 |
-| | Ollama / M2M100 | 完全本地离线翻译 |
+| | HY-MT2 / M2M100 | 完全本地离线翻译 |
 | **语音合成 (TTS)** | **Edge-TTS** | 微软免费接口，效果自然 |
 | | **F5-TTS / OmniVoice / Qwen3-TTS** | 支持 **声音克隆** |
 | | GPT-SoVITS / ChatTTS / Index-TTS | 高质量开源 TTS,要求本地部署 |
-| | 302.AI / OpenAI / Azure | 高质量商业 API |
+| | 302.AI / OpenAI / Azure / ElevenLabs | 高质量商业 API |
 
 ---
 
