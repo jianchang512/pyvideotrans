@@ -3,7 +3,6 @@ import json
 import shutil
 import wave
 
-import numpy as np
 import pytest
 
 # not just "pydub": conftest puts a mock in its place when it isn't installed
@@ -66,19 +65,17 @@ def _dub(tmp_path, slots):
     return queue
 
 
-def test_mono_pcm_is_saved_in_both_channels(tmp_path):
-    # the 48 kHz mono 16-bit pcm from the API keeps its length as a stereo wav
+def test_mono_pcm_is_saved_with_its_length(tmp_path):
+    # the 48 kHz mono 16-bit pcm from the API is saved as it is, in a mono wav;
+    # convert_to_wav() then makes the line 48 kHz stereo
     pcm = Sine(440, sample_rate=48000).to_audio_segment(duration=1000).raw_data
     path = (tmp_path / "line.wav").as_posix()
     _doubao2.Doubao2TTS._save_pcm_to_wav(pcm, path)
     with wave.open(path, "rb") as wf:
         assert wf.getframerate() == 48000
-        assert wf.getnchannels() == 2
+        assert wf.getnchannels() == 1
         assert wf.getnframes() == 48000
-        frames = np.frombuffer(wf.readframes(wf.getnframes()), dtype="<i2")
-    mono = np.frombuffer(pcm, dtype="<i2")
-    assert (frames[0::2] == mono).all()
-    assert (frames[1::2] == mono).all()
+        assert wf.readframes(wf.getnframes()) == pcm
 
 
 @pytest.mark.skipif(shutil.which("ffmpeg") is None, reason="ffmpeg not found")

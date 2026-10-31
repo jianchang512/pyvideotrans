@@ -410,6 +410,10 @@ class SpeedRate:
             else:
                 self.queue_tts[-1]['end_time'] = self.raw_total_time
                 logger.debug(f'最后一条字幕结束时间强制设为 {self.raw_total_time=}ms')
+        elif self.should_videorate and self.queue_tts[-1]['start_time'] < self.raw_total_time < self.queue_tts[-1]['end_time']:
+            # 视频慢速时，超出视频末尾的部分没有画面可慢放，截到视频末尾
+            logger.debug(f"最后一条字幕结束时间 {self.queue_tts[-1]['end_time']}ms 超出视频时长，强制设为 {self.raw_total_time=}ms")
+            self.queue_tts[-1]['end_time'] = self.raw_total_time
 
 
         for i, current in enumerate(self.queue_tts):

@@ -49,7 +49,7 @@ def is_srt_string(input_text: str) -> bool:
 @lru_cache
 def cleartext(text: str) -> str:
     res_text = text.replace('&#39;', "").replace('&quot;', '').replace("\u200b", " ").strip()
-    res_text = re.sub(r'([，。！？,.?]\s?){2,}', ',', res_text, flags=re.I | re.S)
+    res_text = re.sub(r'([，。！？,.?][^\S\n]?){2,}', ',', res_text, flags=re.I | re.S)
     return res_text
 
 
