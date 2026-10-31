@@ -9,6 +9,13 @@ from videotrans.configure import constants
 from videotrans.util._srt_parse import ass_to_srt
 
 
+# 拖入的本地文件的路径，用 QUrl.toLocalFile() 取：text() 中的 URL 只去掉 file:/// 时，macOS/Linux 的路径会丢失开头的 /，
+# 文件名中的 % # [ ] { } ^ ` 等字符也仍是 %25、%23、%5B 这样的编码。
+# 拖入的内容中没有本地文件的 URL 时（例如从文本编辑器拖入的路径）返回 []，调用处仍按原来的方式从 text() 读取
+def _local_files(mime_data):
+    return [url.toLocalFile() for url in mime_data.urls() if url.isLocalFile()]
+
+
 class DropButton(QPushButton):
     def __init__(self, text=""):
         super(DropButton, self).__init__(text)
@@ -43,9 +50,11 @@ class DropButton(QPushButton):
             event.ignore()
 
     def dropEvent(self, event):
-        filepath = event.mimeData().text().strip().split("\n")
-        self.filelist = [file.replace('file:///', '') for file in filepath]
-        self.setText(f'{len(self.filelist)} files')
+        self.filelist = _local_files(event.mimeData())
+        if not self.filelist:
+            filepath = event.mimeData().text().strip().split("\n")
+            self.filelist = [file.replace('file:///', '') for file in filepath]
+        self.setText(f'{len(self.filelist)} files \n' + "\n".join(os.path.basename(it) for it in self.filelist))
 
 
 
@@ -88,9 +97,11 @@ class PeiyinDropButton(QPushButton):
             event.ignore()
 
     def dropEvent(self, event):
-        filepath = event.mimeData().text().strip().split("\n")
-        self.filelist = [file.replace('file:///', '') for file in filepath]
-        self.setText(f'{len(self.filelist)} files')
+        self.filelist = _local_files(event.mimeData())
+        if not self.filelist:
+            filepath = event.mimeData().text().strip().split("\n")
+            self.filelist = [file.replace('file:///', '') for file in filepath]
+        self.setText(f'{len(self.filelist)} files \n' + "\n".join(os.path.basename(it) for it in self.filelist))
 
 
 
@@ -108,7 +119,8 @@ class Textedit(QPlainTextEdit):
             event.ignore()
 
     def dropEvent(self, event):
-        filepath = event.mimeData().text().replace('file:///', '')
+        files = _local_files(event.mimeData())
+        filepath = files[0] if files else event.mimeData().text().replace('file:///', '')
         with open(filepath, 'r', encoding="utf-8") as f:
             self.setPlainText(f.read().strip())
 
