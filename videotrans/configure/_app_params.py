@@ -36,8 +36,7 @@ class AppParams:
             try:
                 loaded = json.loads(Path(self._json_path).read_text(encoding='utf-8'))
                 # 单独更新 f5tts_role
-                loaded['f5tts_role'] = (
-                    "\n".join(set((loaded['f5tts_role'].strip() + "\n" + default['f5tts_role']).split("\n")))).strip()
+                loaded['f5tts_role'] = self._add_default_roles(loaded.get('f5tts_role', ''), default['f5tts_role'])
                 default.update(loaded)
             except (OSError, json.JSONDecodeError):
                 pass
@@ -47,6 +46,19 @@ class AppParams:
 
         self._apply_dict(default)
         return self.to_dict()
+
+    @staticmethod
+    def _add_default_roles(saved: str, default: str) -> str:
+        # 保留已保存的参考音频及其顺序，只追加尚未列出、且 wav 仍在 f5-tts 文件夹中的默认参考音频，
+        # 这样从列表和 f5-tts 文件夹中都删掉的默认参考音频，下次启动时不会再被加回来
+        lines = [it for it in saved.strip().split("\n") if it.strip()]
+        names = {it.split('#')[0].strip() for it in lines}
+        for it in default.split("\n"):
+            name = it.split('#')[0]
+            if name not in names and os.path.isfile(f'{ROOT_DIR}/f5-tts/{name}'):
+                lines.append(it)
+        return "\n".join(lines)
+
     @staticmethod
     def _get_defaults():
 
