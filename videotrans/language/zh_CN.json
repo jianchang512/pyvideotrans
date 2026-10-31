@@ -1111,6 +1111,9 @@
 	
 	"noise_model_title":"降噪模型",
     "ultimate_mini_title": "进一步精简翻译",
+    "dubbing_normalize_title": "配音峰值归一化",
+    "dubbing_normalize_notice": "配音峰值归一化",
+
     "ultimate_mini_notice": "选中后将追加AI翻译提示词，要求翻译结果极致精简以避免配音过长",
 	"noise_model_notice":"zipenhancer将使用audio.cpp自动选择最佳设备执行，其他为纯CPU执行，默认dpdfnet2，速度快，dpdfnet8质量最高",
 	

@@ -159,7 +159,8 @@ def remove_silence_wav(
     audio_file: str,
     rm_start: bool = True,
     rm_all: bool = False,
-    rm_level: str = "default"
+    rm_level: str = "default",
+    pcm_s16le_48k_ac2=False
 ) -> bool:
     """
     移除 WAV 音频文件中的静音。
@@ -282,6 +283,9 @@ def remove_silence_wav(
     # 4. 导出覆盖原文件
     # print(f'结果长度: {len(trimmed_audio)}ms')
     # print(f'移除: {total_len- len(trimmed_audio) }ms')
-    trimmed_audio.export(audio_file, format="wav")
+    if pcm_s16le_48k_ac2 is True:
+        trimmed_audio.export(audio_file, format="wav",codec="pcm_s16le", parameters=["-ar", "48000", "-ac", "2"],)
+    else:
+        trimmed_audio.export(audio_file, format="wav")
     return True
 

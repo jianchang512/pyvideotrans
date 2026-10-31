@@ -70,7 +70,7 @@ notices = {
                 'temperature', 'repetition_penalty', 'compression_ratio_threshold', 'hotwords', 'gemini_recogn_chunk',
                 'zh_hant_s', 'del_end_punc', 'asr_wait'],
     'trans': ['trans_thread', 'aitrans_thread', 'translation_wait',  'ultimate_mini', 'aitrans_temperature', 'aitrans_context'],
-    'dubbing': ['dubbing_thread', 'dubbing_wait', 'remove_dubb_silence', 'remove_dubb_all_silence',
+    'dubbing': ['dubbing_thread', 'dubbing_wait', 'dubbing_normalize','remove_dubb_silence', 'remove_dubb_all_silence',
                 'remove_dubb_silence_level', 'save_segment_audio', 'normal_text', 'edgetts_max_concurrent_tasks',
                 'edgetts_retry_nums'],
     'justify': ['max_audio_speed_rate', 'max_video_pts_rate', 'cjk_len', 'other_len'],

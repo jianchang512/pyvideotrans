@@ -16,7 +16,7 @@ class BaseCon:
     uuid: Optional[str] = field(default=None, init=False)
     # 用于其他需要直接代理字符串
     proxy_str: str = ''
-    last_down_time:int=0
+    last_down_time:float=0.0
     # 懒加载时用于判断属于 BaseCon 的子类
     _base_name:str="BaseCon"
 
@@ -129,7 +129,22 @@ class BaseCon:
             runffmpeg(cmd, force_cpu=True)
             _se,_all=settings.get('remove_dubb_silence', True),settings.get('remove_dubb_all_silence', True)
             if  _se or _all:
-                remove_silence_wav(output_wav_file_path,rm_start=True,rm_all=_all,rm_level=settings.get('remove_dubb_silence_level', 'default'))
+                remove_silence_wav(output_wav_file_path,rm_start=True,rm_all=_all,rm_level=settings.get('remove_dubb_silence_level', 'default'),pcm_s16le_48k_ac2=True)
+            # 配音归一化
+            if settings.get('dubbing_normalize'):
+                logger.debug('配音峰值归一化处理')
+                from pydub import AudioSegment
+                audio = AudioSegment.from_file(
+                    output_wav_file_path, format="wav"
+                )
+                if audio.max_dBFS > -float("inf"):
+                    audio = audio.apply_gain(-3.0 - audio.max_dBFS)
+                    audio.export(
+                        output_wav_file_path,
+                        format="wav",
+                        codec="pcm_s16le",
+                        parameters=["-ar", "48000", "-ac", "2"],
+                    )
         except Exception as e:
             logger.exception(f'转为 48k wav时失败，跳过{e}',exc_info=True)
             return False

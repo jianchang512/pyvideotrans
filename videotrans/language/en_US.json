@@ -1113,6 +1113,8 @@
     "noise_model_title": "Denoise Model",
 
    "ultimate_mini_title": "Further streamline translation",
+   "dubbing_normalize_title": "Dubbing Peak Normalization",
+    "dubbing_normalize_notice": "Dubbing Peak Normalization",
    "ultimate_mini_notice": "Upon selection, AI translation prompts will be added, requiring the translation results to be extremely concise to avoid excessively long dubbing.",
 
     "noise_model_notice": "ZipEnhancer automatically selects the optimal device via audio.cpp; other models run on CPU only.",
