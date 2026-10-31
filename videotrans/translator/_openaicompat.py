@@ -86,7 +86,8 @@ class OpenAICampat(BaseTrans):
         try:
             response = self._create_completion(kwargs)
             result = response.choices[0].message.content.strip()
-            match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', re.sub(r'<think>(.*?)</think>', '',result,flags=re.I), flags=re.S|re.I)
+            result = re.sub(r'<think>(.*?)</think>', '', result, flags=re.I | re.S)
+            match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', result, flags=re.S | re.I)
             if match:
                 return match.group(1)
             return result.strip()
