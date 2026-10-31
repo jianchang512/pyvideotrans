@@ -100,16 +100,18 @@ class BaseTask(BaseCon):
         try:
             ai_type = settings.get('llm_ai_type', 1)
             ai_dict=LLM_CONCERT_DICT[ai_type]
+            logger.debug(f'LLM纠错:{ai_type=},{ai_dict=}')
             ob = get_model_transobj(translate_type=ai_dict['id'],uuid=self.uuid)
 
             self.signal(text=tr("Re-segmenting..."))
             srt_list = ob.llm_segment(raw_subtitles,step=step)
             if srt_list and len(srt_list) > len(raw_subtitles) / 2:
+                logger.debug(f'LLM纠错完成:{len(raw_subtitles)=}, {len(srt_list)=}')
                 return srt_list
-            logger.error(f'LLM POST error:{len(raw_subtitles)=}, {len(srt_list)=}\noutput:\n{srt_list=}')
+            logger.error(f'LLM纠错失败:{len(raw_subtitles)=}, {len(srt_list)=}\noutput:\n{srt_list=}')
         except Exception as e:
             self.signal(text=str(e))
-            logger.exception("llm post error", exc_info=True)
+            logger.exception(f"LLM纠错失败 {e}", exc_info=True)
         return raw_subtitles
 
     # 如果启用了 LLM重新断句，则跳过该步骤，LLM断句后时间轴发生变更，无法和原始字幕对齐
