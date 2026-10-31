@@ -108,7 +108,7 @@ class PrepareMixin:
                         else:
                             spk_list.append(groups.group(1))
                             # 从字幕中删掉说话人标识
-                            p=rf"^\[{groups.group(1)}\]"
+                            p=rf"^\[{re.escape(groups.group(1))}\]"
                             it['text']=re.sub(p,'',it['text'])
                     if spk_list:
                         Path(self.cfg.target_dir + "/speaker.json").write_text(json.dumps(spk_list), encoding='utf-8')
