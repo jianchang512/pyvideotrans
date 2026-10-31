@@ -13,7 +13,14 @@ from videotrans.util.help_srt import get_subtitle_from_srt, simple_wrap, set_ass
 class SubtitleMixin:
 
     def _process_subtitles(self) -> Union[tuple[str, str], None]:
-        logger.debug(f"\n======准备要嵌入的字幕:{self.cfg.subtitle_type=}===={self.cfg.target_sub=}=")
+        _subtitles = [
+            tr('nosubtitle'),
+            tr('embedsubtitle'),
+            tr('softsubtitle'),
+            tr('embedsubtitle2'),
+            tr('softsubtitle2')
+        ]
+        logger.debug(f"\n准备要嵌入的字幕:{self.cfg.subtitle_type=}\n{self.cfg.target_sub=}")
         if not Path(self.cfg.target_sub).exists() :
             raise VideoTransError(tr("No valid subtitle file exists")+self.cfg.target_sub)
 
@@ -61,12 +68,15 @@ class SubtitleMixin:
                 f.write(srt_string)
 
         subtitle_langcode = translator.get_subtitle_code(show_target=self.cfg.target_language)
-        logger.debug(
-            f'最终确定字幕嵌入类型:{self.cfg.subtitle_type} ,目标字幕语言:{subtitle_langcode}, 字幕文件:{process_end_subtitle}\n')
+        _msg=f'最终确定字幕嵌入类型:{_subtitles[self.cfg.subtitle_type]} ,目标字幕语言:{subtitle_langcode}, '
         if self.cfg.subtitle_type in [2, 4]:
+            _msg+=f'字幕文件:{process_end_subtitle}\n'
+            logger.debug(_msg)
             return os.path.basename(process_end_subtitle), subtitle_langcode
 
         process_end_subtitle_ass = set_ass_font(process_end_subtitle)
+        _msg+=f'字幕文件:{process_end_subtitle_ass}\n'
+        logger.debug(_msg)
         basename = os.path.basename(process_end_subtitle_ass)
         return basename, subtitle_langcode
 

@@ -132,7 +132,6 @@ class BaseCon:
                 remove_silence_wav(output_wav_file_path,rm_start=True,rm_all=_all,rm_level=settings.get('remove_dubb_silence_level', 'default'),pcm_s16le_48k_ac2=True)
             # 配音归一化
             if settings.get('dubbing_normalize'):
-                logger.debug('配音峰值归一化处理')
                 from pydub import AudioSegment
                 audio = AudioSegment.from_file(
                     output_wav_file_path, format="wav"

@@ -19,7 +19,7 @@ def get_video_codec(compat=None,force=False) -> str:
 
     _codec_cache = app_cfg.codec_cache or {}
     if app_cfg.codec_cache:
-        logger.debug(f'上次缓存的{compat}编码器:{app_cfg.codec_cache=}')
+        logger.debug(f'上次缓存的编码器:{app_cfg.codec_cache=}')
     try:
         if not _codec_cache and Path(f'{ROOT_DIR}/videotrans/codec.json').exists():
             _codec_cache = json.loads(Path(f'{ROOT_DIR}/videotrans/codec.json').read_text(encoding='utf-8-sig'))
@@ -38,7 +38,7 @@ def get_video_codec(compat=None,force=False) -> str:
 
     cache_key = f'{plat}-{video_codec_pref}'
     if not force and cache_key in _codec_cache:
-        logger.debug(f"返回缓存的{compat}编解码器 {cache_key}: {_codec_cache[cache_key]}")
+        logger.debug(f"返回缓存的编解码器 {cache_key}: {_codec_cache[cache_key]}")
         return _codec_cache[cache_key]
 
     h_prefix, default_codec = ('hevc', 'libx265') if video_codec_pref == 265 else ('h264', 'libx264')

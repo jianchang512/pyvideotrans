@@ -155,7 +155,7 @@ class AssembleMixin:
 
             if not app_cfg.video_codec:
                 self.signal(text=tr("Check supported hardware codes..."))
-                app_cfg.video_codec = get_video_codec()
+                app_cfg.video_codec = get_video_codec(compat=self.video_codec_num)
             self.signal(text=tr("Video + Subtitles + Dubbing in merge"))
             cmd0 = [
                 "-y",
@@ -319,7 +319,7 @@ class AssembleMixin:
     def _get_hard_cfg(self, subtitles_file=None, codec=None):
         os_name = platform.system()
         if not app_cfg.video_codec:
-            app_cfg.video_codec = get_video_codec()
+            app_cfg.video_codec = get_video_codec(compat=self.video_codec_num)
         hw_type = app_cfg.video_codec
         logger.debug(f'原始{hw_type=}')
 
