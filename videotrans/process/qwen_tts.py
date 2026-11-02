@@ -96,6 +96,9 @@ def qwen3tts_fun(
                     )
                     sf.write(output_filename, wavs[0], sr)
                     ok += 1
+                    # 重新配音时主进程不再转换，需与克隆音色一样在此转为最终配音文件
+                    if is_redubb:
+                        convert_to_wav(output_filename, it['filename'])
                     continue
                 if not BASE_OBJ:
                     err += 1
