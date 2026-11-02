@@ -34,7 +34,7 @@ def openwin():
         params["openrouter_model"] = winobj.openrouter_model.currentText().strip()
         params["openrouter_tts_model"] = winobj.openrouter_tts_model.currentText().strip()
         params["openrouter_max_token"] = winobj.max_token.text().strip()
-        params["openro_reasoning_effort"] = winobj.reasoning_effort.currentText()
+        params["openrouter_reasoning_effort"] = winobj.reasoning_effort.currentText()
         params.save()
         winobj.close()
 

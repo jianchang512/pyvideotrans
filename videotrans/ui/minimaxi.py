@@ -154,7 +154,7 @@ class Ui_minimaxi(QDialog):
         self.emotion.setCurrentText(str(params.get("minimaxi_emotion",'')))
         self.tts_model.setCurrentText(str(params.get("minimaxi_tts_model",'')))
 
-        self.max_token.setText(str(params.get("minimax_max_token",'8192')))
+        self.max_token.setText(str(params.get("minimaxi_max_token",'8192')))
         self.text_model.setCurrentText(str(params.get("minimaxi_text_model",'')))
         self.reasoning_effort.setCurrentText(params.get("minimaxi_reasoning_effort","default"))
 
