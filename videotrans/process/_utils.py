@@ -1,5 +1,5 @@
 from pathlib import Path
-from videotrans.configure.config import logger,settings
+from videotrans.configure.config import logger
 
 def _write_log(file, msg):
     if not file:return
@@ -8,29 +8,8 @@ def _write_log(file, msg):
     except Exception as e:
         logger.exception(f'写入新进程日志时出错{e}', exc_info=True)
 
+# 校对配音面板中重新配音时，F5-TTS 等内置渠道在子进程中用此函数转换配音
+# 与主进程一样使用 BaseCon.convert_to_wav，静音移除、配音峰值归一化等设置同样生效
 def convert_to_wav( mp3_file_path: str, output_wav_file_path: str, extra=None):
-    cmd = [
-        "-y",
-        "-i",
-        mp3_file_path,
-        "-ar",
-        "48000",
-        "-ac",
-        "2",
-        "-c:a",
-        "pcm_s16le"
-    ]
-    if extra:
-        cmd += extra
-    cmd += [
-        output_wav_file_path
-    ]
-    try:
-        from videotrans.util.help_ffmpeg import runffmpeg,remove_silence_wav
-        runffmpeg(cmd, force_cpu=True)
-        if settings.get('remove_dubb_silence', True):
-            remove_silence_wav(output_wav_file_path)
-    except Exception as e:
-        logger.exception(f'转为 48k wav时失败，跳过{e}',exc_info=True)
-        return False
-    return True
+    from videotrans.configure.base import BaseCon
+    return BaseCon.convert_to_wav(mp3_file_path, output_wav_file_path, extra)
