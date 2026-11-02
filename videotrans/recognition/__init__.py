@@ -3,7 +3,7 @@ from typing import Union, List, Type
 
 from videotrans import winform, get_class
 from videotrans.configure import constants
-from videotrans.configure.config import tr, params, app_cfg, logger, ROOT_DIR, settings
+from videotrans.configure.config import tr, params, app_cfg, logger, ROOT_DIR
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
 from ._constants import *
@@ -14,9 +14,9 @@ def get_model_by_type(recogn_type: int) -> List[str]:
     if recogn_type == Deepgram:
         return constants.DEEPGRAM_ASR_MODELS.split(',')
     if recogn_type == Whisper_CPP:
-        return settings.get('Whisper_cpp_models', '').split(',')
+        return constants.WHISPER_CPP_MODELS.split(',')
     if recogn_type == WHISPER_NET:
-        return settings.get('Whisper_net_models', '').split(',')
+        return constants.WHISPER_NET_MODELS.split(',')
     if recogn_type == QWENASR:
         return constants.QWEN_ASR_LOCAL_MODELS.split(',')
     if recogn_type == QWEN3ASR:
