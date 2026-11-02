@@ -137,8 +137,8 @@ class Worker(QThread):
 
                     app_cfg.onlyone_voice_autorate = trk.cfg.voice_autorate
                     app_cfg.onlyone_video_autorate = trk.cfg.video_autorate
-                    app_cfg.remove_silent_mid = trk.cfg.remove_silent_mid
-                    app_cfg.align_sub_audio = trk.cfg.align_sub_audio
+                    app_cfg.onlyone_remove_silent_mid = trk.cfg.remove_silent_mid
+                    app_cfg.onlyone_align_sub_audio = trk.cfg.align_sub_audio
                     app_cfg.set_countdown(86400)
 
                     # 等待修改配音结果或重新配音
