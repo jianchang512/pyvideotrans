@@ -59,8 +59,12 @@ class DubbingMixin:
             if it['end_time'] < it['start_time'] or not it['text'].strip():
                 continue
             voice = line_roles.get(f'{it["line"]}', voice_role) if line_roles else voice_role
+            is_clone = str(voice).strip().lower() == 'clone' and self.cfg.tts_type in SUPPORT_CLONE
+            # 克隆音色时，参考音频是从当前视频中裁切的，缓存键需包含视频 uuid，否则会用上其他视频中说话人的配音
+            # uuid 由文件路径、大小和修改时间生成，再次处理同一视频时不变，仍会使用缓存
+            _clone = f"-{self.uuid}" if is_clone else ''
 
-            _key = get_md5(f"{self.cfg.target_language_code}-{it['text']}-{voice}-{rate}-{self.cfg.volume}-{self.cfg.pitch}-{self.cfg.tts_type}-{settings.get('remove_dubb_silence', True)}-{settings.get('remove_dubb_all_silence', True)}-{settings.get('remove_dubb_silence_level', 'default')}-{settings.get('dubbing_normalize',False)}")
+            _key = get_md5(f"{self.cfg.target_language_code}-{it['text']}-{voice}-{rate}-{self.cfg.volume}-{self.cfg.pitch}-{self.cfg.tts_type}-{settings.get('remove_dubb_silence', True)}-{settings.get('remove_dubb_all_silence', True)}-{settings.get('remove_dubb_silence_level', 'default')}-{settings.get('dubbing_normalize',False)}{_clone}")
 
             tmp_dict = {
                 "text": it['text'],
@@ -85,7 +89,7 @@ class DubbingMixin:
             if vail_file(_dubbing_cache):
                 # 直接使用缓存
                 shutil.copy2(_dubbing_cache,tmp_dict['filename'])
-            if str(voice).strip().lower() == 'clone' and self.cfg.tts_type in SUPPORT_CLONE:
+            if is_clone:
                 tmp_dict['ref_wav'] = f"{self.cfg.cache_folder}/clone-{i}.wav"
                 tmp_dict['ref_language'] = _lang
             queue_tts.append(tmp_dict)
