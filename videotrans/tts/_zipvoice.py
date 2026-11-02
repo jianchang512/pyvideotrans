@@ -71,7 +71,7 @@ class ZipVoice(BaseTTS):
                 try:
                     queue_tts=json.loads(Path(REDUBB_QUEUE_FILE).read_text(encoding='utf-8'))
                 except (OSError,json.JSONDecodeError) as e:
-                    logger.exception(f'supertonic-3: {e}',exc_info=True)
+                    logger.exception(f'zipvoice: {e}',exc_info=True)
                     raise
 
 
