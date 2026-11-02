@@ -7,6 +7,7 @@ from PySide6.QtWidgets import QApplication
 from videotrans.configure._app_params import AppParams
 from videotrans.configure._app_settings import AppSettings
 from videotrans.configure.config import app_cfg, params, settings
+from videotrans.configure.constants import OPENROUTER_TTS_MODELS
 
 # conftest.py puts a MagicMock in place of PySide6 when it isn't installed,
 # and these tests need the real windows
@@ -54,6 +55,24 @@ def test_openrouter_save_keeps_reasoning_effort():
     # opened again, get_win() calls update_ui() on the same window
     win.update_ui()
     assert win.reasoning_effort.currentText() == "none"
+
+
+@pytest.mark.parametrize(
+    "model",
+    [DEFAULTS["openrouter_tts_model"], OPENROUTER_TTS_MODELS.strip().split(",")[-1]],
+    ids=["default", "saved"],
+)
+def test_openrouter_window_shows_and_keeps_tts_model(monkeypatch, model):
+    # the first model of the list is the default, the last one a model saved before
+    monkeypatch.setattr(params, "openrouter_tts_model", model)
+    win = _open("openrouter")
+
+    assert win.openrouter_tts_model.currentText() == model
+    # e.g. Save after changing the Reasoning Effort
+    win.reasoning_effort.setCurrentText("high")
+    win.set.click()
+    # the key that the OpenRouter dubbing channel and its voice list read
+    assert params["openrouter_tts_model"] == model
 
 
 @pytest.mark.parametrize("effort", ["none", "high"], ids=["default", "saved"])

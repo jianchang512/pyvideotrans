@@ -145,6 +145,7 @@ class Ui_openrouter(QDialog):
 
         self.openrouter_key.setText(str(params.get("openrouter_key",'')))
         self.openrouter_model.setCurrentText(params.get("openrouter_model",''))
+        self.openrouter_tts_model.setCurrentText(params.get("openrouter_tts_model",''))
         self.max_token.setText(str(params.get("openrouter_max_token",'')))
         self.reasoning_effort.setCurrentText(str(params.get("openrouter_reasoning_effort","default")))
 
