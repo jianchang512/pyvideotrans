@@ -127,6 +127,14 @@ class DubbingSrt(BaseTask):
         except FileNotFoundError:
             raise
 
+    # 如果文件夹内存在同名，则添加时间后缀，以免覆盖，例如保存到原位置时，字幕旁同名的原音频
+    @staticmethod
+    def _free_name(file: str) -> str:
+        p = Path(file)
+        if p.is_file() and p.stat().st_size > 0:
+            return p.with_stem(f'{p.stem}-{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}').as_posix()
+        return file
+
     def _tts(self) -> None:
         from videotrans.util.help_srt import get_subtitle_from_srt
         from videotrans.util.help_ffmpeg import runffmpeg
@@ -150,6 +158,8 @@ class DubbingSrt(BaseTask):
         if _enter_edgetts_single:
             # 忽略对齐
             self.ignore_align = True
+            # align() 不会执行，需在此避免覆盖同名文件
+            self.cfg.target_wav = self._free_name(self.cfg.target_wav)
             self.cfg.target_sub = self._convert_to_utf8_if_needed(self.cfg.target_sub)
 
             tmp_name = self.cfg.target_wav if self.cfg.target_wav.endswith(
@@ -261,12 +271,9 @@ class DubbingSrt(BaseTask):
         # txt配音并且是 edgetts，已结束
         if self.ignore_align: return
         from videotrans.util.help_ffmpeg import runffmpeg
-        target_path = Path(self.cfg.target_wav)
         # 如果文件夹内存在同名，则添加时间后缀
         # 只有一行时也需如此：保存到原位置时，字幕旁可能有同名的原音频
-        if target_path.is_file() and target_path.stat().st_size > 0:
-            self.cfg.target_wav = self.cfg.target_wav[
-                                  :-4] + f'-{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}{target_path.suffix}'
+        self.cfg.target_wav = self._free_name(self.cfg.target_wav)
         # 只有一行
         if len(self.queue_tts) < 2:
             if len(self.queue_tts) == 1 and self.cfg.tts_type != tts.EDGE_TTS:
@@ -305,8 +312,9 @@ class DubbingSrt(BaseTask):
         if Path(self.cfg.target_wav).is_file():
             # 只移除末尾静音
             remove_silence_wav(self.cfg.target_wav, rm_start=False)
-            _output= f'{self.cfg.target_dir}/{self.cfg.noextname}.{self.out_ext}'
             if self.out_ext.lower() != 'wav':
+                # 同样不覆盖同名的 mp3/m4a 文件
+                _output = self._free_name(f'{self.cfg.target_dir}/{self.cfg.noextname}.{self.out_ext}')
                 runffmpeg(
                     ['-y', '-i', self.cfg.target_wav,_output]
                 )
