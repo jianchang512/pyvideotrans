@@ -71,8 +71,10 @@ class PiperTTS(BaseTTS):
                 continue
             role_model[it['role']]=self._get_model_from_name(it['role'])
 
+        # length_scale 是音素时长的倍数，大于 1 变慢、小于 1 变快，因此取语速 speed 的倒数
+        # 语速 -96% 至 -100% 时 speed 为 0，按 0.1（即 -90%）计算，避免除以 0
         syn_config = SynthesisConfig(
-            length_scale=self.speed,  # twice as slow
+            length_scale=1 / max(self.speed, 0.1),
         )
         ok, err = 0, 0
         _except=None
