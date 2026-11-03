@@ -6,6 +6,7 @@ def openwin():
     from videotrans.winform import get_cls
     from videotrans.util.help_misc import show_error
     from videotrans.util.help_role import role_menu
+    from videotrans.util.help_srt import read_srt_text
     from typing import List
     from videotrans.task.taskcfg import InputFile
     from datetime import datetime
@@ -224,7 +225,7 @@ def openwin():
             trk = DubbingSrt(cfg=TaskCfgTTS(**cfg | it), out_ext=winobj.out_format.currentText())
             app_cfg.dubb_queue.put_nowait(trk)
             winobj.hecheng_plaintext.clear()
-            winobj.hecheng_plaintext.insertPlainText(Path(it['name']).read_text(encoding='utf-8-sig',errors="ingore"))
+            winobj.hecheng_plaintext.insertPlainText(read_srt_text(it['name']))
         from videotrans.task.child_win_sign import SignThread
         th = SignThread(uuid_list=uuid_list, parent=winobj)
         th.uito.connect(feed)

@@ -107,3 +107,15 @@ def test_text_box_shows_the_dropped_file(tmp_path, dropped_as):
         _drop(box, text=str(path))
 
     assert box.toPlainText() == "Hello"
+
+
+# GBK is "ANSI" in Notepad on Simplified Chinese Windows
+@pytest.mark.parametrize("encoding", ["utf-8", "gbk"])
+def test_text_box_reads_the_dropped_file_as_utf8_or_gbk(tmp_path, encoding):
+    path = tmp_path / "talk.txt"
+    path.write_bytes("大家好。\n你好，最近怎么样？\n".encode(encoding))
+    box = Textedit()
+
+    _drop(box, [QUrl.fromLocalFile(str(path))])
+
+    assert box.toPlainText() == "大家好。\n你好，最近怎么样？"
