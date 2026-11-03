@@ -135,6 +135,8 @@ class PrepareMixin:
                 self.cfg.source_wav
             ])
             self.clone_ref=self.cfg.source_wav
+            # 不再进行降噪
+            self.cfg.remove_noise=False
         
         self.signal(text=tr('endfenliyinpin'))
         logger.debug(f'[预处理阶段结束耗时]:{time.time()-_st}s')
