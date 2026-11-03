@@ -154,6 +154,7 @@ def _resegment(texts, language='en', max_speech_ms=6000, min_speech_ms=3000, log
     # 最长可能句子: max_speech_ms  + min_speech_ms
     # 最短句子: min_speech_ms
     _rc = min(int(max_speech_ms*0.3),2000)  # 超过 max_speech_ms + _rc ，强制分割
+    # 极限长句可能达到:  max_speech_ms + 2000  + min_speech_ms(末尾不足时并入前面字幕)
     _min_words = 1  # 大于该数量的词，才考虑分割
 
     # 东方中日韩等语言通常无需空格，其他字母系语言需空格
@@ -319,7 +320,6 @@ def _resegment(texts, language='en', max_speech_ms=6000, min_speech_ms=3000, log
         _merged[-1]['text'] += (' ' if use_space else '') + seg['text']
         _merged[-1]['end'] = seg['end']
 
-    
     for idx, seg in enumerate(_merged):
         start_ms = int(seg['start'])
         end_ms = int(seg['end'])
@@ -329,8 +329,6 @@ def _resegment(texts, language='en', max_speech_ms=6000, min_speech_ms=3000, log
         text=seg['text'].replace(origin_end,' ')
         if not text.strip():continue
         print(f'regsegment:{(end_ms - start_ms) / 1000.0}s')
-        if idx > 0 and start_ms == _merged[idx - 1]['end']:
-            _last = _merged[idx - 1]['text'][-3:]
         srt_output.append(SrtItem(**{
             "line": idx + 1,
             "text": text,
