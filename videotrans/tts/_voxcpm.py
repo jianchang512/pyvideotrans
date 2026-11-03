@@ -21,7 +21,7 @@ class VoxCPMTTS(GradioBase):
             "denoise": False,
             "api_name": '/generate'
         }
-        _version = params.get('voxcpmtts_version', 'v2')
+        _version = params.get('voxcpm_version', 'v2')
         text=data_item['text'].strip()
         ref_wav,ref_text=self.get_ref_wav(data_item)
         if _version == 'v2':
