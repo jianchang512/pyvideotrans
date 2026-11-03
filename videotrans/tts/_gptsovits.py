@@ -58,6 +58,8 @@ class GPTSoVITS(BaseTTS):
         if not data.get('refer_wav_path'):
             return tr("Must pass in the reference audio file path")+f"\n{self.api_url=}"
 
+        # 语速 -96% 至 -100% 时 speed 为 0，按 0.1（即 -90%）发送，GPT-SoVITS 会用它做除数
+        speed = max(self.speed, 0.1)
         if params.get('gptsovits_isv2',''):
             data = {
                 "text": data_item['text'],
@@ -65,14 +67,14 @@ class GPTSoVITS(BaseTTS):
                 "ref_audio_path": data.get('refer_wav_path', ''),
                 "prompt_text": data.get('prompt_text', ''),
                 "prompt_lang": data.get('prompt_language', ''),
-                "speed_factor": self.speed,
+                "speed_factor": speed,
                 "text_split_method":"cut5"
             }
 
             if not self.api_url.endswith('/tts'):
                 self.api_url += '/tts'
         else:
-            data['speed']=1.0+self.speed
+            data['speed']=speed
         logger.debug(f'GPT-SoVITS 当前需要发送的配音数据:{data=}\n{self.api_url=}')
         # 克隆声音
         try:
