@@ -6,7 +6,7 @@ from PySide6.QtWidgets import QFileDialog, QPushButton, QPlainTextEdit
 
 from videotrans.configure.config import tr, params
 from videotrans.configure import constants
-from videotrans.util._srt_parse import ass_to_srt
+from videotrans.util._srt_parse import ass_to_srt, read_srt_text
 
 
 # 拖入的本地文件的路径，用 QUrl.toLocalFile() 取：text() 中的 URL 只去掉 file:/// 时，macOS/Linux 的路径会丢失开头的 /，
@@ -121,8 +121,7 @@ class Textedit(QPlainTextEdit):
     def dropEvent(self, event):
         files = _local_files(event.mimeData())
         filepath = files[0] if files else event.mimeData().text().replace('file:///', '')
-        with open(filepath, 'r', encoding="utf-8") as f:
-            self.setPlainText(f.read().strip())
+        self.setPlainText(read_srt_text(filepath).strip())
 
     def setText(self, filepath=None):
         try:

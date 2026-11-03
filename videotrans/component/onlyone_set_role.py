@@ -17,7 +17,7 @@ from PySide6.QtWidgets import (
 from videotrans.component._danspmixin import DanspMixin
 from videotrans.configure.config import ROOT_DIR, tr, app_cfg, settings, logger
 from videotrans.configure import config
-from videotrans.util._srt_parse import ms_to_time_string, get_subtitle_from_srt
+from videotrans.util._srt_parse import ms_to_time_string, get_subtitle_from_srt, read_srt_text
 from videotrans.util.help_misc import show_error
 
 
@@ -44,7 +44,7 @@ class SpeakerAssignmentDialog(QDialog,DanspMixin):
             sour_pt = Path(app_cfg.onlyone_source_sub)
             if sour_pt.as_posix() and not sour_pt.samefile(Path(self.target_sub)):
                 try:
-                    self.source_srtstring = sour_pt.read_text(encoding="utf-8-sig")
+                    self.source_srtstring = read_srt_text(sour_pt)
                     self.source_srt_list_dict = get_subtitle_from_srt(app_cfg.onlyone_source_sub)
                 except Exception:
                     self.source_srtstring = ""

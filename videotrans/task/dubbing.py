@@ -78,9 +78,10 @@ class DubbingSrt(BaseTask):
 
 
     def dubbing(self):
+        from videotrans.util.help_srt import read_srt_text
         # 多角色配音直接使用 subs，无需读取导入的字幕文件，它可能不是 UTF-8 编码
         if not self.subs:
-            self.signal(text=Path(self.cfg.target_sub).read_text(encoding='utf-8'), type="replace")
+            self.signal(text=read_srt_text(self.cfg.target_sub), type="replace")
         self._tts()
 
     # 字幕可能是gbk gb2312 等编码，需转为 utf-8
@@ -118,9 +119,9 @@ class DubbingSrt(BaseTask):
             # 4. 创建一个带名字的临时文件来保存转换后的内容
             #    - mode='w'：以文本模式写入
             #    - encoding='utf-8'：指定写入编码为 UTF-8
-            #    - suffix='.txt'：让临时文件保持 .txt 扩展名
+            #    - suffix：保持原文件的扩展名，srt 文件转换后仍按字幕解析，不会被当作 txt 文本整体配音
             #    - delete=False：保证在 with 语句块结束后，文件不会被自动删除
-            with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8', suffix='.txt', delete=False) as temp_file:
+            with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8', suffix=Path(file_path).suffix, delete=False) as temp_file:
                 temp_file.write(original_content)
                 temp_file_path = temp_file.name
             return temp_file_path
@@ -136,7 +137,7 @@ class DubbingSrt(BaseTask):
         return file
 
     def _tts(self) -> None:
-        from videotrans.util.help_srt import get_subtitle_from_srt
+        from videotrans.util.help_srt import get_subtitle_from_srt, read_srt_text
         from videotrans.util.help_ffmpeg import runffmpeg
         queue_tts = []
         # 获取字幕
@@ -165,7 +166,7 @@ class DubbingSrt(BaseTask):
             tmp_name = self.cfg.target_wav if self.cfg.target_wav.endswith(
                 '.mp3') else f"{self.cfg.cache_folder}/{self.cfg.noextname}-edgetts-txt-{time.time()}.mp3"
             if self.cfg.target_sub.endswith('.txt'):
-                text = Path(self.cfg.target_sub).read_text(encoding='utf-8')
+                text = read_srt_text(self.cfg.target_sub)
             else:
                 text = ""
                 self.queue_tts = get_subtitle_from_srt(self.cfg.target_sub)
@@ -190,7 +191,7 @@ class DubbingSrt(BaseTask):
 
         # 如果配音文件是txt，则转为单条字幕形式，以便统一处理
         if self.cfg.target_sub.endswith('.txt'):
-            text = Path(self.cfg.target_sub).read_text(encoding='utf-8').strip()
+            text = read_srt_text(self.cfg.target_sub).strip()
             text = re.sub(r"(\s*?\r?\n\s*?){2,}", "\n", text, flags=re.I | re.S)
             text = re.sub(r"(\s*?\r?\n\s*?)", "\n", text, flags=re.I | re.S)
 
