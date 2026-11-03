@@ -85,7 +85,7 @@ class PrepareMixin:
             self._split_audio_byraw()
         if self.cfg.vocal and Path(self.cfg.vocal).exists():
             self.clone_ref = self.cfg.vocal
-        # 从字幕中提取说话人 start
+
         # 如果存在原始字幕，并且字幕第一条开头存在说话人标识，提取出说话人
         if vail_file(self.cfg.source_sub):
             try:
@@ -117,8 +117,25 @@ class PrepareMixin:
                             f.write(txt)
             except Exception as e:
                 logger.exception(f'从原始字幕中提取出说话人并删除标识后保存失败:{e}',exc_info=True)
-        # 从字幕中提取说话人 end
-            
+
+        
+        
+        # 如果目标文件夹中存在 shibie.wav，则转为 ac 1 16000 wav 并直接使用其作为 语音识别音频，以及 克隆音频
+        if not self.is_audio_trans and Path(f"{self.cfg.target_dir}/shibie.wav").exists():
+            runffmpeg([
+                "-y",
+                "-i",
+                f"{self.cfg.target_dir}/shibie.wav",
+                "-ac",
+                "1",
+                "-ar",
+                "16000",
+                "-c:a",
+                "pcm_s16le",
+                self.cfg.source_wav
+            ])
+            self.clone_ref=self.cfg.source_wav
+        
         self.signal(text=tr('endfenliyinpin'))
         logger.debug(f'[预处理阶段结束耗时]:{time.time()-_st}s')
 
