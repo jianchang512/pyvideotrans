@@ -110,6 +110,9 @@ class TransCreate(
         if self.cfg.ext in constants.AUDIO_EXITS:
             self.is_audio_trans = True
             self.should_hebing = False
+            self.cfg.recogn2pass=False
+            self.cfg.video_autorate=False
+            self.cfg.subtitle_type=0
 
         if not self.cfg.target_language_code:
             self.should_dubbing = False
@@ -121,9 +124,11 @@ class TransCreate(
         if self.cfg.app_mode == 'tiqu':
             self.cfg.enable_diariz = False
             self.should_dubbing = False
+            
         self.should_recogn2 = self.cfg.recogn2pass and self.should_dubbing and self.cfg.subtitle_type < 3 and (
                 self.cfg.source_language_code != self.cfg.target_language_code)
 
+            
         self.cfg.vocal = f"{self.cfg.cache_folder}/vocal.wav"
         self.cfg.instrument = f"{self.cfg.cache_folder}/instrument.wav"
 
