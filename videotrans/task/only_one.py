@@ -85,7 +85,9 @@ class Worker(QThread):
         except Exception as e:
             logger.exception(f'说话人识别阶段出错，跳过:{e}', exc_info=True)
         if self._exit(): return
-
+        if not Path(trk.cfg.source_sub).exists():
+            return self._raise(RuntimeError(f'Origin subtitle file not exists: {trk.cfg.source_sub=}'), trk, f"Origin subtitle file not exists")
+            
         self._post(text=read_srt_text(trk.cfg.source_sub), type='replace_subtitle')
 
         if float(settings.get('countdown_sec', 0)) > 0:
@@ -109,6 +111,8 @@ class Worker(QThread):
 
         # 需要配音时
         if trk.should_dubbing:
+            if not Path(trk.cfg.target_sub).exists():
+                return self._raise(RuntimeError(f'Target Subtitle File Not Exists: {trk.cfg.target_sub=}'), trk, f"Target subtitle file not exists when dubbing")
             self._post(text=read_srt_text(trk.cfg.target_sub), type='replace_subtitle')
             try:
                 if float(settings.get('countdown_sec', 0)) > 0:
