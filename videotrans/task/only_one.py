@@ -52,10 +52,16 @@ class Worker(QThread):
         # 原始语言字幕文件
         if vail_file(app_cfg.onlyone_importsrtfile):
             Path(trk.cfg.source_sub).parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(app_cfg.onlyone_importsrtfile, trk.cfg.source_sub)
+            try:
+                shutil.copy2(app_cfg.onlyone_importsrtfile, trk.cfg.source_sub)
+            except shutil.SameFileError:
+                pass
         if vail_file(app_cfg.onlyone_importsrtfile_target):
             Path(trk.cfg.source_sub).parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(app_cfg.onlyone_importsrtfile_target, trk.cfg.target_sub)
+            try:
+                shutil.copy2(app_cfg.onlyone_importsrtfile_target, trk.cfg.target_sub)
+            except shutil.SameFileError:
+                pass
 
         app_cfg.onlyone_source_sub = trk.cfg.source_sub
         app_cfg.onlyone_source_wav = trk.cfg.source_wav
