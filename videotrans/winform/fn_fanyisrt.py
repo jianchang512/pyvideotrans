@@ -5,6 +5,7 @@ def openwin():
     from videotrans.translator import LANGNAME_DICT
     from videotrans.winform import get_cls
     from videotrans.util.help_misc import show_glossary_editor, show_error, set_proxy
+    from videotrans.util.help_srt import read_srt_text
     from typing import List
     from videotrans.task.taskcfg import InputFile
     import json
@@ -166,7 +167,7 @@ def openwin():
         th.uito.connect(feed)
         th.start()
         if len(video_list) == 1:
-            winobj.fanyi_sourcetext.setPlainText(Path(video_list[0]['name']).read_text(encoding='utf-8-sig'))
+            winobj.fanyi_sourcetext.setPlainText(read_srt_text(video_list[0]['name']))
             winobj.exportsrt.setVisible(True)
             winobj.fanyi_targettext.setReadOnly(False)
         else:

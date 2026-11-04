@@ -166,24 +166,25 @@ def srt_str_to_listdict(srt_string: str) -> List[SrtItem]:
     return srt_list
 
 
-def get_subtitle_from_srt(srtfile, *, is_file=True) -> List[SrtItem]:
-    def _readfile(file):
-        content = ""
-        try:
-            with open(file, 'r', encoding='utf-8-sig') as f:
-                content = f.read().strip()
-        except UnicodeDecodeError:
-            try:
-                with open(file, 'r', encoding='gbk') as f:
-                    content = f.read().strip()
-            except UnicodeDecodeError as e:
-                logger.exception(e, exc_info=True)
-                raise
-        except BaseException:
-            raise
-        return content
+def read_srt_text(file) -> str:
+    """读取 srt 或 txt 字幕文件的文本
 
-    content = _readfile(srtfile) if is_file else srtfile.strip()
+    导入的字幕文件可能是 GBK 编码（简体中文 Windows 记事本的 ANSI），先按 UTF-8（可带 BOM）读取，失败再按 GBK 读取
+    """
+    try:
+        with open(file, 'r', encoding='utf-8-sig') as f:
+            return f.read()
+    except UnicodeDecodeError:
+        try:
+            with open(file, 'r', encoding='gbk') as f:
+                return f.read()
+        except UnicodeDecodeError as e:
+            logger.exception(e, exc_info=True)
+            raise
+
+
+def get_subtitle_from_srt(srtfile, *, is_file=True) -> List[SrtItem]:
+    content = read_srt_text(srtfile).strip() if is_file else srtfile.strip()
 
     if len(content) < 1:
         raise RuntimeError(

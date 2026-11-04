@@ -6,7 +6,7 @@ from PySide6.QtCore import QTimer
 
 from videotrans.configure.config import tr, settings, params, app_cfg, ROOT_DIR, TEMP_ROOT
 from videotrans.configure import constants
-from videotrans.util._srt_parse import ass_to_srt
+from videotrans.util._srt_parse import ass_to_srt, read_srt_text
 from videotrans.util.help_misc import  set_proxy, set_process
 
 
@@ -127,9 +127,9 @@ class WinActionBaseFileMixin:
         self.main.subtitle_area.clear()
         _content=""
         if app_cfg.onlyone_importsrtfile:
-            _content+=f'\n[{tr("Import spoken SRT")}]\n'+Path(app_cfg.onlyone_importsrtfile).read_text(encoding='utf-8')
+            _content+=f'\n[{tr("Import spoken SRT")}]\n'+read_srt_text(app_cfg.onlyone_importsrtfile)
         if app_cfg.onlyone_importsrtfile_target:
-            _content+=f'\n[{tr("Import target language SRT")}]\n'+Path(app_cfg.onlyone_importsrtfile_target).read_text(encoding='utf-8')
+            _content+=f'\n[{tr("Import target language SRT")}]\n'+read_srt_text(app_cfg.onlyone_importsrtfile_target)
         if _content:
             self.main.subtitle_area.insertPlainText(_content)
         

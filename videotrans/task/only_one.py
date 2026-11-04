@@ -16,6 +16,7 @@ from videotrans.task.taskcfg import TaskCfgVTT, SignMsg, InputFile
 from videotrans.task.trans_create import TransCreate
 from videotrans.util._ffmpeg_runner import runffmpeg
 from videotrans.util.help_misc import get_recogn_type, get_tanslate_type, get_tts_type
+from videotrans.util.help_srt import read_srt_text
 from videotrans.util.tools import vail_file
 
 
@@ -85,7 +86,7 @@ class Worker(QThread):
             logger.exception(f'说话人识别阶段出错，跳过:{e}', exc_info=True)
         if self._exit(): return
 
-        self._post(text=Path(trk.cfg.source_sub).read_text(encoding='utf-8'), type='replace_subtitle')
+        self._post(text=read_srt_text(trk.cfg.source_sub), type='replace_subtitle')
 
         if float(settings.get('countdown_sec', 0)) > 0:
             app_cfg.set_countdown(86400)
@@ -108,7 +109,7 @@ class Worker(QThread):
 
         # 需要配音时
         if trk.should_dubbing:
-            self._post(text=Path(trk.cfg.target_sub).read_text(encoding='utf-8'), type='replace_subtitle')
+            self._post(text=read_srt_text(trk.cfg.target_sub), type='replace_subtitle')
             try:
                 if float(settings.get('countdown_sec', 0)) > 0:
                     app_cfg.set_countdown(86400)

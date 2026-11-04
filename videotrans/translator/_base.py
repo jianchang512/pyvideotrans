@@ -165,7 +165,7 @@ class BaseTrans(BaseCon):
                 result = self._item_task(srt_str.strip())
                 if not result.strip():
                     raise TranslateSrtError(tr("Translate result is empty")+f'\n{self=}')
-                self._set_cache(it, result)
+                self._set_cache(srt_str, result)
 
             self.signal(text=result, type='subtitle')
             raws_list.extend(get_subtitle_from_srt(result, is_file=False))
@@ -199,7 +199,7 @@ class BaseTrans(BaseCon):
 
     def _get_key(self, it) -> str:
         it=serial(it)
-        return get_md5(f'{self.translate_type}-{self.api_url}-{self.aisendsrt}-{self.model_name}-{self.source_code}-{self.target_code}-{it}-{settings.get("ultimate_mini")}')
+        return get_md5(f'{self.translate_type}-{self.api_url}-{self.aisendsrt}-{self.model_name}-{self.source_code}-{self.target_code}-{it}-{settings.get("ultimate_mini")}-{settings.get("aitrans_context")}')
     
     def _set_context(self,target_code=None):
         if not self.text_list: return '' # LLM  error correction or LLM re-segment
