@@ -1,5 +1,5 @@
-VERSION = "v4.17"
-VERSION_NUM = 417
+VERSION = "v4.18"
+VERSION_NUM = 418
 
 import importlib
 import inspect
