@@ -1193,12 +1193,13 @@
   "Select the model for dubbing":"Select the model for dubbing",
   "Insufficient permissions":"Insufficient permissions. Please run this software again with administrator privileges.",
   "OOMerror":"The underlying memory allocation failed, possibly due to insufficient memory. Please try a different voice-over model.",
-  "toggle audiocpp model":"You can switch between different models in the Menu - TTS Settings - Audio.cpp",
+  "toggle audiocpp model":"You can switch between different models in the Menu - TTS Settings - Audio.cpp Current Model:{}",
   "use admin run":"When using this voice-over channel, it is recommended to run this software with administrator privileges; otherwise, you may encounter a permission insufficient error.",
   "fishaudio update role tips": "This software only updates the audio I created in my own audio library. By default, it includes the top 100 audio tracks from fish.audio, ranked by score for each language. If you need other audio tracks, please click the help button.",
   "Update my voice": "Update my voice",
   "Continue dubbing with this TTS channel anyway?": "Continue dubbing with this TTS channel anyway?",
   "Selected": "Selected",
-  "Not-Selected": "Not-Selected"
+  "Not-Selected": "Not-Selected",
+  "Text alignment failed": "Text alignment failed. Please try setting the pronunciation language to [Auto Detect] and try again"
 
 }

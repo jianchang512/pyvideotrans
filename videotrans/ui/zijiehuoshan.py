@@ -117,7 +117,7 @@ class Ui_zijiehuoshan(QDialog):
         self.zijiehuoshan_key.setText(str(params.get("zijiehuoshan_key",'')))
         if params.get("zijiehuoshan_model",'') in allmodels:
             self.zijiehuoshan_model.setCurrentText(params.get("zijiehuoshan_model",''))
-        self.reasoning_effort.setCurrentText(params.get("zijiehuoshan_reasoning_effort","default"))
+        self.reasoning_effort.setCurrentText(params.get("zijiehuoshan_reasoning_effort","none"))
         self.huoshan_max_token.setText(str(params.get('zijiehuoshan_max_token',32768)))
 
     def retranslateUi(self, form):

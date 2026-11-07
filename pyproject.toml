@@ -332,6 +332,6 @@ pynini = [
 ]
 
 
-chatterbox-tts = { url = "https://github.com/resemble-ai/chatterbox/archive/refs/heads/master.tar.gz" }
+#chatterbox-tts = { url = "https://github.com/resemble-ai/chatterbox/archive/refs/heads/master.tar.gz" }
 
 

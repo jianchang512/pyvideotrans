@@ -131,7 +131,7 @@ class Ui_xiaomi(QDialog):
         self.edit_allmodels.setPlainText(allmodels_str)
         self.xiaomi_key.setText(str(params.get("xiaomi_key",'')))
         self.model.setCurrentText(params.get("xiaomi_model",''))
-        self.reasoning_effort.setCurrentText(params.get("xiaomi_reasoning_effort","default"))
+        self.reasoning_effort.setCurrentText(params.get("xiaomi_reasoning_effort","none"))
         
         self.xiaomi_max_token.setText(str(params.get("xiaomi_max_token",'18192')))
 

@@ -141,7 +141,7 @@ class Ui_chatgpt(QDialog):
         self.chatgpt_api.setText(str(params.get("chatgpt_api",'')))
         self.chatgpt_model.setCurrentText(str(params.get("chatgpt_model",'')))
         self.chatgpt_max_token.setText(str(params.get("chatgpt_max_token",'')))
-        self.reasoning_effort.setCurrentText(str(params.get("chatgpt_reasoning_effort","default")))
+        self.reasoning_effort.setCurrentText(str(params.get("chatgpt_reasoning_effort","none")))
         
     def retranslateUi(self, form):
         form.setWindowTitle(tr("OpenAI API & Compatible AI"))

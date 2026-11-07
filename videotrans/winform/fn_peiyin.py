@@ -290,7 +290,7 @@ def openwin():
         if isinstance(_rs,str):
             return show_error(_rs)
         if type==tts.AUDIOCPP_TTS:
-            winobj.loglabel.setText(tr('toggle audiocpp model'))
+            winobj.loglabel.setText(tr('toggle audiocpp model',params.get("audiocpp_model")))
 
     # 合成语言变化，需要获取到角色
     def hecheng_language_fun(t):

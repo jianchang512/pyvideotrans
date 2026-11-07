@@ -262,10 +262,10 @@ SPACY_URL_MS = 'https://modelscope.cn/models/himyworld/videotrans/resolve/master
 SPACY_URL_HF = 'https://github.com/explosion/spacy-pkuseg/releases/download/v0.0.26/spacy_ontonotes.zip'
 
 # audio.cpp
-AUDIO_CPP_MAC_MS="https://modelscope.cn/models/himyworld/videotrans/resolve/master/audio-v0.9.1-bin-macos-arm64-metal.zip"
-AUDIO_CPP_WIN_MS="https://modelscope.cn/models/himyworld/videotrans/resolve/master/audio-v0.9.1-bin-windows-x64-cuda12.4.zip"
-AUDIO_CPP_MAC_HF="https://huggingface.co/mortimerme/repocollect/resolve/main/audio-v0.9.1-bin-macos-arm64-metal.zip?download=true"
-AUDIO_CPP_WIN_HF="https://huggingface.co/mortimerme/repocollect/resolve/main/audio-v0.9.1-bin-windows-x64-cuda12.4.zip?download=true"
+AUDIO_CPP_MAC_MS="https://modelscope.cn/models/himyworld/videotrans/resolve/master/audio-v0.9.4-bin-macos-arm64-metal.zip"
+AUDIO_CPP_WIN_MS="https://modelscope.cn/models/himyworld/videotrans/resolve/master/audio-v0.9.4-bin-windows-x64-cuda12.4.zip"
+AUDIO_CPP_MAC_HF="https://huggingface.co/mortimerme/repocollect/resolve/main/audio-v0.9.4-bin-macos-arm64-metal.zip?download=true"
+AUDIO_CPP_WIN_HF="https://huggingface.co/mortimerme/repocollect/resolve/main/audio-v0.9.4-bin-windows-x64-cuda12.4.zip?download=true"
 AUDIO_CPP_MELBAND="https://huggingface.co/audio-cpp/audio.cpp-gguf/resolve/main/Mel-Band-RoFormer-GGUF/mel-band-roformer-q8_0.gguf?download=true"
 ZIPENHANCER_HF="https://huggingface.co/mortimerme/repocollect/resolve/main/zipenhancer.safetensors?download=true"
 

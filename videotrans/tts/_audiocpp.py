@@ -14,6 +14,7 @@ from videotrans.util.help_misc import vail_file, is_connect_hf, exec_audiocpp
 from videotrans.util.help_down import down_zip, down_file_from_hf, down_audiocpp_bin
 
 
+
 @dataclass(repr=False)
 class AudiocppTTS(BaseTTS):
     jsondata: Dict[str, Any] = field(default_factory=dict, repr=False)
@@ -23,15 +24,16 @@ class AudiocppTTS(BaseTTS):
         super().__post_init__()
         self.roledict = get_f5tts_role()
         self.jsondata = json.loads(Path(f'{ROOT_DIR}/videotrans/voicejson/audiocpp.json').read_text(encoding='utf-8'))
+        self.model_name=params.get("audiocpp_model")
 
     def _download(self):
         self.signal(text=f'Checking audio.cpp cli exists ')
         down_audiocpp_bin(process_callback=self._process_callback)
 
-        self.gguf_obj = self.jsondata.get(params.get("audiocpp_model"))
+        self.gguf_obj = self.jsondata.get(self.model_name)
 
         if not self.gguf_obj or not self.gguf_obj.get('file') or not self.gguf_obj.get('url'):
-            raise RuntimeError(f'error:{params.get("audiocpp_model")=},{self.gguf_obj=}')
+            raise RuntimeError(f'error:{self.model_name=},{self.gguf_obj=}')
 
         gguf_file = f"{ROOT_DIR}/audio_cpp/models/{self.gguf_obj.get('file')}"
 
@@ -100,6 +102,11 @@ class AudiocppTTS(BaseTTS):
                     if self.gguf_obj.get("is_seed"):
                         cmd.append("--request-option")
                         cmd.append("seed=24")
+                    if self.model_name=='ming3_tts':
+                        cmd.extend([
+                            "--request-option",f'reference_text="{ref_text}"',
+                            "--request-option",f'language={lang}'
+                        ])
 
                     cmd.extend(extra_cmd + ["--out", os.path.normpath(item['filename'] + '-24k.wav')])
 

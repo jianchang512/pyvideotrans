@@ -128,7 +128,7 @@ class Ui_zhipuai(QDialog):
         self.zhipuai_key.setText(str(params.get("zhipuai_key",'')))
         self.zhipuai_model.setCurrentText(params.get("zhipuai_model",''))
         self.max_token.setText(str(params.get("zhipuai_max_token",'')))
-        self.reasoning_effort.setCurrentText(params.get("zhipuai_reasoning_effort","default"))
+        self.reasoning_effort.setCurrentText(params.get("zhipuai_reasoning_effort","none"))
         
         
     def retranslateUi(self, form):

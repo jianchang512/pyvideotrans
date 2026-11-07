@@ -28,9 +28,12 @@ class Gemini(BaseTrans):
         client=None
         try:
             model = params.get("gemini_model","gemini-flash-latest")
-            generation_config={}
-            if model.startswith('gemini-3') or model.startswith('gemini-4') or model.startswith('gemini-flash'):
-                generation_config["thinking_level"]="high"
+            effort = params.get("gemini_reasoning_effort","default")
+            generation_config={
+                "max_output_tokens":int(params.get("gemini_max_token",16384))
+            }
+            if effort!='default':
+                generation_config["thinking_level"]=effort
             
             api_keys=params.get('gemini_key', '').strip().split(',')
             api_key = api_keys[random.randint(0,len(api_keys)-1)]

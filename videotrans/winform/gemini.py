@@ -16,6 +16,7 @@ def openwin():
         key = winobj.gemini_key.text().strip()
         params["gemini_key"] = key
         params["gemini_model"] = winobj.model.currentText().strip()
+        params["gemini_reasoning_effort"] = winobj.reasoning_effort.currentText().strip()
         params["gemini_max_token"] = winobj.gemini_max_token.text()
         params["gemini_ttsmodel"] = winobj.ttsmodel.currentText().strip()
         params.save()
@@ -29,6 +30,7 @@ def openwin():
         params["gemini_model"] = winobj.model.currentText().strip()
         params["gemini_max_token"] = winobj.gemini_max_token.text()
         params["gemini_ttsmodel"] = winobj.ttsmodel.currentText().strip()
+        params["gemini_reasoning_effort"] = winobj.reasoning_effort.currentText().strip()
         params.save()
         winobj.close()
 
