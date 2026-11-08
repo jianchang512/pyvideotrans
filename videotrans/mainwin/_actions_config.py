@@ -2,7 +2,7 @@ from pathlib import Path
 
 from videotrans import translator, recognition, tts
 from videotrans.configure import constants
-from videotrans.configure.config import tr, settings, app_cfg
+from videotrans.configure.config import tr, settings, app_cfg, params
 from videotrans.recognition import ALLOW_CHANGE_MODEL, get_model_by_type
 from videotrans.util.help_misc import show_error
 from videotrans.util.help_role import role_menu
@@ -81,7 +81,7 @@ class WinActionConfigMixin:
         if isinstance(_rs,str):
             return show_error(_rs)
         if type==tts.AUDIOCPP_TTS:
-            self.main.show_tips.setText(tr('toggle audiocpp model'))
+            self.main.show_tips.setText(tr('toggle audiocpp model',params.get('audiocpp_model')))
 
     def set_voice_role(self, t):
         role = self.main.voice_role.currentText()

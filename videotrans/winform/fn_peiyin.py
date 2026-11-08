@@ -75,6 +75,7 @@ def openwin():
                 winobj.hecheng_plaintext.clear()
         elif d['type'] in ['logs']:
             winobj.loglabel.setText(f"{percent} {d['text']}")
+            winobj.hecheng_startbtn.setText(f"{tr('running')} {percent} {d['text'][:60]}...")
         elif d['type'] == 'jindu':
             percent = d['text']
         elif d['type'] == 'end':

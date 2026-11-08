@@ -635,6 +635,6 @@ def exec_audiocpp(cmd):
         if "mem_buffer" in f"{stdout}{stderr}":
             raise RuntimeError(tr('OOMerror'))
         raise RuntimeError(
-            f'{proc.returncode=}\n{stdout=}\n{stderr=}\n{cmd=}'
+            f'{proc.returncode=},{stderr=}\n{stdout=}\n{cmd=}'
         )
     return True

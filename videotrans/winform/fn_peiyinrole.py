@@ -72,6 +72,7 @@ def openwin():
         elif d['type'] in ['logs', 'succeed']:
             if d['text']:
                 winobj.loglabel.setText(d['text'])
+                winobj.hecheng_startbtn.setText(f"{tr('running')}  {d['text'][:60]}...")
         elif d['type'] == 'jindu':
             winobj.hecheng_startbtn.setText(d['text'])
         elif d['type'] == 'end':
