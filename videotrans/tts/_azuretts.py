@@ -1,6 +1,8 @@
 import logging
 from dataclasses import dataclass
 from typing import Union, List, Dict
+import xml.etree.ElementTree as ET
+from xml.sax.saxutils import escape
 import azure.cognitiveservices.speech as speechsdk
 from azure.core.exceptions import ResourceExistsError, ClientAuthenticationError, ResourceNotFoundError
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
@@ -9,6 +11,20 @@ from videotrans.configure.excepts import NO_RETRY_EXCEPT, StopTask
 from videotrans.tts._base import BaseTTS
 from videotrans.util.help_misc import vail_file
 from videotrans.util.help_role import get_azure_rolelist
+
+
+def _ssml_text(text: str) -> str:
+    """放入 SSML 的字幕文本
+
+    SSML 是 XML，字幕中的 & 或 <（如 Tom & Jerry、a < b）会使 SSML 无法解析，该行没有配音，此时将 &、< 和 > 转义为实体。
+    能按 XML 解析的文本原样发送，其中的实体（如 &amp;）和 SSML 标签（如 <break time="500ms"/>）照旧有效。
+    """
+    try:
+        # 与 SSML 相同的元素嵌套（<voice> 内两层 <prosody>），并声明 mstts 前缀，如 <mstts:express-as>
+        ET.fromstring(f"<speak xmlns:mstts='http://www.w3.org/2001/mstts'><voice><prosody><prosody>{text}</prosody></prosody></voice></speak>")
+    except ET.ParseError:
+        return escape(text)
+    return text
 
 
 @dataclass(repr=False)
@@ -28,7 +44,7 @@ class AzureTTS(BaseTTS):
 
             audio_config = speechsdk.audio.AudioOutputConfig(use_default_speaker=True, filename=filename)
             speech_synthesizer = speechsdk.SpeechSynthesizer(speech_config=speech_config, audio_config=audio_config)
-            text_xml = f"<prosody rate='{self.rate}' pitch='{self.pitch}' volume='{self.volume}'>{data_item['text']}</prosody>"
+            text_xml = f"<prosody rate='{self.rate}' pitch='{self.pitch}' volume='{self.volume}'>{_ssml_text(data_item['text'])}</prosody>"
             ssml = """<speak version='1.0' xml:lang='{}' xmlns='http://www.w3.org/2001/10/synthesis' xmlns:mstts='http://www.w3.org/2001/mstts'>
                                     <voice name='{}'>
                                         <prosody rate="{}" pitch='{}'  volume='{}'>
