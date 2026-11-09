@@ -26,7 +26,7 @@ class RecognMixin:
         if vail_file(self.cfg.source_sub):
             self.source_srt_list = get_subtitle_from_srt(self.cfg.source_sub, is_file=True)
             if Path(self.cfg.target_dir + "/speaker.json").exists():
-                shutil.copy2(self.cfg.target_dir + "/speaker.json", self.cfg.cache_folder + "/speaker.json")
+                shutil.copy2(self.cfg.target_dir + "/speaker.json", os.path.normpath(self.cfg.cache_folder + "/speaker.json"))
             self._recogn_succeed()
             return
 
@@ -122,7 +122,7 @@ class RecognMixin:
     def _recogn_succeed(self) -> None:
         self.precent += 5
         if self.cfg.app_mode == 'tiqu' and not self.should_trans:
-            shutil.copy2(self.cfg.source_sub,  f"{self.cfg.target_dir}/{self.cfg.noextname}.srt")
+            shutil.copy2(self.cfg.source_sub,  os.path.normpath(f"{self.cfg.target_dir}/{self.cfg.noextname}.srt"))
         self.signal(text=tr('endtiquzimu'))
 
     # 二次识别固定使用 faster-whisper 渠道
@@ -182,7 +182,7 @@ class RecognMixin:
             if not vail_file(outsrt_file):
                 logger.error(f'二次识别配音文件失败，原因未知')
                 return
-            shutil.copy2(outsrt_file, self.cfg.target_sub)
+            shutil.copy2(outsrt_file, os.path.normpath(self.cfg.target_sub))
             self.signal(text='STT 2 pass end')
             logger.debug('二次识别成功完成')
         except Exception as e:

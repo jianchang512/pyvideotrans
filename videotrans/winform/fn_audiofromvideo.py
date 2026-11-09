@@ -89,7 +89,7 @@ def openwin():
             return
         winobj.videourls = []
         for it in fnames:
-            winobj.videourls.append(it.replace('\\', '/'))
+            winobj.videourls.append(it)
 
         if len(winobj.videourls) > 0:
             params['last_opendir'] = os.path.dirname(fnames[0])

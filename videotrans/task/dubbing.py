@@ -1,4 +1,4 @@
-import tempfile
+import tempfile,os
 import datetime
 import re
 import shutil
@@ -262,7 +262,7 @@ class DubbingSrt(BaseTask):
                     text = re.sub(r'["\'*?\\/|:<>\r\n\t]+', '', it['text'], flags=re.I | re.S)
                     name = f'{outname}/{it["start_time"]}-{text[:60]}.wav'
                     try:
-                        shutil.copy2(it['filename'], name)
+                        shutil.copy2(it['filename'], os.path.normpath(name))
                     except shutil.SameFileError:
                         # 忽略同文件错误
                         pass
@@ -303,7 +303,7 @@ class DubbingSrt(BaseTask):
                 volume = 1 + float(volume.replace('%', '')) / 100
                 tmp_name = self.cfg.cache_folder + f'/volume-{volume}-{Path(self.cfg.target_wav).name}'
                 runffmpeg(['-y', '-i', self.cfg.target_wav, '-af', f"volume={volume}", tmp_name])
-                shutil.copy2(tmp_name, self.cfg.target_wav)
+                shutil.copy2(tmp_name, os.path.normpath(self.cfg.target_wav))
             except Exception as e:
                 logger.exception(f'配音完毕后调节音量失败 {e}', exc_info=True)
 

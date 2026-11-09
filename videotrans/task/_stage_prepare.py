@@ -1,4 +1,4 @@
-import time,re,json,shutil
+import time,re,json,shutil,os
 from pathlib import Path
 
 from videotrans.configure.config import tr, app_cfg, settings, logger
@@ -37,11 +37,11 @@ class PrepareMixin:
 
         raw_vocal = f"{self.cfg.target_dir}/vocal.wav"
         if vail_file(raw_vocal):
-            shutil.copy2(raw_vocal, self.cfg.vocal)
+            shutil.copy2(raw_vocal, os.path.normpath(self.cfg.vocal))
 
         raw_instrument = f"{self.cfg.target_dir}/instrument.wav"
         if vail_file(raw_instrument):
-            shutil.copy2(raw_instrument, self.cfg.instrument)
+            shutil.copy2(raw_instrument, os.path.normpath(self.cfg.instrument))
 
         if not self.is_audio_trans and self.cfg.app_mode != 'tiqu':
             app_cfg.queue_novice[self.uuid] = 'ing'
@@ -251,8 +251,8 @@ class PrepareMixin:
                     self.cfg.source_wav
                 ]
                 runffmpeg(cmd)
-                shutil.copy2(self.cfg.vocal, f'{self.cfg.target_dir}/vocal.wav')
-                shutil.copy2(self.cfg.instrument, f'{self.cfg.target_dir}/instrument.wav')
+                shutil.copy2(self.cfg.vocal, os.path.normpath(f'{self.cfg.target_dir}/vocal.wav'))
+                shutil.copy2(self.cfg.instrument, os.path.normpath(f'{self.cfg.target_dir}/instrument.wav'))
         except Exception as e:
             logger.exception(f'人声背景声分离失败，静默跳过 {e}', exc_info=True)
 

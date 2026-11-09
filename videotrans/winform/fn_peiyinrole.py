@@ -312,7 +312,6 @@ def openwin():
         if not fname:
             return
 
-        fname = fname.replace('\\', '/')
         params['last_opendir'] = os.path.dirname(fname)
         params.save()
         if fname.endswith(".ass"):

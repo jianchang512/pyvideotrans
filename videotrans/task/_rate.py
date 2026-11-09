@@ -783,7 +783,7 @@ class SpeedRate:
             try:
                 os.replace(temp_wav, self.target_audio)
             except Exception:
-                shutil.copy2(temp_wav, self.target_audio)
+                shutil.copy2(temp_wav, os.path.normpath(self.target_audio))
                 
             logger.debug(f"音频片段连接后，实际时长 {_last_len}ms, 已生成到: {self.target_audio}")
         else:

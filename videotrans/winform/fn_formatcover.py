@@ -36,7 +36,7 @@ def openwin():
                     raw_path = Path(v)
                     # 格式不变直接复制
                     if raw_path.suffix.lower() == self.target_format:
-                        shutil.copy2(v, RESULT_DIR + f'/{raw_path.name}')
+                        shutil.copy2(v, os.path.normpath(RESULT_DIR + f'/{raw_path.name}'))
                         continue
                     runffmpeg([
                         "-y",
@@ -80,7 +80,7 @@ def openwin():
             return
         winobj.videourls = []
         for it in fnames:
-            winobj.videourls.append(it.replace('\\', '/'))
+            winobj.videourls.append(it)
 
         if len(winobj.videourls) > 0:
             params['last_opendir'] = os.path.dirname(fnames[0])

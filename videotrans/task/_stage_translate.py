@@ -1,4 +1,4 @@
-import copy
+import copy,os
 import shutil
 import time
 from pathlib import Path
@@ -53,7 +53,7 @@ class TranslateMixin:
 
 
         if self.cfg.app_mode=='tiqu':
-            shutil.copy2(self.cfg.source_sub, f"{self.cfg.target_dir}/{self.cfg.noextname}-{self.cfg.source_language_code}.srt")
+            shutil.copy2(self.cfg.source_sub, os.path.normpath(f"{self.cfg.target_dir}/{self.cfg.noextname}-{self.cfg.source_language_code}.srt"))
             if self.cfg.output_srt > 0 and self.cfg.source_language_code != self.cfg.target_language_code:
                 _source_srt_len = len(rawsrt)
                 for i, it in enumerate(target_srt):
@@ -70,7 +70,7 @@ class TranslateMixin:
                 p = Path(self.cfg.name)
                 _output_file = f'{p.parent.as_posix()}/{p.stem}.srt'
             if not Path(_output_file).exists():
-                shutil.copy2(self.cfg.target_sub, _output_file)
+                shutil.copy2(self.cfg.target_sub, os.path.normpath(_output_file))
 
         self.signal(text=tr('endtrans'))
         logger.debug(f'[字幕翻译阶段结束耗时]:{time.time()-_st}s')

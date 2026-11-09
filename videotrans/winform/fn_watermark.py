@@ -148,14 +148,15 @@ def openwin():
                                                     params['last_opendir'],
                                                     f"Video files({format_str})")
             if len(fname) > 0:
-                winobj.videourls = [it.replace('file:///', '').replace('\\', '/') for it in fname]
+                winobj.videourls = fname.copy()
                 winobj.videourl.setText(",".join(winobj.videourls))
         else:
             fname, _ = QFileDialog.getOpenFileName(winobj, "Select Image",
                                                    params['last_opendir'],
                                                    "files(*.png *.jpg *.jpeg *.gif)")
             if fname:
-                winobj.pngurl.setText(fname.replace('file:///', '').replace('\\', '/'))
+                winobj.pngurl.setText(fname)
+
 
     def start():
         winobj.has_done = False

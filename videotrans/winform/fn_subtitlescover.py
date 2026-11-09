@@ -35,7 +35,7 @@ def openwin():
                     raw_path = Path(v)
                     # 格式不变直接复制
                     if raw_path.suffix.lower() == self.target_format:
-                        shutil.copy2(v, RESULT_DIR + f'/{raw_path.name}')
+                        shutil.copy2(v, os.path.normpath(RESULT_DIR + f'/{raw_path.name}'))
                         continue
                     if self.target_format == 'txt':
                         if raw_path.name.lower().endswith('.srt'):
@@ -99,7 +99,7 @@ def openwin():
             return
         winobj.subtitlefiles = []
         for it in fnames:
-            winobj.subtitlefiles.append(it.replace('\\', '/'))
+            winobj.subtitlefiles.append(it)
 
         if len(winobj.subtitlefiles) > 0:
             params['last_opendir'] = os.path.dirname(fnames[0])

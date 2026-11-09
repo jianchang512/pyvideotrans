@@ -82,7 +82,7 @@ class AudioMixin:
                              # amix 加 normalize=0 防止默认归一化把人声音量减半；alimiter 防止音量提升后爆音
                              "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2:normalize=0,alimiter=limit=0.95:level=0", '-ac', '2', "-b:a", "128k",
                              '-c:a', 'pcm_s16le', os.path.basename(tmp_out_wav)], cmd_dir=self.cfg.cache_folder)
-            shutil.copy2(tmp_out_wav, self.cfg.target_wav)
+            shutil.copy2(tmp_out_wav, os.path.normpath(self.cfg.target_wav))
         except Exception as e:
             logger.exception(f'重新嵌入分离的背景音失败 {e}', exc_info=True)
     

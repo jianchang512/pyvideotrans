@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import shutil
+import shutil,os
 import subprocess
 import traceback, time,platform
 from videotrans.configure.config import ROOT_DIR, logger, settings
@@ -138,8 +138,8 @@ def _use_audiocpp(*, input_file, vocal_file, instr_file,logs_file=None):
         # )
         exec_audiocpp(cmd)
         logger.debug(f"[分离人声和背景声完成] audio.cpp :{cmd=}，耗时 {time.time() - start}s")
-        shutil.move(f'{_parent}/vocals.wav',vocal_file)
-        shutil.move(f'{_parent}/instrumental.wav',instr_file)
+        shutil.move(f'{_parent}/vocals.wav',os.path.normpath(vocal_file))
+        shutil.move(f'{_parent}/instrumental.wav',os.path.normpath(instr_file))
         return True,None
     except Exception as e:
         logger.exception(f"[人声背景声分离失败] audio.cpp {e}", exc_info=True)

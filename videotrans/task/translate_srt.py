@@ -1,4 +1,4 @@
-import copy
+import copy,os
 import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -32,7 +32,7 @@ class TranslateSrt(BaseTask):
         self.cfg.source_sub = self.cfg.name
         # 如果原始和结果文件相同，为避免覆盖，提前复制
         if self.cfg.name == self.cfg.target_sub:
-            shutil.copy2(self.cfg.source_sub, f"{self.cfg.source_sub}-OriginalSubtitles.srt")
+            shutil.copy2(self.cfg.source_sub, os.path.normpath(f"{self.cfg.source_sub}-OriginalSubtitles.srt"))
         self.signal(text=tr("Transation subtitles"))
         Path(self.cfg.target_dir).mkdir(parents=True, exist_ok=True)
         if self.cfg.cache_folder:

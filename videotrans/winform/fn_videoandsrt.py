@@ -156,7 +156,7 @@ def openwin():
     def get_file():
         dirname = QFileDialog.getExistingDirectory(winobj, tr('selectsavedir'),
                                                    params.get('last_opendir',''))
-        winobj.folder.setText(dirname.replace('\\', '/'))
+        winobj.folder.setText(dirname)
 
     def start():
         winobj.has_done = False

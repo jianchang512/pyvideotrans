@@ -64,7 +64,7 @@ class AlignMixin:
                     tmp_name = self.cfg.cache_folder + f'/volume-{volume}-{Path(self.cfg.target_wav).name}'
                     runffmpeg(['-y', '-i', os.path.basename(self.cfg.target_wav), '-af', f"volume={volume}",
                                      os.path.basename(tmp_name)], cmd_dir=self.cfg.cache_folder)
-                    shutil.copy2(tmp_name, self.cfg.target_wav)
+                    shutil.copy2(tmp_name, os.path.normpath(self.cfg.target_wav))
             except Exception as e:
                 logger.exception(f'配音后调节音量失败，静默跳过 {e}', exc_info=True)
 

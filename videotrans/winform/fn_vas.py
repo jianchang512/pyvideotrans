@@ -1,5 +1,5 @@
 # 视频 字幕 音频 合并
-import glob
+import glob,os
 import platform
 import subprocess
 import sys
@@ -301,7 +301,7 @@ def openwin():
                     if not self.srt:
                         self.post(type='ok', text=self.file)
                         self.is_end = True
-                        shutil.copy2(audiovideoend_mp4, self.file)
+                        shutil.copy2(audiovideoend_mp4, os.path.normpath(self.file))
                         return
                     self.video = audiovideoend_mp4
                 # 软字幕
@@ -436,11 +436,11 @@ def openwin():
             return
 
         if type == 'video':
-            winobj.ysphb_videoinput.setText(fname.replace('\\', '/'))
+            winobj.ysphb_videoinput.setText(fname)
         if type == 'wav':
-            winobj.ysphb_wavinput.setText(fname.replace('\\', '/'))
+            winobj.ysphb_wavinput.setText(fname)
         if type == 'srt':
-            winobj.ysphb_srtinput.setText(fname.replace('\\', '/'))
+            winobj.ysphb_srtinput.setText(fname)
         params['last_opendir'] = os.path.dirname(fname)
         params.save()
 
