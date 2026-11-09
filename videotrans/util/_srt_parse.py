@@ -166,21 +166,36 @@ def srt_str_to_listdict(srt_string: str) -> List[SrtItem]:
     return srt_list
 
 
+def subtitle_file_encoding(file):
+    """字幕文件（srt、txt、ass）可能是 UTF-8、GBK 或带 BOM 的 UTF-16、UTF-32 编码
+
+    有 UTF-16 或 UTF-32 的 BOM 时按其读取；否则先按 UTF-8（可带 BOM）读取，失败再按 GBK 读取
+    """
+    with open(file, "rb") as f:
+        raw = f.read()
+    # UTF-32 LE 的 BOM 以 UTF-16 LE 的 BOM 开头，需先判断
+    if raw.startswith((codecs.BOM_UTF32_LE, codecs.BOM_UTF32_BE)):
+        return "utf-32"
+    if raw.startswith((codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE)):
+        return "utf-16"
+    try:
+        raw.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        return "gbk"
+    return "utf-8-sig"
+
+
 def read_srt_text(file) -> str:
     """读取 srt 或 txt 字幕文件的文本
 
-    导入的字幕文件可能是 GBK 编码（简体中文 Windows 记事本的 ANSI），先按 UTF-8（可带 BOM）读取，失败再按 GBK 读取
+    导入的字幕文件可能是 GBK 编码（简体中文 Windows 记事本的 ANSI），或带 BOM 的 UTF-16、UTF-32 编码（如 Windows PowerShell 5.1 用 > 或 Out-File 保存的文件），按 subtitle_file_encoding 判断的编码读取
     """
     try:
-        with open(file, 'r', encoding='utf-8-sig') as f:
+        with open(file, 'r', encoding=subtitle_file_encoding(file)) as f:
             return f.read()
-    except UnicodeDecodeError:
-        try:
-            with open(file, 'r', encoding='gbk') as f:
-                return f.read()
-        except UnicodeDecodeError as e:
-            logger.exception(e, exc_info=True)
-            raise
+    except UnicodeDecodeError as e:
+        logger.exception(e, exc_info=True)
+        raise
 
 
 def get_subtitle_from_srt(srtfile, *, is_file=True) -> List[SrtItem]:
@@ -263,30 +278,12 @@ def ass_to_srt(src_ass_file, dst_srt_file, get_speaker=False):
 
         return f"{h:02d}:{m:02d}:{s:02d},{ms:03d}"
 
-    def ass_file_encoding(file):
-        """ASS 文件可能是 UTF-8、GBK 或带 BOM 的 UTF-16、UTF-32 编码
-
-        有 UTF-16 或 UTF-32 的 BOM 时按其读取；否则与 get_subtitle_from_srt 相同，先按 UTF-8（可带 BOM）读取，失败再按 GBK 读取
-        """
-        with open(file, "rb") as f:
-            raw = f.read()
-        # UTF-32 LE 的 BOM 以 UTF-16 LE 的 BOM 开头，需先判断
-        if raw.startswith((codecs.BOM_UTF32_LE, codecs.BOM_UTF32_BE)):
-            return "utf-32"
-        if raw.startswith((codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE)):
-            return "utf-16"
-        try:
-            raw.decode("utf-8-sig")
-        except UnicodeDecodeError:
-            return "gbk"
-        return "utf-8-sig"
-
     events = []
     in_events_section = False
     format_cols = []
 
     # 1. 解析 ASS 文件
-    with open(src_ass_file, "r", encoding=ass_file_encoding(src_ass_file)) as f:
+    with open(src_ass_file, "r", encoding=subtitle_file_encoding(src_ass_file)) as f:
         for line in f:
             line = line.strip()
             if not line:

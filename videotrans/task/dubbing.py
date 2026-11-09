@@ -1,4 +1,5 @@
 import tempfile,os
+import codecs
 import datetime
 import re
 import shutil
@@ -105,6 +106,9 @@ class DubbingSrt(BaseTask):
                     raw_data = f.read()
             except FileNotFoundError:
                 raise
+            # 带 BOM 的 UTF-16、UTF-32 文件无需转换，之后 read_srt_text 或 get_subtitle_from_srt 会按其编码读取，按 latin-1 解码则是乱码
+            if raw_data.startswith((codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE, codecs.BOM_UTF32_LE, codecs.BOM_UTF32_BE)):
+                return file_path
             for encoding in fallback_encodings:
                 try:
                     original_content = raw_data.decode(encoding)

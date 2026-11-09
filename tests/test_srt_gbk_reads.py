@@ -1,3 +1,4 @@
+import codecs
 import dataclasses
 import tempfile
 from pathlib import Path
@@ -47,8 +48,19 @@ STAGES = [
     "assembling",
     "task_done",
 ]
-# GBK is "ANSI" in Notepad on Simplified Chinese Windows
-ENCODINGS = ["utf-8", "gbk"]
+# GBK is "ANSI" in Notepad on Simplified Chinese Windows. Python's utf-16 and
+# utf-32 codecs write a BOM, little-endian here, as > and Out-File of Windows
+# PowerShell 5.1 do for UTF-16
+ENCODINGS = ["utf-8", "gbk", "utf-16", "utf-32"]
+# UTF-16 and UTF-32 with a BOM, in either byte order: Windows PowerShell 5.1
+# saves the other forms with Set-Content -Encoding BigEndianUnicode, UTF32 or
+# BigEndianUTF32
+BOMS = {
+    "utf-16-le": codecs.BOM_UTF16_LE,
+    "utf-16-be": codecs.BOM_UTF16_BE,
+    "utf-32-le": codecs.BOM_UTF32_LE,
+    "utf-32-be": codecs.BOM_UTF32_BE,
+}
 SRT_OR_TXT = pytest.mark.parametrize(
     "name, text", [("talk.srt", SRT), ("talk.txt", TEXT)], ids=["srt", "txt"]
 )
@@ -81,6 +93,15 @@ def _save(tmp_path, name, text, encoding):
     return path.as_posix()
 
 
+def _save_with_bom(tmp_path, name, text, encoding):
+    """Saves the text as Windows PowerShell 5.1 does: with the BOM of the
+    encoding, and with CRLF line ends"""
+    path = tmp_path / "subs" / name
+    path.parent.mkdir(exist_ok=True)
+    path.write_bytes(BOMS[encoding] + text.replace("\n", "\r\n").encode(encoding))
+    return path.as_posix()
+
+
 @pytest.mark.parametrize("encoding", ["utf-8", "utf-8-sig", "gbk"])
 @SRT_OR_TXT
 def test_read_srt_text_reads_utf8_and_gbk(tmp_path, name, text, encoding):
@@ -91,6 +112,24 @@ def test_read_srt_text_reads_utf8_and_gbk(tmp_path, name, text, encoding):
 @pytest.mark.parametrize("encoding", ["utf-8", "utf-8-sig", "gbk"])
 def test_get_subtitle_from_srt_reads_utf8_and_gbk(tmp_path, encoding):
     srt = _save(tmp_path, "talk.srt", SRT, encoding)
+
+    subtitles = help_srt.get_subtitle_from_srt(srt)
+
+    assert [(it["start_time"], it["end_time"], it["text"]) for it in subtitles] == LINES
+
+
+# the text comes without the BOM and with "\n" line ends, as from the files above
+@pytest.mark.parametrize("encoding", BOMS)
+@SRT_OR_TXT
+def test_read_srt_text_reads_utf16_and_utf32(tmp_path, name, text, encoding):
+    file = _save_with_bom(tmp_path, name, text, encoding)
+
+    assert help_srt.read_srt_text(file) == text
+
+
+@pytest.mark.parametrize("encoding", BOMS)
+def test_get_subtitle_from_srt_reads_utf16_and_utf32(tmp_path, encoding):
+    srt = _save_with_bom(tmp_path, "talk.srt", SRT, encoding)
 
     subtitles = help_srt.get_subtitle_from_srt(srt)
 
@@ -252,7 +291,7 @@ def _dub(monkeypatch, file, tts_type, remove_silent_mid=False):
 
 
 # also with a file saved as UTF-8 with a BOM, whose BOM isn't dubbed as U+FEFF
-@pytest.mark.parametrize("encoding", ["utf-8", "utf-8-sig", "gbk"])
+@pytest.mark.parametrize("encoding", ["utf-8", "utf-8-sig", "gbk", "utf-16", "utf-32"])
 @SRT_OR_TXT
 def test_dubbing_sends_each_line(monkeypatch, tmp_path, name, text, encoding):
     queued = []
@@ -273,7 +312,7 @@ def test_dubbing_sends_each_line(monkeypatch, tmp_path, name, text, encoding):
 
 # with "Remove In-between Silences" checked and auto speed-up unchecked, Edge-TTS
 # dubs an .srt file in one request; a .txt file always
-@pytest.mark.parametrize("encoding", ["utf-8", "utf-8-sig", "gbk"])
+@pytest.mark.parametrize("encoding", ["utf-8", "utf-8-sig", "gbk", "utf-16", "utf-32"])
 @SRT_OR_TXT
 def test_edge_tts_sends_the_texts_in_one_request(
     monkeypatch, tmp_path, name, text, encoding
@@ -295,8 +334,9 @@ def test_edge_tts_sends_the_texts_in_one_request(
 
     replaced = _dub(monkeypatch, file, tts.EDGE_TTS, remove_silent_mid=True)
 
-    # only the texts, without the line numbers and times of the .srt file, and
-    # without U+FEFF from the BOM of a file saved as UTF-8 with a BOM
+    # only the texts, without the line numbers and times of the .srt file,
+    # without U+FEFF from the BOM of a file saved as UTF-8 with a BOM, and not
+    # the bytes of a UTF-16 or UTF-32 file decoded as Latin-1
     assert sent == [TEXT]
     assert replaced == [text]
 

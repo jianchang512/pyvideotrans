@@ -31,10 +31,12 @@ LINES = ["Hello there, friend.", "你好，世界"]
 
 # the file chosen in the window and the target format. ffmpeg converts the
 # file, and for TXT converts an .ass file to SRT first; TXT from an .srt file
-# is read without ffmpeg, and a file of the target format is meant to be copied
+# is read without ffmpeg, with get_subtitle_from_srt(), and a file of the
+# target format is meant to be copied
 CONVERSIONS = [
     pytest.param("talk.srt", SRT, "ass", id="srt-to-ass"),
     pytest.param("talk.srt", SRT, "vtt", id="srt-to-vtt"),
+    pytest.param("talk.srt", SRT, "txt", id="srt-to-txt"),
     pytest.param("talk.ass", ASS, "srt", id="ass-to-srt"),
     pytest.param("talk.ass", ASS, "vtt", id="ass-to-vtt"),
     pytest.param("talk.ass", ASS, "txt", id="ass-to-txt"),
