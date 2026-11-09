@@ -35,6 +35,7 @@ MENU_CFG_TRANS = [
     ("opper", 'Opper', None),
     ("runcrate", 'Runcrate', None),
     ("cloudgpu", 'CloudGPU', None),
+    ("standardcompute", 'Standard Compute', None),
 
     ("deepl", "DeepL API", None),
     ("deeplx", "DeepLX API", None),

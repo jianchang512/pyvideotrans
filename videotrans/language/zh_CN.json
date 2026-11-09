@@ -1019,6 +1019,7 @@
   "OpenAI-compatible gateway, one Key for GPT, Claude, Gemini, DeepSeek, Qwen": "兼容 OpenAI 的模型中转，一个 Key 调用 GPT、Claude、Gemini、DeepSeek、Qwen",
   "GPU cloud with an OpenAI-compatible API, open models are free with your GitHub account": "GPU 云，提供兼容 OpenAI 的 API，用 GitHub 账号即可免费使用开源模型",
   "a GPU cloud with an OpenAI-compatible model API (DeepSeek, Kimi, GLM, MiniMax)": "GPU 云，提供兼容 OpenAI 的模型 API（DeepSeek、Kimi、GLM、MiniMax）",
+  "OpenAI-compatible API, the StandardCompute model routes each request to the cheapest enabled model that can handle it, with automatic fallback": "兼容 OpenAI 的 API，选用 StandardCompute 模型时，每个请求会自动路由到能胜任且成本最低的已启用模型，并支持自动回退",
   "Get API Key": "获取 API Key",
 
     "common_head": "通用设置",
