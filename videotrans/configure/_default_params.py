@@ -327,6 +327,15 @@ _default["cloudgpu"] = {
     "cloudgpu_max_token": 16384,
 }
 
+from videotrans.configure.constants import STANDARDCOMPUTE_MODELS
+
+_default["standardcompute"] = {
+    # standardcompute.com
+    "standardcompute_key": "",
+    "standardcompute_model": STANDARDCOMPUTE_MODELS.split(',')[0],
+    "standardcompute_max_token": 16384,
+}
+
 
 # todo: 根据 name 返回配置dict???
 # 返回默认值

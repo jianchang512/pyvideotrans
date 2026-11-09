@@ -49,6 +49,7 @@ OPPER_INDEX = 30
 RUNCRATE_INDEX = 31
 CLOUDGPU_INDEX = 32
 WORLDROUTER_INDEX = 33
+STANDARDCOMPUTE_INDEX = 34
 
 # AI 翻译渠道
 AI_TRANS_CHANNELS = [
@@ -74,7 +75,8 @@ AI_TRANS_CHANNELS = [
     OPPER_INDEX,
     RUNCRATE_INDEX,
     CLOUDGPU_INDEX,
-    WORLDROUTER_INDEX
+    WORLDROUTER_INDEX,
+    STANDARDCOMPUTE_INDEX
 ]
 # 渠道id对应的设置窗口和sk键名,
 # key_name: 存储 SK 或 api url的键，通过 app_cfg.params 调用，如果不存在该值，在使用时报错未填写
@@ -215,6 +217,10 @@ ID_NAME_DICT = {
                                        key_name="worldrouter_key",
                                        win="worldrouter",
                                        imp="._worldrouter"),
+    STANDARDCOMPUTE_INDEX: ChannelProvider("Standard Compute",
+                                           key_name="standardcompute_key",
+                                           win="standardcompute",
+                                           imp="._standardcompute"),
 }
 
 # 菜单--工具/选项--高级选项-通用设置--LLM纠错所用渠道的显示数据
