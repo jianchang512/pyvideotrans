@@ -794,7 +794,8 @@ class SpeakerAssignmentDialog(QDialog,DanspMixin):
             text = text_item.text().strip() if text_item else data['text'].strip()
             if not text:continue
 
-            srt_str_list.append(f'{len(srt_str_list)+1}\n{start_raw} --> {end_raw}\n{text}')
+            line_num = len(srt_str_list) + 1
+            srt_str_list.append(f'{line_num}\n{start_raw} --> {end_raw}\n{text}')
 
             # 角色保存逻辑
             role = data.get('role', '')
@@ -803,7 +804,8 @@ class SpeakerAssignmentDialog(QDialog,DanspMixin):
                 role = self.speakers.get(spk, '')
 
             if role:
-                app_cfg.line_roles[str(data["line"])] = role
+                # 按保存后的行号记录，配音时按此行号查找角色；清空文本的行已删除，其后各行的行号会前移
+                app_cfg.line_roles[str(line_num)] = role
 
         try:
             Path(self.target_sub).write_text("\n\n".join(srt_str_list), encoding="utf-8")
