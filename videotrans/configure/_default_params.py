@@ -165,7 +165,7 @@ _default = {
         # 小米 mimo
         "xiaomi_key": "",
         "xiaomi_ttsmodel": XIAOMI_TTS_MODELS.split(',')[0],
-        "xiaomi_reasoning_effort":"default",
+        "xiaomi_reasoning_effort":"none",
         "xiaomi_model": XIAOMI_MODELS.split(',')[0],
         "xiaomi_max_token": 16384,
     },
