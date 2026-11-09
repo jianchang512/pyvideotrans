@@ -1,6 +1,8 @@
 import re
 import shutil
+import stat
 import subprocess
+from array import array
 from unittest.mock import MagicMock
 
 import pytest
@@ -57,6 +59,22 @@ def streams(file):
     return re.findall(r"Stream #0:\d+.*?: (Video|Audio|Subtitle)", info)
 
 
+def duration_ms(file):
+    """The length of a file in ms, as ffmpeg shows it"""
+    info = ffmpeg("-i", file).stderr.decode("utf-8", "replace")
+    h, m, s = re.search(r"Duration: (\d+):(\d+):([\d.]+)", info).groups()
+    return round((int(h) * 3600 + int(m) * 60 + float(s)) * 1000)
+
+
+RATE = 8000
+
+
+def sound(file):
+    """The sound track of a file, as RATE mono samples a second"""
+    pcm = ffmpeg("-i", file, "-ac", "1", "-ar", f"{RATE}", "-f", "s16le", "-")
+    return array("h", pcm.stdout)
+
+
 @pytest.fixture
 def window(monkeypatch, tmp_path):
     """Stands in for the window, whose widgets hold what the user chose"""
@@ -71,14 +89,16 @@ def window(monkeypatch, tmp_path):
     monkeypatch.setattr(config, "TEMP_DIR", temp.as_posix())
     # the software encoder, without probing for hardware encoders
     monkeypatch.setattr(config.app_cfg, "video_codec", "libx264")
-    # Start reads the streams and the length of the video with ffprobe: here
-    # ffmpeg lists the streams, and the videos below are 3 s long
+    # Start reads the streams and the length of the video with ffprobe, and the
+    # merge reads the length of the audio file: here ffmpeg lists the streams
+    # and gives the length of the audio, and the videos below are 3 s long
     monkeypatch.setattr(
         _ffprobe,
         "get_video_info",
         lambda file: {"streams_audio": streams(file).count("Audio")},
     )
     monkeypatch.setattr(_ffprobe, "get_video_duration", lambda file: 3000)
+    monkeypatch.setattr(_ffprobe, "get_audio_time", duration_ms)
     # instead of a dialog, an error shown by the window fails the test
     monkeypatch.setattr(help_misc, "show_error", pytest.fail)
     fn_vas.openwin()
@@ -129,3 +149,62 @@ def test_hard_subtitles_are_burned_into_the_video(window, tmp_path, kinds):
     gray = ["-f", "rawvideo", "-pix_fmt", "gray", "-"]
     frame = ffmpeg("-ss", "1", "-i", result, "-frames:v", "1", *gray).stdout
     assert max(frame) > 0
+
+
+@needs_ffmpeg
+@pytest.mark.parametrize(
+    "codec, read_only",
+    [
+        pytest.param("pcm_s16le", False, id="16-bit"),
+        # pydub converts 24-bit audio to 32-bit audio when it reads it
+        pytest.param("pcm_s24le", False, id="24-bit"),
+        # on a read-only share, for example
+        pytest.param("pcm_s16le", True, id="read-only"),
+    ],
+)
+def test_a_shorter_wav_is_padded_without_changing_the_file(
+    window, tmp_path, request, codec, read_only
+):
+    # a black 3 s video without audio, and a 1 s tone as the new sound track
+    video = tmp_path / "talk.mp4"
+    black = ["-f", "lavfi", "-i", "color=c=black:s=320x240:d=3"]
+    assert ffmpeg(*black, video.as_posix()).returncode == 0
+    wav = tmp_path / "voice.wav"
+    tone = ["-f", "lavfi", "-i", "sine=duration=1", "-ac", "2", "-ar", "48000"]
+    assert ffmpeg(*tone, "-c:a", codec, wav.as_posix()).returncode == 0
+    chosen = wav.read_bytes()
+    if read_only:
+        wav.chmod(stat.S_IREAD)
+        # so that pytest can remove it afterwards
+        request.addfinalizer(lambda: wav.chmod(stat.S_IREAD | stat.S_IWRITE))
+    # the user chose the video and the audio file, no subtitles
+    window.ysphb_videoinput.text.return_value = video.as_posix()
+    window.ysphb_wavinput.text.return_value = wav.as_posix()
+    window.ysphb_srtinput.text.return_value = ""
+    window.ysphb_issoft.isChecked.return_value = False
+    window.language.currentText.return_value = "English"
+    # checked once an audio file is chosen; this video has no sound to keep
+    window.ysphb_replace.isChecked.return_value = True
+    window.ysphb_maxlen.text.return_value = "16"
+    # Truncate, for audio longer than the video
+    window.audio_process.currentIndex.return_value = 0
+    window.remain_hr.isChecked.return_value = False
+
+    start = window.ysphb_startbtn.clicked.connect.call_args.args[0]
+    start()
+
+    # the chosen file is left as it was
+    assert wav.read_bytes() == chosen
+    # the window shows the merged video
+    results = list((tmp_path / "home" / "vas").glob("*.mp4"))
+    assert len(results) == 1
+    result = results[0].as_posix()
+    window.ysphb_out.setText.assert_called_once_with(result)
+    assert streams(result) == ["Video", "Audio"]
+    # its sound track is 3 s long: the tone, then silence up to the end of the
+    # video. AAC blurs the start and the end of the tone, so the checks leave
+    # out 0.1 s next to them
+    track = sound(result)
+    assert len(track) / RATE == pytest.approx(3, abs=0.05)
+    assert max(map(abs, track[RATE // 10 : RATE * 9 // 10])) > 1000
+    assert max(map(abs, track[RATE * 11 // 10 :])) < 50
