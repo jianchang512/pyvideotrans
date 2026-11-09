@@ -1,3 +1,4 @@
+import html
 import logging
 import re
 import urllib
@@ -52,4 +53,5 @@ class Google(BaseTrans):
         re_result = re.search(r'<div\s+class=\Wresult-container\W>([^<]+?)<', response.text)
         if not re_result or len(re_result.groups()) < 1:
             raise TranslateSrtError(f'{tr("Google Translate error")}\n{response.text=}')
-        return re_result.group(1)
+        # 结果页中的译文经过 HTML 转义，如 ' 为 &#39;，" 为 &quot;，& 为 &amp;，需还原
+        return html.unescape(re_result.group(1))

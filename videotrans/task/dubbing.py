@@ -273,12 +273,9 @@ class DubbingSrt(BaseTask):
         if self.ignore_align: return
         from videotrans.util.help_ffmpeg import runffmpeg
         # 如果文件夹内存在同名，则添加时间后缀
-        # 只有一行时也需如此：保存到原位置时，字幕旁可能有同名的原音频
         self.cfg.target_wav = self._free_name(self.cfg.target_wav)
-        # 只有一行
-        if len(self.queue_tts) < 2:
-            if len(self.queue_tts) == 1 and self.cfg.tts_type != tts.EDGE_TTS:
-                runffmpeg(['-y', '-i', self.queue_tts[0]['filename'], '-b:a', '128k', self.cfg.target_wav])
+        # 只有一条字幕时同样对齐：Edge-TTS 逐条配音的结果在此保存，开始时间、自动加速和音量也与多条字幕一致
+        if not self.queue_tts:
             return
 
         if self.cfg.voice_autorate:
