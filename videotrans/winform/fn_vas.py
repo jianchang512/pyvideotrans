@@ -359,7 +359,8 @@ def openwin():
                         "-map",
                         "[v_out]",
                         "-map",
-                        "0:a",
+                        # 末尾的 ? 使没有音轨的视频也能嵌入硬字幕，有音轨时照常保留
+                        "0:a?",
                         '-c:v',
                         vcodec]
                     cmd += enc_args + [self.file]
