@@ -14,6 +14,13 @@ origin_end='▁'
 comma_punc.add(origin_end)
 
 
+def _continues_number(prev_word: str, word: str) -> bool:
+    return bool(
+        re.match(r'.*?\d\.?$', prev_word.strip())
+        and re.match(r'^\.?\d', word.strip())
+    )
+
+
 # --- 辅助函数：将毫秒转换为 SRT 标准时间格式 HH:MM:SS,mmm ---
 def format_srt_time(ms_time):
     ms_time = int(ms_time)
@@ -99,12 +106,17 @@ def _resegment2(texts: List[Dict[str, Any]], language: str, max_speech_ms: int, 
         split = False
 
         # 超过最大允许时长，强制在此切分
-        if new_duration >= (max_speech_ms+_rc) or gap_ms >= 100:
+        forced_split = new_duration >= (max_speech_ms+_rc)
+        if forced_split or gap_ms >= 100:
             split = True
         # 按标点
         elif has_end_punc or has_comma_punc:  
             split = True
-        
+
+        # 上个结尾是小数或数字，当前开头是数字，不断句
+        if split and not forced_split and _continues_number(prev_text, word['word']):
+            split = False
+
         if split:
             raw_chunks.append(cur_chunk)
             cur_chunk = [word]
@@ -268,7 +280,7 @@ def _resegment(texts, language='en', max_speech_ms=6000, min_speech_ms=3000, log
             if not should_split and current_duration >= min_speech_ms and has_punc(prev_word_text, end_punc | _comma_punc):
                 should_split = True
             # 上个结尾是小数或数字，当前开头是数字，不断句
-            if should_split and re.match(r'.*?\d\.?$',prev_word_text.strip()) and re.match(r'^\.?\d',w_text.strip()):
+            if should_split and _continues_number(prev_word_text, w_text):
                 should_split=False
         if should_split:
             # 结算当前子句
