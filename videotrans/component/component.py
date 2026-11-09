@@ -31,7 +31,7 @@ class DropButton(QPushButton):
                                                  filter=f"Video/Audio files({format_str})")
         namestr = []
         for (i, it) in enumerate(fnames):
-            fnames[i] = it.replace('\\', '/')
+            # fnames[i] = it.replace('\\', '/')
             namestr.append(os.path.basename(it))
             params['last_opendir']=os.path.dirname(it)
         self.filelist = fnames
@@ -72,7 +72,7 @@ class PeiyinDropButton(QPushButton):
         namestr = []
         filelist=[]
         for (i, it) in enumerate(fnames):
-            it= it.replace('\\', '/')
+            # it= it.replace('\\', '/')
             if it.endswith('.ass'):
                 new_it=it[:-4]+"-from-ass.srt"
                 ass_to_srt(it,new_it)
@@ -131,31 +131,3 @@ class Textedit(QPlainTextEdit):
             with open(filepath, 'r', encoding="GBK") as f:
                 self.setPlainText(f.read().strip())
 
-
-class TextGetdir(QPlainTextEdit):
-    def __init__(self):
-        super(TextGetdir, self).__init__()
-        self.setAcceptDrops(True)
-
-    def dragEnterEvent(self, event):
-        files = event.mimeData().text().split("\n")
-        result = []
-        for it in files:
-            if it != "" and it.split('.')[-1] in constants.VIDEO_EXTS + constants.AUDIO_EXITS:
-                result.append(it)
-        if len(result) > 0:
-            event.acceptProposedAction()
-        else:
-            event.ignore()
-
-    def dropEvent(self, event):
-        files = event.mimeData().text().split("\n")
-        result = []
-        if self.toPlainText().strip():
-            result = self.toPlainText().strip().split("\n")
-        for it in files:
-            if it != "" and it.split('.')[-1] in constants.VIDEO_EXTS + constants.AUDIO_EXITS:
-                f = it.replace('file:///', '')
-                if f not in result:
-                    result.append(f)
-        self.setPlainText("\n".join(result))

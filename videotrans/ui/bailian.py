@@ -163,7 +163,7 @@ class Ui_bailian(QDialog):
 
         self.bailian_model.setCurrentText(params.get("bailian_model"))
         self.bailian_ttsmodel.setCurrentText(params.get("bailian_ttsmodel",''))
-        self.reasoning_effort.setCurrentText(params.get("bailian_reasoning_effort",'default'))
+        self.reasoning_effort.setCurrentText(params.get("bailian_reasoning_effort",'none'))
 
     def retranslateUi(self, form):
         form.setWindowTitle(tr("Ali-Bailian"))

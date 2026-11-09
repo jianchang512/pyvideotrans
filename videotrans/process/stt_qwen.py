@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import List
 
 
-from videotrans.configure.config import logger
+from videotrans.configure.config import logger,tr
 
 
 def qwen3asr_fun(
@@ -102,6 +102,7 @@ def qwen3asr_fun(
                 word_lists=word_lists,
                 timestamp_token_id=aligner_model.config.timestamp_token_id,
             )[0]
+            if not timestamps:continue
 
                     
             offset = it['start_time'] / 1000.0
@@ -120,7 +121,8 @@ def qwen3asr_fun(
             
             if i == len(srts) - 1:
                 texts[0]['end'] = float(timestamps[-1]['end_time']) + offset
-
+        if not texts[0]['words']:
+            return False,f'{tr("Text alignment failed")}'
         srts = _resegment(texts, "zh" if language in ["Chinese", "Cantonese", "Japanese", "Korean"] else 'en', max_speech_ms, min_speech_ms, logs_file)
         return srts, None
     except BaseException as e:

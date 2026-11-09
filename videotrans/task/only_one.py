@@ -1,5 +1,5 @@
 # 执行单个视频翻译任务时 暂停等待
-import json, re
+import json, re,os
 import time, shutil
 import traceback
 from pathlib import Path
@@ -53,13 +53,13 @@ class Worker(QThread):
         if vail_file(app_cfg.onlyone_importsrtfile):
             Path(trk.cfg.source_sub).parent.mkdir(parents=True, exist_ok=True)
             try:
-                shutil.copy2(app_cfg.onlyone_importsrtfile, trk.cfg.source_sub)
+                shutil.copy2(app_cfg.onlyone_importsrtfile, os.path.normpath(trk.cfg.source_sub))
             except shutil.SameFileError:
                 pass
         if vail_file(app_cfg.onlyone_importsrtfile_target):
             Path(trk.cfg.source_sub).parent.mkdir(parents=True, exist_ok=True)
             try:
-                shutil.copy2(app_cfg.onlyone_importsrtfile_target, trk.cfg.target_sub)
+                shutil.copy2(app_cfg.onlyone_importsrtfile_target, os.path.normpath(trk.cfg.target_sub))
             except shutil.SameFileError:
                 pass
 

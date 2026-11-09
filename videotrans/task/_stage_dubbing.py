@@ -1,4 +1,4 @@
-import copy
+import copy,os
 import re
 import shutil
 import time
@@ -123,6 +123,6 @@ class DubbingMixin:
                 if outname:
                     text = re.sub(r'["\'*?\\/|:<>\r\n\t]+', '', it['text'], flags=re.I | re.S)
                     name = f'{outname}/{it["line"]}-{text[:60]}.wav'
-                    shutil.copy2(it['filename'], name)
+                    shutil.copy2(it['filename'], os.path.normpath(name))
         
         self._save_srt_target(self.queue_tts, self.cfg.target_sub)

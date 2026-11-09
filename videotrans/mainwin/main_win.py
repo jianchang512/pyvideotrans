@@ -12,7 +12,7 @@ from PySide6.QtWidgets import QMainWindow
 from videotrans.configure import config
 config.init_run()
 from videotrans.configure.config import tr, params, settings, app_cfg, logger, ROOT_DIR,REDUBB_STATUS_FILE, IPC_STATUS_FILE
-from videotrans import VERSION
+from videotrans import VERSION, tts
 from videotrans.util.checkgpu import AiLoaderThread
 from videotrans.ui.en import Ui_MainWindow
 from videotrans.task.simple_runnable_qt import run_in_threadpool
@@ -203,8 +203,8 @@ class MainWindow(BindSignalsMixin, LifecycleMixin, QMainWindow, Ui_MainWindow):
 
     def changeEvent(self, event):
         super().changeEvent(event)
-        if event.type() == QEvent.Type.ActivationChange:
-            if self.isActiveWindow():
-                self.aisendsrt.setChecked(settings.get('aisendsrt'))
-    
-    
+        if event.type() == QEvent.Type.ActivationChange and self.isActiveWindow():
+            self.aisendsrt.setChecked(settings.get('aisendsrt'))
+            if self.tts_type.currentIndex()==tts.AUDIOCPP_TTS:
+                self.show_tips.setText(tr('toggle audiocpp model',params.get("audiocpp_model")))
+

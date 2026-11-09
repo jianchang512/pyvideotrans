@@ -43,7 +43,7 @@ class AssembleMixin:
         if self.is_audio_trans and vail_file(self.cfg.target_wav):
             try:
                 shutil.copy2(self.cfg.target_wav,
-                             f"{self.cfg.target_dir}/{self.cfg.target_language_code}-{self.cfg.noextname}.wav")
+                             os.path.normpath(f"{self.cfg.target_dir}/{self.cfg.target_language_code}-{self.cfg.noextname}.wav"))
             except shutil.SameFileError:
                 pass
             return self.set_end(True)
@@ -54,9 +54,9 @@ class AssembleMixin:
         if self.cfg.only_out_mp4:
             dst=Path(self.cfg.target_dir).parent / Path(self.cfg.targetdir_mp4).name
             try:
-                shutil.move(self.cfg.targetdir_mp4, dst)
+                shutil.move(self.cfg.targetdir_mp4, os.path.normpath(dst))
             except OSError as e:
-                shutil.copy2(self.cfg.targetdir_mp4, dst)
+                shutil.copy2(self.cfg.targetdir_mp4, os.path.normpath(dst))
                 logger.exception(f'仅输出mp4时清理临时文件移动视频位置出错，跳过 {e}', exc_info=True)
             
             if dst.exists():
@@ -121,7 +121,7 @@ class AssembleMixin:
             self.signal(text=tr("Process voiceover for embedding..."))
             runffmpeg(_cmd, cmd_dir=self.cfg.cache_folder)
 
-        shutil.copy2(target_m4a, self.cfg.target_wav_output)
+        shutil.copy2(target_m4a, os.path.normpath(self.cfg.target_wav_output))
         self.precent = min(max(95, self.precent), 98)
         _video_output_ext = settings.get('out_video_ext', '.mp4')
         subtitles_file, subtitle_langcode = None, None
@@ -266,11 +266,11 @@ class AssembleMixin:
         if Path(tmp_target_mp4).exists():
             self.cfg.targetdir_mp4=self.cfg.targetdir_mp4[:-4]+_video_output_ext
             try:
-                shutil.move(tmp_target_mp4, self.cfg.targetdir_mp4)
+                shutil.move(tmp_target_mp4, os.path.normpath(self.cfg.targetdir_mp4))
             except Exception as e:
                 logger.exception(e,exc_info=True)
                 try:
-                    shutil.copy2(tmp_target_mp4, self.cfg.targetdir_mp4)
+                    shutil.copy2(tmp_target_mp4, os.path.normpath(self.cfg.targetdir_mp4))
                 except Exception as e:
                     logger.exception(e,exc_info=True)
                     raise VideoTransError(tr('Translation successful but transfer failed.', tmp_target_mp4)) from e

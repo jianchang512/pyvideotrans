@@ -16,6 +16,15 @@
     "is_language": false,
     "is_seed": false
   },
+  "ming3_tts": {
+    "type": "clon",
+    "file": "Ming-3.0-TTS-0.5B-GGUF/ming-3.0-tts-0.5b-q8_0.gguf",
+    "url": "https://huggingface.co/audio-cpp/Ming-3.0-TTS-0.5B-GGUF/resolve/main/ming-3.0-tts-0.5b-q8_0.gguf?download=true",
+	"support_languages":["zh", "en", "ja", "ko", "de", "fr", "es"],
+    "is_reference_text": false,
+    "is_language": false,
+    "is_seed": false
+  },
   "confucius4_tts": {
     "type": "clon",
     "file": "Confucius4-TTS-GGUF/confucius4-tts-orig.gguf",

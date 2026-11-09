@@ -3,14 +3,14 @@ import platform
 import re
 
 from PySide6 import QtCore, QtWidgets
-from PySide6.QtCore import Qt, QModelIndex
+from PySide6.QtCore import Qt, QModelIndex, QEvent
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout,
                                QPushButton, QComboBox, QLabel, QScrollArea, QGridLayout, QFrame, QSplitter,
                                QAbstractItemView, QHeaderView, QTableWidget, QTableWidgetItem)
 
 from videotrans import tts
-from videotrans.configure.config import tr, app_cfg, ROOT_DIR
+from videotrans.configure.config import tr, app_cfg, ROOT_DIR, params
 from videotrans.util._srt_parse import get_subtitle_from_srt
 from videotrans.util.help_misc import show_error
 
@@ -503,6 +503,13 @@ class Ui_fn_peiyinrole(QtWidgets.QWidget):
         self.retranslateUi(peiyinrole)
         QtCore.QMetaObject.connectSlotsByName(peiyinrole)
 
+
+    def update_ui(self):
+        if self.tts_type.currentIndex()==tts.AUDIOCPP_TTS:
+            self.loglabel.setText(tr('toggle audiocpp model',params.get("audiocpp_model")))
+    def changeEvent(self, event):
+        if event.type() == QEvent.ActivationChange and self.tts_type.currentIndex()==tts.AUDIOCPP_TTS and self.isActiveWindow():
+            self.loglabel.setText(tr('toggle audiocpp model',params.get("audiocpp_model")))
     def retranslateUi(self, peiyinrole):
         peiyinrole.setWindowTitle(
             tr("multi-windows-title"))

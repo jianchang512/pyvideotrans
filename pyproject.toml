@@ -258,7 +258,7 @@ dependencies = [
     "omnivoice",
     "qwen-tts-pvt",
     "f5-tts",
-    "gradio>=6.8.0",
+    "gradio",
     "inflect>=7.5.0",
     "chatterbox-tts>=0.1.7",
     "transformers>=5.13.1",
@@ -267,11 +267,6 @@ dependencies = [
     "bitsandbytes>=0.49.2",
     "soynlp==0.0.493",
     "nagisa==0.2.11",
-]
-
-[project.optional-dependencies]
-webui = [
-	"gradio"
 ]
 
 [dependency-groups]
@@ -290,9 +285,10 @@ override-dependencies = [
     "torchaudio==2.7.1",
     "diffusers==0.33.1",
 	"safetensors==0.8.0",
-	"f5-tts==1.1.20",
+	"f5-tts==1.1.22",
 	"huggingface-hub==1.10.0",
 	"chatterbox-tts==0.1.7",
+	"gradio>=6.8.0",
 	"google-cloud-storage==3.12.0",
 	"torchcodec ; sys_platform == 'never'",
 	"pythonnet ; sys_platform == 'win32'",

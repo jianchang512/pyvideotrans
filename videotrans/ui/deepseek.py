@@ -132,7 +132,7 @@ class Ui_deepseek(QDialog):
         self.edit_allmodels.setPlainText(allmodels_str)
         self.deepseek_max_token.setText(str(params.get('deepseek_max_token',40960)))
 
-        self.reasoning_effort.setCurrentText(params.get("deepseek_reasoning_effort","default"))
+        self.reasoning_effort.setCurrentText(params.get("deepseek_reasoning_effort","none"))
         self.deepseek_key.setText(str(params.get("deepseek_key",'')))
         self.deepseek_model.setCurrentText(params.get("deepseek_model",''))
 

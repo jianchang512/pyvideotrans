@@ -16,35 +16,35 @@ QWEN3LOCAL_TTS = 1
 F5_TTS = 2
 OMNIVOICE_TTS = 3
 CONFUCIUS_TTS = 4
-MOSS_TTS = 5
-ZIPVOICE_TTS = 6
-PIPER_TTS = 7
-CHATTERBOX_TTS = 8
-Supertonic_TTS = 9
-VITSCNEN_TTS = 10
-HIGGS_AUDIO_TTS = 11
+AUDIOCPP_TTS=5
+MOSS_TTS = 6
+ZIPVOICE_TTS = 7
+PIPER_TTS = 8
+CHATTERBOX_TTS = 9
+Supertonic_TTS = 10
+VITSCNEN_TTS = 11
+HIGGS_AUDIO_TTS = 12
 
 # 本地 API
-INDEX_TTS = 12
-GPTSOVITS_TTS = 13
-COSYVOICE_TTS = 14
-VOXCPM_TTS = 15
-FIRERED3_TTS = 16
+INDEX_TTS = 13
+GPTSOVITS_TTS = 14
+COSYVOICE_TTS = 15
+VOXCPM_TTS = 16
+FIRERED3_TTS = 17
 
 # 云 API
-DOUBAO2_TTS = 17
-BAILIAN_TTS = 18
-XIAOMI_TTS = 19
-GLM_TTS = 20
-MINIMAXI_TTS = 21
+DOUBAO2_TTS = 19
+BAILIAN_TTS = 10
+XIAOMI_TTS = 20
+GLM_TTS = 21
+MINIMAXI_TTS = 22
 
 # 海外 API
-OPENAI_TTS = 22
-GEMINI_TTS = 23
-ELEVENLABS_TTS = 24
+OPENAI_TTS = 23
+GEMINI_TTS = 24
+ELEVENLABS_TTS = 25
 
 # 本地 API
-AUDIOCPP_TTS=25
 CHATTTS = 26
 SPARK_TTS = 27
 KOKORO_TTS = 28
@@ -93,6 +93,7 @@ LOCAL_BUILTIN = [
     HIGGS_AUDIO_TTS,
     OMNIVOICE_TTS,
     CONFUCIUS_TTS,
+    AUDIOCPP_TTS,
     MOSS_TTS,
     ZIPVOICE_TTS,
     PIPER_TTS,
@@ -122,6 +123,8 @@ ID_NAME_DICT = {
                                    imp="._omnivoice"),
     CONFUCIUS_TTS: ChannelProvider(f"Confucius4({tr('Built-in')})",
                                    imp="._confuciustts"),
+    AUDIOCPP_TTS: ChannelProvider(f"Audio.cpp({tr('Local')})",
+                           imp="._audiocpp",win="audiocpp"),
     MOSS_TTS: ChannelProvider(f"MOSS-TTS-Nano({tr('Built-in')})",
                               imp="._mosstts"),
     ZIPVOICE_TTS: ChannelProvider(f"{tr('ZipVoice')}({tr('Built-in')})",
@@ -192,8 +195,7 @@ ID_NAME_DICT = {
                                     imp="._elevenlabs",
                                     key_name="elevenlabstts_key",
                                     win="elevenlabs"),
-    AUDIOCPP_TTS: ChannelProvider(f"Audio.cpp({tr('Local')})",
-                           imp="._audiocpp",win="audiocpp"),
+
 
     CHATTTS: ChannelProvider(f"ChatTTS({tr('Local')}API)",
                              imp="._chattts",

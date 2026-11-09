@@ -72,6 +72,7 @@ def openwin():
         elif d['type'] in ['logs', 'succeed']:
             if d['text']:
                 winobj.loglabel.setText(d['text'])
+                winobj.hecheng_startbtn.setText(f"{tr('running')}  {d['text'][:60]}...")
         elif d['type'] == 'jindu':
             winobj.hecheng_startbtn.setText(d['text'])
         elif d['type'] == 'end':
@@ -279,7 +280,7 @@ def openwin():
         if isinstance(_rs,str):
             return show_error(_rs)
         if type==tts.AUDIOCPP_TTS:
-            winobj.loglabel.setText(tr('toggle audiocpp model'))
+            winobj.loglabel.setText(tr('toggle audiocpp model',params.get("audiocpp_model")))
 
     def hecheng_language_fun(t):
         tts_type = winobj.tts_type.currentIndex()
@@ -311,7 +312,6 @@ def openwin():
         if not fname:
             return
 
-        fname = fname.replace('\\', '/')
         params['last_opendir'] = os.path.dirname(fname)
         params.save()
         if fname.endswith(".ass"):

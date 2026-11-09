@@ -94,10 +94,8 @@ def openwin():
                                                  "Subtitles files(*.srt)")
         if len(fnames) < 1:
             return
-        namestr = []
-        for (i, it) in enumerate(fnames):
-            fnames[i] = it.replace('\\', '/').replace('file:///', '')
-            namestr.append(os.path.basename(fnames[i]))
+        namestr = [os.path.basename(it) for it in fnames]
+
         if fnames:
             winobj.files = fnames
             params['last_opendir'] = os.path.dirname(fnames[0])

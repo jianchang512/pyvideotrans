@@ -71,9 +71,9 @@ def openwin():
         if not fname:
             return
         if num == 1:
-            winobj.hun_file1.setText(fname.replace('\\', '/'))
+            winobj.hun_file1.setText(fname)
         else:
-            winobj.hun_file2.setText(fname.replace('\\', '/'))
+            winobj.hun_file2.setText(fname)
         params['last_opendir'] = os.path.dirname(fname)
 
     def start():

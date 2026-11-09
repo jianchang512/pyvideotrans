@@ -238,7 +238,7 @@ class SpeechToText(BaseTask):
         if self.copysrt_rawvideo:
             p = Path(self.cfg.name)
             try:
-                shutil.copy2(self.cfg.target_sub, f'{p.parent.as_posix()}/{p.stem}.{self.out_format}')
+                shutil.copy2(self.cfg.target_sub, os.path.normpath(f'{p.parent.as_posix()}/{p.stem}.{self.out_format}'))
             except shutil.SameFileError:
                 pass
         self.set_end(True)

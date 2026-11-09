@@ -156,7 +156,7 @@ class Ui_minimaxi(QDialog):
 
         self.max_token.setText(str(params.get("minimaxi_max_token",'8192')))
         self.text_model.setCurrentText(str(params.get("minimaxi_text_model",'')))
-        self.reasoning_effort.setCurrentText(params.get("minimaxi_reasoning_effort","default"))
+        self.reasoning_effort.setCurrentText(params.get("minimaxi_reasoning_effort","none"))
 
 
     def retranslateUi(self, form):

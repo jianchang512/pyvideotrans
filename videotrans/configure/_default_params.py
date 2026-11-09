@@ -53,13 +53,13 @@ _default = {
         "bailian_domains": "",
         "bailian_model": BAILIAN_MODELS.split(',')[0],
         "bailian_ttsmodel": "qwen3-tts-flash",
-        "bailian_reasoning_effort":"default"
+        "bailian_reasoning_effort":"none"
     },
     "chatgpt": {
         # openai chatgpt
         "chatgpt_api": "",
         "chatgpt_key": "",
-        "chatgpt_reasoning_effort": "default",
+        "chatgpt_reasoning_effort": "none",
         "chatgpt_max_token": 16384,
         "chatgpt_model": CHATGPT_MODELS.split(',')[0],
     },
@@ -86,6 +86,7 @@ _default = {
         "gemini_max_token": 16384,
         "gemini_ttsstyle": "",
         "gemini_ttsmodel": GEMINI_TTS_MODELS.split(',')[0],
+        "gemini_reasoning_effort":"default",
     },
     "infistar": {
         "infistar_key": "",
@@ -96,7 +97,7 @@ _default = {
         # liteLLM
         "litellm_api": 'http://localhost:4000/v1',
         "litellm_key": "",
-        "litellm_reasoning_effort": "default",
+        "litellm_reasoning_effort": "none",
         "litellm_model": LITELLM_MODELS.split(',')[0],
         "litellm_max_token": 16384,
     },
@@ -104,7 +105,7 @@ _default = {
         # localLLM
         "localllm_api": "",
         "localllm_key": "",
-        "localllm_reasoning_effort": "default",
+        "localllm_reasoning_effort": "none",
         "localllm_model": LOCALLLM_MODELS.split(',')[0],
         "localllm_max_token": 8192,
     },
@@ -116,7 +117,7 @@ _default = {
         "minimaxi_tts_model": MINIMAX_TTS_MODELS.split(',')[0],
         "minimaxi_text_model": MINIMAX_MODELS.split(',')[0],
         "minimaxi_max_token": 16384,
-        "minimaxi_reasoning_effort":"default",
+        "minimaxi_reasoning_effort":"none",
     },
     "openairecognapi": {
         # openai speech to text
@@ -136,7 +137,7 @@ _default = {
     "openrouter": {
         # openrouter.ai
         "openrouter_key": "",
-        "openrouter_reasoning_effort": "default",
+        "openrouter_reasoning_effort": "none",
         "openrouter_model": OPENROUTER_MODELS.split(',')[0],
         "openrouter_tts_model": OPENROUTER_TTS_MODELS.strip().split(',')[0],
         "openrouter_max_token": 16384,  # 最大输出16k
@@ -156,7 +157,7 @@ _default = {
     "siliconflow": {
         # 硅基流动
         "siliconflow_key": "",
-        "siliconflow_reasoning_effort":"default",
+        "siliconflow_reasoning_effort":"none",
         "siliconflow_model": SILICONFLOW_MODELS.split(',')[0],
         "siliconflow_tts_model": SILICONFLOW_TTS_MODELS.strip().split(',')[0],
         "siliconflow_max_token": 16384,  # 最大输出16k
@@ -172,14 +173,14 @@ _default = {
     "zhipuai": {
         # 智谱AI
         "zhipuai_key": "",
-        "zhipuai_reasoning_effort":"default",
+        "zhipuai_reasoning_effort":"none",
         "zhipuai_model": ZHIPUAI_MODELS.split(',')[0],
         "zhipuai_max_token": 16384,
     },
     "zijiehuoshan": {
         # 字节火山大模型
         "zijiehuoshan_key": "",
-        "zijiehuoshan_reasoning_effort":"default",
+        "zijiehuoshan_reasoning_effort":"none",
         "zijiehuoshan_max_token": 16384,
         "zijiehuoshan_model": ZIJIEHUOSHAN_MODELS.split(',')[0],
     },

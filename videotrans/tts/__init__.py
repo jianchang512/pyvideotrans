@@ -23,8 +23,9 @@ def is_allow_lang(langcode: str = None, tts_type: int = None):
     name = ID_NAME_DICT.get(tts_type).name
     _lang2 = langcode.split('-')[0]
     if tts_type==AUDIOCPP_TTS:
+        _model_name=params.get("audiocpp_model")
         jsondata=json.loads(Path(f'{ROOT_DIR}/videotrans/voicejson/audiocpp.json').read_text(encoding="utf-8"))
-        _obj=jsondata.get(_lang2,{}).get('support_languages')
+        _obj=jsondata.get(_model_name,{}).get('support_languages')
         if _obj and _lang2 not in _obj:
             is_support=False
 
@@ -79,11 +80,13 @@ def is_input_api(tts_type: int = None, return_str=False):
         return True
     if tts_type==AUDIOCPP_TTS and platform.system()=='Linux' and not Path(f'{ROOT_DIR}/audio_cpp/audiocpp_cli').exists():
         return tr("The audio.cpp binary file does not exist",f'{ROOT_DIR}/audio_cpp','audiocpp_cli','https://github.com/0xShug0/audio.cpp/releases')
+
     if _cls.key_name and not params.get(_cls.key_name):
         if return_str:
             return "Please configure the SK or API information of the channel first."
         from videotrans import winform
         winform.get_win(_cls.win)
+
     return True
 
 

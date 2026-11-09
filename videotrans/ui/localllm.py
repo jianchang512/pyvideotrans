@@ -138,11 +138,7 @@ class Ui_localllm(QDialog):
         self.localllm_api.setText(str(params.get("localllm_api",'')))
         self.localllm_model.setCurrentText(str(params.get("localllm_model",'')))
         self.localllm_max_token.setText(str(params.get("localllm_max_token",'')))
-        _effort=str(params.get("localllm_reasoning_effort","default"))
-        # 兼容旧版本
-        if _effort =='No':
-            _effort='default'
-        self.reasoning_effort.setCurrentText(_effort)
+        self.reasoning_effort.setCurrentText(str(params.get("localllm_reasoning_effort","none")))
 
     def retranslateUi(self, form):
         form.setWindowTitle(tr("Local LLM API")+tr('This channel needs deployed and started before available'))

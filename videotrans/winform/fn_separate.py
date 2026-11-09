@@ -18,7 +18,7 @@ def openwin():
                                                params.get('last_opendir',''),
                                                f"files({format_str})")
         if fname:
-            winobj.fromfile.setText(fname.replace('file:///', '').replace('\\', '/'))
+            winobj.fromfile.setText(fname)
 
     def update(d):
         # 更新

@@ -67,9 +67,9 @@ def openwin():
                                                "files(*.srt)")
         if fname:
             if inputname == 1:
-                winobj.srtinput1.setText(fname.replace('file:///', '').replace('\\', '/'))
+                winobj.srtinput1.setText(fname)
             else:
-                winobj.srtinput2.setText(fname.replace('file:///', '').replace('\\', '/'))
+                winobj.srtinput2.setText(fname)
 
     def start():
         winobj.has_done = False

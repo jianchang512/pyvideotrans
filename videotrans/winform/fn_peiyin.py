@@ -75,6 +75,7 @@ def openwin():
                 winobj.hecheng_plaintext.clear()
         elif d['type'] in ['logs']:
             winobj.loglabel.setText(f"{percent} {d['text']}")
+            winobj.hecheng_startbtn.setText(f"{tr('running')} {percent} {d['text'][:60]}...")
         elif d['type'] == 'jindu':
             percent = d['text']
         elif d['type'] == 'end':
@@ -290,7 +291,7 @@ def openwin():
         if isinstance(_rs,str):
             return show_error(_rs)
         if type==tts.AUDIOCPP_TTS:
-            winobj.loglabel.setText(tr('toggle audiocpp model'))
+            winobj.loglabel.setText(tr('toggle audiocpp model',params.get("audiocpp_model")))
 
     # 合成语言变化，需要获取到角色
     def hecheng_language_fun(t):

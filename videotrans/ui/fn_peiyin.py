@@ -2,12 +2,12 @@
 import platform
 
 from PySide6 import QtCore, QtWidgets
-from PySide6.QtCore import Qt, QMetaObject
+from PySide6.QtCore import Qt, QMetaObject, QEvent
 from PySide6.QtGui import QIcon
 
 from videotrans import tts
 from videotrans.component.component import Textedit
-from videotrans.configure.config import tr, ROOT_DIR
+from videotrans.configure.config import tr, ROOT_DIR, params
 
 
 class Ui_fn_peiyin(QtWidgets.QWidget):
@@ -215,6 +215,14 @@ class Ui_fn_peiyin(QtWidgets.QWidget):
         # tab-4 语音合成
 
         QMetaObject.connectSlotsByName(peiyin)
+
+    def update_ui(self):
+        if self.tts_type.currentIndex()==tts.AUDIOCPP_TTS:
+            self.loglabel.setText(tr('toggle audiocpp model',params.get("audiocpp_model")))
+
+    def changeEvent(self, event):
+        if event.type() == QEvent.ActivationChange and self.tts_type.currentIndex()==tts.AUDIOCPP_TTS and self.isActiveWindow():
+            self.loglabel.setText(tr('toggle audiocpp model',params.get("audiocpp_model")))
 
     def retranslateUi(self):
 

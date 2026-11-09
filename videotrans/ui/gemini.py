@@ -54,6 +54,13 @@ class Ui_gemini(QDialog):
         h_token.addWidget(label_token)
         h_token.addWidget(self.gemini_max_token)
         v1.addLayout(h_token)
+        hreason = QtWidgets.QHBoxLayout()
+        hreason.addWidget(QtWidgets.QLabel(tr('Reasoning Effort')))
+        self.reasoning_effort=QtWidgets.QComboBox()
+        self.reasoning_effort.addItems(['default','low','medium','high'])
+        self.reasoning_effort.setToolTip(tr('none_effort'))
+        hreason.addWidget(self.reasoning_effort)
+        v1.addLayout(hreason)
         
 
         self.label_allmodels = QtWidgets.QLabel()
@@ -143,6 +150,7 @@ class Ui_gemini(QDialog):
         self.gemini_max_token.setText(str(params.get("gemini_max_token",'16384')))
 
         self.ttsmodel.setCurrentText(str(params.get("gemini_ttsmodel",'')))
+        self.reasoning_effort.setCurrentText(str(params.get("gemini_reasoning_effort","default")))
 
     def retranslateUi(self):
         

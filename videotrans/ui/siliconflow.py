@@ -142,7 +142,7 @@ class Ui_siliconflow(QDialog):
         self.edit_allmodels.setPlainText(allmodels_str)
         self.siliconflow_key.setText(str(params.get("siliconflow_key",'')))
         self.max_token.setText(str(params.get("siliconflow_max_token",'')))
-        self.reasoning_effort.setCurrentText(params.get("siliconflow_reasoning_effort","default"))
+        self.reasoning_effort.setCurrentText(params.get("siliconflow_reasoning_effort","none"))
         if params.get("siliconflow_model"):
             self.siliconflow_model.setCurrentText(params.get("siliconflow_model"))
         if params.get("siliconflow_tts_model"):

@@ -11,6 +11,7 @@
     app_cfg.child_forms["format_srtfiles_folders"] = window
     window.show()
 """
+import os
 import shutil
 import threading
 from pathlib import Path
@@ -61,7 +62,7 @@ class _Worker(QThread):
                 target_dir.mkdir(parents=True, exist_ok=True)
 
                 target_srt = target_dir / f"{self.lang_code}.srt"
-                shutil.copy2(str(srt_path), str(target_srt))
+                shutil.copy2(str(srt_path), os.path.normpath(target_srt))
 
                 self.progress.emit(i + 1, f"[OK]: {vpath.name} -> {target_dir.name}/{self.lang_code}.srt")
                 ok += 1

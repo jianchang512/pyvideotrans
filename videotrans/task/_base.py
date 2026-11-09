@@ -1,5 +1,6 @@
 import copy
 import json
+import os
 import shutil
 import time
 from dataclasses import dataclass, field, fields
@@ -224,7 +225,7 @@ class BaseTask(BaseCon):
 
             if _rs:
                 logger.debug('分离说话人成功完成')
-                shutil.copy2(self.cfg.cache_folder + "/speaker.json", self.cfg.target_dir + "/speaker.json")
+                shutil.copy2(self.cfg.cache_folder + "/speaker.json", os.path.normpath(self.cfg.target_dir + "/speaker.json"))
             else:
                 logger.error('分离失败说话人失败')
             self.signal(text=tr('separating speakers end'))
