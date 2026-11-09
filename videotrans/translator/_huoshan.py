@@ -11,6 +11,10 @@ class HuoShan(OpenAICampat):
         self.api_url ='https://ark.cn-beijing.volces.com/api/v3'
         self.max_tokens =int(params.get('zijiehuoshan_max_token',32768))
         self.model_name =params.get("zijiehuoshan_model",'')
-        self.extra_body={"thinking": {"type": "disabled" if not params.get('zijiehuoshan_thinking') else "enabled"}}
+        # default 时不添加参数，是否思考跟随模型默认；none 关闭思考
+        effort=params.get('zijiehuoshan_reasoning_effort')
+        if effort!='default':
+            self.reasoning_effort=effort
+            self.extra_body={"thinking": {"type": "enabled" if effort !='none' else "disabled"}}
         super().__post_init__()
 
