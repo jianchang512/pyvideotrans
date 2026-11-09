@@ -11,7 +11,7 @@ from videotrans.configure.constants import (
     SILICONFLOW_TTS_MODELS, OPENROUTER_TTS_MODELS, OPENAIRECOGNAPI_MODELS,
     MINIMAX_MODELS,
     XIAOMI_MODELS, AI302_MODELS, BAILIAN_MODELS, CHATGPT_MODELS, AZURE_MODELS, LOCALLLM_MODELS,
-    ZHIPUAI_MODELS, DEEPSEEK_MODELS, OPENROUTER_MODELS, LITELLM_MODELS, APIROUTE_MODELS, CheaperInference_MODELS,
+    ZHIPUAI_MODELS, DEEPSEEK_MODELS, OPENROUTER_MODELS, WORLDROUTER_MODELS, LITELLM_MODELS, APIROUTE_MODELS, CheaperInference_MODELS,
     SILICONFLOW_MODELS, ZIJIEHUOSHAN_MODELS, GEMINI_MODELS, OPENAI_TTS_MODELS, INFISTAR_MODELS, ATLASCLOUD_MODELS, OPPER_MODELS, RUNCRATE_MODELS
 
 )
@@ -302,6 +302,11 @@ _default = {
         # 本地 whisperx api
         "whisperxapi_api": "http://127.0.0.1:9092",
     },
+    "worldrouter": {
+        "worldrouter_key": "",
+        "worldrouter_model": WORLDROUTER_MODELS.split(',')[0],
+        "worldrouter_max_token": 16384,
+    },
     "xaitts": {
         # x.ai tts
         "xaitts_key": "",
@@ -320,6 +325,15 @@ _default["cloudgpu"] = {
     "cloudgpu_key": "",
     "cloudgpu_model": CLOUDGPU_MODELS.split(',')[0],
     "cloudgpu_max_token": 16384,
+}
+
+from videotrans.configure.constants import STANDARDCOMPUTE_MODELS
+
+_default["standardcompute"] = {
+    # standardcompute.com
+    "standardcompute_key": "",
+    "standardcompute_model": STANDARDCOMPUTE_MODELS.split(',')[0],
+    "standardcompute_max_token": 16384,
 }
 
 

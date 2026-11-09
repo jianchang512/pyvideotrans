@@ -1021,6 +1021,7 @@
   "OpenAI-compatible gateway, one Key for GPT, Claude, Gemini, DeepSeek, Qwen": "OpenAI-compatible gateway, one Key for GPT, Claude, Gemini, DeepSeek, Qwen",
   "GPU cloud with an OpenAI-compatible API, open models are free with your GitHub account": "GPU cloud with an OpenAI-compatible API, open models are free with your GitHub account",
   "a GPU cloud with an OpenAI-compatible model API (DeepSeek, Kimi, GLM, MiniMax)": "a GPU cloud with an OpenAI-compatible model API (DeepSeek, Kimi, GLM, MiniMax)",
+  "OpenAI-compatible API, the StandardCompute model routes each request to the cheapest enabled model that can handle it, with automatic fallback": "OpenAI-compatible API, the StandardCompute model routes each request to the cheapest enabled model that can handle it, with automatic fallback",
   "Get API Key": "Get API Key",
 
 

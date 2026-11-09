@@ -153,6 +153,11 @@ class TestTranslatorIndexConstants:
         assert CLOUDGPU_INDEX == 32
         assert CLOUDGPU_INDEX in AI_TRANS_CHANNELS
 
+    def test_standardcompute_index(self):
+        from videotrans.translator import STANDARDCOMPUTE_INDEX, AI_TRANS_CHANNELS
+        assert STANDARDCOMPUTE_INDEX == 34
+        assert STANDARDCOMPUTE_INDEX in AI_TRANS_CHANNELS
+
     def test_infistar_index(self):
         from videotrans.translator import INFISTAR_INDEX, AI_TRANS_CHANNELS
         assert INFISTAR_INDEX == 28
