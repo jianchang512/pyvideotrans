@@ -22,6 +22,7 @@ MENU_CFG_TRANS = [
     ("xiaomi", tr("XiaoMi"), None),
     ("bailian", tr('Ali-Bailian'), None),
     ("azure", tr("AzureOpenAI Translation"), None),
+    ("worldrouter", 'WorldRouter', None),
     ("openrouter", 'OpenRouter.ai', None),
     ("siliconflow", tr("SiliconFlow"), None),
     ("ai302", "302.ai", None),
@@ -34,7 +35,6 @@ MENU_CFG_TRANS = [
     ("opper", 'Opper', None),
     ("runcrate", 'Runcrate', None),
     ("cloudgpu", 'CloudGPU', None),
-    ("worldrouter", 'WorldRouter', None),
 
     ("deepl", "DeepL API", None),
     ("deeplx", "DeepLX API", None),

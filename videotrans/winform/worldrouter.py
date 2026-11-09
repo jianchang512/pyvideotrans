@@ -1,4 +1,5 @@
 def openwin():
+    from pathlib import Path
     from videotrans import translator
     from videotrans.configure.config import params, tr
     from videotrans.util.help_misc import show_error
@@ -6,7 +7,7 @@ def openwin():
     from videotrans.winform import get_cls
     from videotrans.winform._helpers import make_feed_translator, make_setallmodels
 
-    winobj = get_cls('worldrouter')()
+    winobj = get_cls(Path(__file__).stem)()
     winobj.update_ui()
     feed = make_feed_translator(winobj, 'test')
 
@@ -19,9 +20,12 @@ def openwin():
         if not model:
             show_error(tr("Please select a model"))
             return False
+        if not winobj.max_token.hasAcceptableInput():
+            show_error(tr("Maximum output token") + ': 1 - 1048576')
+            return False
         params['worldrouter_key'] = key
         params['worldrouter_model'] = model
-        params['worldrouter_max_token'] = winobj.max_token.value()
+        params['worldrouter_max_token'] = winobj.max_token.text().strip()
         params.save()
         return True
 

@@ -13,9 +13,12 @@ WorldRouter 渠道通过 OpenAI 兼容接口提供文本与 SRT 字幕翻译。
 接口地址固定为 `https://inference-api.worldrouter.ai/v1`，请求发送至
 `POST /chat/completions`。使用 WorldRouter 的 API Key，不需要单独填写各模型供应商的密钥。
 
-预设模型为 `deepseek-v4-flash`、`gpt-5.4-mini`、`gpt-5.4` 和 `claude-sonnet-4-6`。
-可在模型框直接输入其他模型 ID，也可在下方模型列表中添加，以逗号分隔。
-实际可用模型以 [WorldRouter 模型目录](https://router.worldclaw.ai/models) 为准。
+沿用项目其他供应商的「预设模型 + 手动编辑列表」方式，不在打开窗口时自动访问模型接口。
+预设覆盖 2026-11-09 公开模型目录中的 46 个文本模型，包括 GPT、Claude、DeepSeek、GLM、
+Kimi、MiniMax 和 ERNIE，默认仍为 `deepseek-v4-flash`。
+可在下方模型列表中添加其他模型 ID，以英文逗号分隔，之后在上方下拉框中选择。
+实际可用模型以 [WorldRouter 模型目录](https://router.worldclaw.ai/models) 和账户权限为准。
+列入预设表示已核对模型目录，并不表示所有模型均完成实际翻译测试。
 
 最大输出 token 默认为 `16384`。遇到输出截断时，提高此值或在高级设置中减少每批字幕行数；
 模型自身的输出上限仍然适用。完整 SRT 模式会检查字幕块数量和时间戳，逐行文本模式会检查行数，
