@@ -5,6 +5,7 @@ def openwin():
     from videotrans.util._ffmpeg_runner import runffmpeg
     from videotrans.util._srt_parse import get_subtitle_from_srt
     from videotrans.util.help_misc import show_error
+    import codecs
     import json
     import os
     import shutil
@@ -16,6 +17,30 @@ def openwin():
     from videotrans.configure.config import tr,app_cfg, params, HOME_DIR
     from videotrans.configure import config
     RESULT_DIR = HOME_DIR + "/subtitlescover"
+
+    def ffmpeg_input(file):
+        """交给 ffmpeg 转换的字幕文件
+
+        ffmpeg 按 UTF-8 读取文本字幕，GBK 编码（简体中文 Windows 记事本的 ANSI）的字幕中，含中文等非 ASCII 字符的字幕会被丢弃，而 ffmpeg 仍正常结束。
+        此时与 read_srt_text 相同按 GBK 读取，另存为 UTF-8 编码的临时文件，扩展名不变
+        """
+        with open(file, 'rb') as f:
+            raw = f.read()
+        # 有 UTF-16 或 UTF-32 的 BOM 时不是 GBK 编码，原样交给 ffmpeg
+        if raw.startswith((codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE, codecs.BOM_UTF32_LE, codecs.BOM_UTF32_BE)):
+            return file
+        try:
+            raw.decode('utf-8')
+        except UnicodeDecodeError:
+            try:
+                text = raw.decode('gbk')
+            except UnicodeDecodeError:
+                # 既不是 UTF-8 也不是 GBK 时原样交给 ffmpeg，与以前相同，批量中其余文件照常转换
+                return file
+            utf8_file = config.TEMP_DIR + f'/{time.time()}{Path(file).suffix}'
+            Path(utf8_file).write_bytes(text.encode('utf-8'))
+            return utf8_file
+        return file
 
 
     class CompThread(QThread):
@@ -45,7 +70,7 @@ def openwin():
                             runffmpeg([
                                 "-y",
                                 "-i",
-                                os.path.normpath(v),
+                                os.path.normpath(ffmpeg_input(v)),
                                 tmp_srt
                             ])
                             srt_list = get_subtitle_from_srt(tmp_srt, is_file=True)
@@ -58,7 +83,7 @@ def openwin():
                     runffmpeg([
                         "-y",
                         "-i",
-                        os.path.normpath(v),
+                        os.path.normpath(ffmpeg_input(v)),
                         RESULT_DIR + f"/{Path(v).stem}.{self.target_format}"
                     ])
                     jd = round((i + 1) * 100 / len(self.subtitlefiles), 2)
