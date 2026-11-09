@@ -68,6 +68,8 @@ def set_ass_font(srtfile: str) -> str:
         f"{style.get('Encoding', 1)}\n"
     )
 
+    # 双语时底部语言的字体，ass.json 中没有或为空时使用主字体
+    bottom_fontname = style.get('Bottom_Fontname') or style.get('Fontname', 'Arial')
     bottom_fontsize = style.get('Bottom_Fontsize', 14)
     bottom_color = style.get('Bottom_PrimaryColour', '&H0000FFFF&')
     bottom_bold = style.get('Bottom_Bold', 0)
@@ -78,7 +80,7 @@ def set_ass_font(srtfile: str) -> str:
 
     bottom_style = (
         f"Style: Bottom,"
-        f"{style.get('Fontname', 'Arial')},"
+        f"{bottom_fontname},"
         f"{bottom_fontsize},"
         f"{bottom_color},"
         f"{bottom_secondarycolour},"
