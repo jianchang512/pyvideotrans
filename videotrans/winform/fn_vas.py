@@ -203,7 +203,9 @@ def openwin():
                     if audio_time < self.video_time:
                         audio_data = AudioSegment.from_file(self.audio, format='wav') + AudioSegment.silent(
                             duration=self.video_time - audio_time)
-                        audio_data.export(self.audio, format="wav")
+                        # 写入临时文件，不修改用户选择的音频文件
+                        audio_data.export(tmp_audio, format="wav")
+                        self.audio = tmp_audio
                     elif audio_time > self.video_time and self.audio_process == 0:
                         # 截断音频
                         self.post(text='cut audio...')
