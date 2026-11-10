@@ -431,7 +431,7 @@ class SpeedRate:
             current['source_duration'] = source_duration
 
             # 设置配音文件时长
-            if not current.get('filename') or not Path(current['filename']).exists():
+            if not tools.vail_file(current.get('filename')):
                 dummy_wav = self._create_silen_file(f'place_{i}', source_duration)
                 current['filename'] = dummy_wav
                 current['dubb_time'] = source_duration
@@ -834,7 +834,7 @@ class TtsSpeedRate(SpeedRate):
             current['source_duration'] = current['end_time'] - current['start_time']
 
             # 检查配音文件
-            if not current.get('filename') or not Path(current['filename']).exists():
+            if not tools.vail_file(current.get('filename')):
                 # 生成占位静音
                 dummy_wav = self._create_silen_file(f'place_{i}', current['source_duration'])
                 current['filename'] = dummy_wav
