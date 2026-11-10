@@ -194,7 +194,14 @@ uv add nvidia-cublas-cu12 nvidia-cudnn-cu12
 
 ##  Disclaimer
 
-This software is an open-source, free, non-commercial project. Users are solely responsible for any legal consequences arising from the use of this software (including but not limited to calling third-party APIs or processing copyrighted video content). Please comply with local laws and regulations and the terms of use of relevant service providers.
+- **License Scope**: The Project code is open-sourced under GPL-V3. This license applies only to the Project code itself and does not apply to the local models integrated into the Project, third-party online APIs, or their outputs. When distributing modified versions or derivative works, please comply with the relevant obligations of GPL-V3.
+
+> The folders `moss_transcribe_diarize | mosstts | confuciustts | external` within the `videotrans` directory contain integrated third-party code. Please refer to the corresponding `README.md` for the relevant protocol. If not needed, they can be deleted
+
+- **Local Models**: The local models integrated into the Project are each subject to their own independent licenses. Copyright and licensing conditions belong to their respective upstream authors or publishers. Before use (especially commercial use), please verify and comply with the applicable model licenses yourself.
+- **Online APIs**: The online APIs called by the Project require you to register, obtain authorization, and bear any fees yourself. Your use must comply with each provider's terms; please independently confirm whether the output can be used commercially.
+- **Content Copyright**: When processing videos, audio, subtitles, or other content, you must ensure that you have lawful rights or have obtained authorization. The developer does not claim rights over any input or output content and assumes no liability for third-party claims arising therefrom.
+- **Limitation of Liability**: The software is provided "as is", and the developer assumes no liability for any direct or indirect losses arising from the use of or inability to use this software. By using it, you are deemed to have understood and accepted the above terms.
 
 ## Acknowledgements
 
