@@ -16,7 +16,7 @@ from PySide6.QtCore import Qt, QThread, Signal, Slot, QSettings, QUrl
 from videotrans.configure.config import ROOT_DIR, settings,  defaulelang,tr
 from videotrans.configure import config
 from videotrans.configure.constants import FASTER_MODELS_DICT
-
+from videotrans.ui._bottom_btn import _Bottom_btn_layout
 
 from videotrans.util._ffmpeg_audio import conver_to_16k
 from videotrans.util.help_down import check_and_down_hf
@@ -271,16 +271,15 @@ class AlignmentWorker(QThread):
 # 3. 界面主类
 # ==========================================
 
-class TEXTMATCHING(QWidget):
+class TEXTMATCHING(QWidget,_Bottom_btn_layout):
     def __init__(self):
         super().__init__()
         self.settings = QSettings("MyTools", "WhisperForceAlign")
         self.setWindowTitle(tr("text_match_window_title"))
         self.resize(800, 700)
         self.worker = None
+        self.output_key="textmatching_output_data"
 
-        # 记录上一次成功的输出目录
-        self.last_output_dir = None
 
         self.init_ui()
         self.load_settings()
@@ -346,7 +345,7 @@ class TEXTMATCHING(QWidget):
         settings_layout.addWidget(QLabel(tr("label_model")))
         self.combo_model = QComboBox()
         self.combo_model.setMinimumWidth(150)
-        self.combo_model.addItems([ "large-v2", "large-v3","large-v3-turbo", "medium"])
+        self.combo_model.addItems([ "large-v2", "large-v3","large-v3-turbo", "medium","tiny"])
         settings_layout.addWidget(self.combo_model)
         settings_layout.addWidget(QLabel(tr("Speech language")))
         self.language = QComboBox()
@@ -371,20 +370,6 @@ class TEXTMATCHING(QWidget):
         self.btn_start.clicked.connect(self.start_process)
         operation_layout.addWidget(self.btn_start)
 
-        # 新增：打开输出目录按钮
-        self.btn_open_dir = QPushButton(tr("btn_open_dir"))
-        self.btn_open_dir.setFixedHeight(40)
-        self.btn_open_dir.setCursor(Qt.PointingHandCursor)
-        # 略微改一下样式，使其与开始按钮区分
-        self.btn_open_dir.setStyleSheet("font-size: 12px;")
-        self.btn_open_dir.hide() # 初始隐藏
-        self.btn_open_dir.clicked.connect(self.open_output_dir)
-        operation_layout.addWidget(self.btn_open_dir)
-
-        # 调整比例，让开始按钮占主要部分 (例如 3:1)
-        operation_layout.setStretch(0, 3)
-        operation_layout.setStretch(1, 1)
-
         main_layout.addLayout(operation_layout)
 
         # 5. 日志区
@@ -393,17 +378,12 @@ class TEXTMATCHING(QWidget):
         self.log_label.setStyleSheet("padding: 10px; color: #aaa;")
         self.log_label.setWordWrap(True)
         main_layout.addWidget(self.log_label)
+        main_layout.addLayout(self.get_bottom_btn_layout())
 
     # 辅助槽函数：清空文本框
     def clear_text_edit(self):
         self.text_edit.clear()
 
-    # 辅助槽函数：打开输出目录
-    def open_output_dir(self):
-        if self.last_output_dir and os.path.exists(self.last_output_dir):
-            QDesktopServices.openUrl(QUrl.fromLocalFile(self.last_output_dir))
-        else:
-            QMessageBox.warning(self, tr("msg_warning"), "Directory does not exist.")
 
     # ==========================
     # 配置保存与读取逻辑
@@ -463,10 +443,6 @@ class TEXTMATCHING(QWidget):
 
     def start_process(self):
         self.save_current_settings()
-
-        # 重新开始时隐藏打开目录按钮
-        self.btn_open_dir.hide()
-
         audio_path = self.audio_label.text()
         if audio_path == tr("no_audio_selected") or not os.path.exists(audio_path):
             QMessageBox.warning(self, tr("msg_warning"), tr("msg_select_audio_first"))
@@ -513,8 +489,8 @@ class TEXTMATCHING(QWidget):
     @Slot(str)
     def process_finished(self, srt_content):
         audio_path = self.audio_label.text()
-        base_name = os.path.splitext(audio_path)[0]
-        srt_path = f"{base_name}.srt"
+        base_name = Path(audio_path).stem
+        srt_path = os.path.normpath(f"{self.output_data.text()}/{base_name}.srt")
 
         try:
             with open(srt_path, 'w', encoding='utf-8') as f:
@@ -523,9 +499,6 @@ class TEXTMATCHING(QWidget):
             self.log_label.setText(tr("status_saved", srt_path))
             self.log_label.setStyleSheet("padding: 10px; border-radius: 5px; color: #ff0;")
 
-            # 记录目录并显示打开按钮
-            self.last_output_dir = os.path.dirname(srt_path)
-            self.btn_open_dir.show()
 
         except Exception as e:
             self.process_error(tr("msg_save_fail", str(e)))

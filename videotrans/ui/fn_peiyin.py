@@ -8,17 +8,19 @@ from PySide6.QtGui import QIcon
 from videotrans import tts
 from videotrans.component.component import Textedit
 from videotrans.configure.config import tr, ROOT_DIR, params
+from videotrans.ui._bottom_btn import _Bottom_btn_layout
 
 
-class Ui_fn_peiyin(QtWidgets.QWidget):
+class Ui_fn_peiyin(QtWidgets.QWidget,_Bottom_btn_layout):
     def __init__(self):
         super().__init__()
-        self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
-        self.setupUi(self)
-    def setupUi(self, peiyin):
         self.has_done = False
         self.hecheng_files = []
         self.error_msg = ""
+        self.output_key="dubb_output_data"
+        self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
+        self.setupUi(self)
+    def setupUi(self, peiyin):
         if not peiyin.objectName():
             peiyin.setObjectName("peiyin")
         peiyin.setMinimumSize(1200, 500)
@@ -199,21 +201,18 @@ class Ui_fn_peiyin(QtWidgets.QWidget):
         self.loglabel.setStyleSheet('''color:#148cd2;background-color:transparent''')
         self.verticalLayout_4.addWidget(self.loglabel)
 
-        self.gridLayout_3 = QtWidgets.QGridLayout()
-        self.gridLayout_3.setObjectName("gridLayout_3")
-        self.hecheng_opendir = QtWidgets.QPushButton()
-        self.hecheng_opendir.setStyleSheet("""background-color:transparent""")
-        self.hecheng_opendir.setObjectName("hecheng_opendir")
-        self.hecheng_opendir.setMinimumSize(QtCore.QSize(100, 35))
-        self.hecheng_opendir.setCursor(Qt.PointingHandCursor)
-        self.verticalLayout_4.addWidget(self.hecheng_opendir)
+
+        # self.hecheng_opendir = QtWidgets.QPushButton()
+        # self.hecheng_opendir.setStyleSheet("""background-color:transparent""")
+        # self.hecheng_opendir.setObjectName("hecheng_opendir")
+        # self.hecheng_opendir.setMinimumSize(QtCore.QSize(100, 35))
+        # self.hecheng_opendir.setCursor(Qt.PointingHandCursor)
+
+        self.verticalLayout_4.addLayout(self.get_bottom_btn_layout())
         self.horizontalLayout_11.addLayout(self.verticalLayout_4)
 
         peiyin.setWindowTitle(tr("tts-windows-title"))
         self.retranslateUi()
-
-        # tab-4 语音合成
-
         QMetaObject.connectSlotsByName(peiyin)
 
     def update_ui(self):
@@ -238,4 +237,3 @@ class Ui_fn_peiyin(QtWidgets.QWidget):
         self.save_to_srt.setToolTip(
             tr("If checked, the synthesized audio is saved to the original folder where the srt file is located."))
         self.hecheng_startbtn.setText(tr("Start"))
-        self.hecheng_opendir.setText(tr("Open output directory"))

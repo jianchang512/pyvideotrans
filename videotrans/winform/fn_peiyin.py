@@ -14,10 +14,9 @@ def openwin():
     import re,time
     import json
     from pathlib import Path
-    from PySide6.QtCore import QUrl, Qt
-    from PySide6.QtGui import QDesktopServices
+    from PySide6.QtCore import  Qt
     from PySide6 import QtWidgets
-    from videotrans.configure.config import tr, app_cfg, params, defaulelang,   HOME_DIR
+    from videotrans.configure.config import tr, app_cfg, params
     from videotrans.configure import config
     from videotrans.task.taskcfg import TaskCfgTTS
     from videotrans import translator, tts
@@ -29,8 +28,6 @@ def openwin():
         if k != 'auto':
             EDGE_LANGUANGES_DICT[k]=v
 
-    RESULT_DIR = HOME_DIR + "/tts"
-    Path(RESULT_DIR).mkdir(parents=True, exist_ok=True)
     uuid_list = list()
     percent = ""
 
@@ -145,7 +142,7 @@ def openwin():
 
     # tab-4 语音合成
     def hecheng_start_fun():
-        nonlocal RESULT_DIR, uuid_list
+        nonlocal uuid_list
 
         Path(config.TEMP_DIR).mkdir(parents=True, exist_ok=True)
         winobj.has_done = False
@@ -185,10 +182,6 @@ def openwin():
             return show_error(
                 tr("Must import srt file or fill in text box with text"))
         toggle_state(True)
-        if len(winobj.hecheng_importbtn.filelist) > 0 and winobj.save_to_srt.isChecked():
-            RESULT_DIR = Path(winobj.hecheng_importbtn.filelist[0]).parent.as_posix()
-        else:
-            RESULT_DIR = HOME_DIR + "/tts"
 
         if txt:
             newsrtfile = config.TEMP_DIR + f"/{datetime.now().strftime('%Y%m%d-%H%M%S')}."
@@ -205,9 +198,10 @@ def openwin():
         from videotrans.util.help_ffmpeg import format_video
         video_list:List[InputFile] = [format_video(it, None) for it in winobj.hecheng_importbtn.filelist]
         uuid_list = [obj['uuid'] for obj in video_list]
+        target_dir = winobj.output_data.text() if not winobj.save_to_srt.isChecked() else video_list[0].dirname
         for it in video_list:
             app_cfg.rm_uuid(it['uuid'])
-            it['target_dir']=RESULT_DIR
+            it['target_dir']=target_dir
             cfg = {
                 "voice_role": role,
                 "cache_folder": config.TEMP_DIR + f'/{it["uuid"]}',
@@ -323,8 +317,7 @@ def openwin():
             role_list.remove('clone')
         winobj.hecheng_role.addItems(role_list)
 
-    def opendir_fn():
-        QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
+
 
     def show_detail_error():
         if winobj.error_msg:
@@ -379,7 +372,6 @@ def openwin():
         winobj.hecheng_startbtn.clicked.connect(hecheng_start_fun)
         winobj.hecheng_stop.clicked.connect(stop_tts)
         winobj.listen_btn.clicked.connect(listen_voice_fun)
-        winobj.hecheng_opendir.clicked.connect(opendir_fn)
         winobj.hecheng_language.currentTextChanged.connect(hecheng_language_fun)
         winobj.tts_type.currentIndexChanged.connect(tts_type_change)
         winobj.voice_autorate.toggled.connect(check_voice_autorate)

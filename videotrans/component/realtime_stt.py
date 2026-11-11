@@ -12,7 +12,7 @@ from PySide6.QtGui import QIcon, QCloseEvent, QDesktopServices
 from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QPushButton, QPlainTextEdit, \
     QFileDialog, QMessageBox
 
-from videotrans.configure.config import ROOT_DIR, HOME_DIR, tr
+from videotrans.configure.config import ROOT_DIR,  tr
 from videotrans.configure.constants import REALTIME_URL_HF, REALTIME_URL_MS
 from videotrans.util.help_down import down_zip
 from videotrans.util.help_misc import is_connect_hf
@@ -21,7 +21,7 @@ CTC_MODEL_FILE=f"{ROOT_DIR}/models/onnx/ctc.model.onnx"
 PAR_ENCODER = f"{ROOT_DIR}/models/onnx/encoder.onnx"
 PAR_DECODER = f"{ROOT_DIR}/models/onnx/decoder.onnx"
 PAR_TOKENS = f"{ROOT_DIR}/models/onnx/tokens.txt"
-
+HOME_DIR=f'{ROOT_DIR}/output'
 
 
 class OnnxModel:

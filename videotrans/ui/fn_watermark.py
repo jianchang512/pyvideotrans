@@ -8,16 +8,18 @@ from PySide6.QtWidgets import (QHBoxLayout, QLabel, QLineEdit,
                                QVBoxLayout)
 
 from videotrans.configure.config import tr, defaulelang, ROOT_DIR
+from videotrans.ui._bottom_btn import _Bottom_btn_layout
 
 
-class Ui_fn_watermark(QtWidgets.QWidget):
+class Ui_fn_watermark(QtWidgets.QWidget,_Bottom_btn_layout):
     def __init__(self):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
+        self.has_done = False
+        self.output_key="watermark_output_data"
+        self.videourls = []
         self.setupUi(self)
     def setupUi(self, watermark):
-        self.has_done = False
-        self.videourls = []
         if not watermark.objectName():
             watermark.setObjectName(u"watermark")
 
@@ -124,13 +126,8 @@ class Ui_fn_watermark(QtWidgets.QWidget):
 
         self.verticalLayout.addWidget(self.resultlabel)
 
-        self.resultbtn = QPushButton()
-        self.resultbtn.setObjectName(u"resultbtn")
-        self.resultbtn.setStyleSheet("background-color:transparent")
-        self.resultbtn.setMinimumSize(QSize(0, 30))
-        self.resultbtn.setCursor(QCursor(Qt.PointingHandCursor))
 
-        self.verticalLayout.addWidget(self.resultbtn)
+        self.verticalLayout.addLayout(self.get_bottom_btn_layout())
 
         self.horizontalLayout_3.addLayout(self.verticalLayout)
 
@@ -148,7 +145,6 @@ class Ui_fn_watermark(QtWidgets.QWidget):
         self.pngbtn.setText(tr("Select an Image"))
         self.startbtn.setText(tr("Start operating"))
         self.resultlabel.setText("")
-        self.resultbtn.setText(tr("Open the save results directory"))
 
         self.labelx.setText(
             tr("Distance of watermark from left or right side"))

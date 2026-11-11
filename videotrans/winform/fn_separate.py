@@ -8,10 +8,8 @@ def openwin():
     from pathlib import Path
     from PySide6.QtCore import QTimer
     from PySide6.QtWidgets import QFileDialog
-    from videotrans.configure.config import tr,app_cfg, params, HOME_DIR
+    from videotrans.configure.config import tr,app_cfg, params
 
-
-    outdir = HOME_DIR +'/separate'
     def get_file():
         format_str = " ".join(['*.' + f for f in constants.VIDEO_EXTS + constants.AUDIO_EXITS])
         fname, _ = QFileDialog.getOpenFileName(winobj, "Select audio or video",
@@ -56,12 +54,10 @@ def openwin():
         winobj.set.setText(tr('Start Separate...'))
         # 判断名称是否正常
         # 创建文件夹
-        Path(outdir).mkdir(parents=True,exist_ok=True)
-        winobj.url.setText(outdir)
         winobj.logs.setText('')
         # 开始分离
         from videotrans.task.separate_worker import SeparateWorker
-        winobj.task = SeparateWorker(parent=winobj, file=file, out=outdir, uuid=uuid)
+        winobj.task = SeparateWorker(parent=winobj, file=file, out=winobj.output_data.text(), uuid=uuid)
         winobj.task.finish_event.connect(update)
         winobj.task.start()
     
@@ -69,12 +65,7 @@ def openwin():
 
     winobj = get_cls(Path(__file__).stem)()
     def _bind():
-        Path(outdir).mkdir(exist_ok=True,parents=True)
-        # 创建事件过滤器实例并将其安装到 lineEdit 上
-        winobj.url.setText(outdir)
-
         winobj.selectfile.clicked.connect(get_file)
-
         winobj.set.clicked.connect(start)
     _bind()
     return winobj

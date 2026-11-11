@@ -6,15 +6,17 @@ from PySide6.QtGui import (QCursor, QIcon)
 from PySide6.QtWidgets import (QHBoxLayout, QLabel)
 
 from videotrans.configure.config import tr, ROOT_DIR
+from videotrans.ui._bottom_btn import _Bottom_btn_layout
 
 
-class Ui_fn_videoandsrt(QtWidgets.QWidget):
+class Ui_fn_videoandsrt(QtWidgets.QWidget,_Bottom_btn_layout):
     def __init__(self):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
+        self.has_done = False
+        self.output_key="videoandsrt_output_data"
         self.setupUi(self)
     def setupUi(self, videoandsrt):
-        self.has_done = False
         if not videoandsrt.objectName():
             videoandsrt.setObjectName(u"videoandsrt")
         videoandsrt.setMinimumSize(700, 400)
@@ -125,15 +127,7 @@ class Ui_fn_videoandsrt(QtWidgets.QWidget):
         self.v3.addWidget(self.loglabel)
         self.v3.addStretch()
 
-        self.h8 = QtWidgets.QHBoxLayout()
-        self.h8.setObjectName("horizontalLayout_20")
-        self.opendir = QtWidgets.QPushButton()
-        self.opendir.setMinimumSize(QtCore.QSize(0, 30))
-        self.opendir.setStyleSheet("""background-color:transparent""")
-        self.opendir.setObjectName("opendir")
-        self.opendir.setCursor(QCursor(Qt.PointingHandCursor))
-        self.h8.addWidget(self.opendir)
-        self.v3.addLayout(self.h8)
+        self.v3.addLayout(self.get_bottom_btn_layout())
 
         # end
         self.horizontalLayout_3.addLayout(self.v3)
@@ -157,4 +151,3 @@ class Ui_fn_videoandsrt(QtWidgets.QWidget):
         self.folder.setPlaceholderText(
             tr("Select the folder where the video and subtitles of the same name are located"))
         self.startbtn.setText(tr("Start operating"))
-        self.opendir.setText(tr("Open the results catalog"))

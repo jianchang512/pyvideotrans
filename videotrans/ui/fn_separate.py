@@ -6,6 +6,7 @@ from PySide6.QtCore import QObject, QEvent, QUrl, Qt
 from PySide6.QtGui import QDesktopServices, QIcon
 
 from videotrans.configure.config import tr, ROOT_DIR
+from videotrans.ui._bottom_btn import _Bottom_btn_layout
 
 
 class LineEditClickFilter(QObject):
@@ -20,12 +21,14 @@ class LineEditClickFilter(QObject):
         return False
 
 
-class Ui_fn_separate(QtWidgets.QWidget):
+class Ui_fn_separate(QtWidgets.QWidget,_Bottom_btn_layout):
     def __init__(self):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
-        self.setupUi(self)
         self.task = None
+        self.has_done = False
+        self.output_key="separate_output_data"
+        self.setupUi(self)
 
     def closeEvent(self, event):
         if self.task:
@@ -35,7 +38,6 @@ class Ui_fn_separate(QtWidgets.QWidget):
         event.ignore()
 
     def setupUi(self, form):
-        self.has_done = False
         form.setObjectName("form")
 
         form.setMinimumSize(600, 300)
@@ -85,16 +87,6 @@ class Ui_fn_separate(QtWidgets.QWidget):
         # 垂直布局中添加一个选择文件按钮
         self.verticalLayout.addWidget(self.selectfile)
 
-        self.label_2 = QtWidgets.QLabel()
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.label_2.sizePolicy().hasHeightForWidth())
-        self.label_2.setSizePolicy(sizePolicy)
-        self.label_2.setMinimumSize(QtCore.QSize(100, 35))
-        self.label_2.setObjectName("label_2")
-        self.verticalLayout.addWidget(self.label_2)
-
         # 加到表达中
         self.formLayout.setLayout(0, QtWidgets.QFormLayout.LabelRole, self.verticalLayout)
 
@@ -113,17 +105,6 @@ class Ui_fn_separate(QtWidgets.QWidget):
         self.fromfile.setPlaceholderText(tr("show file where you selected"))
         self.verticalLayout_2.addWidget(self.fromfile)
 
-        self.url = QtWidgets.QPushButton()
-        self.url.setMinimumSize(QtCore.QSize(0, 35))
-        self.url.setObjectName("url")
-        self.url.setStyleSheet("""background-color:transparent""")
-        self.url.setCursor(Qt.PointingHandCursor)
-        self.url.setToolTip(tr("Open target dir"))
-
-
-        self.click_filter = LineEditClickFilter()
-        self.url.installEventFilter(self.click_filter)
-        self.verticalLayout_2.addWidget(self.url)
 
         self.formLayout.setLayout(0, QtWidgets.QFormLayout.FieldRole, self.verticalLayout_2)
 
@@ -134,6 +115,7 @@ class Ui_fn_separate(QtWidgets.QWidget):
         self.logs.setText("")
         self.logs.setObjectName("logs")
         v1.addWidget(self.logs)
+        v1.addLayout(self.get_bottom_btn_layout())
 
         self.retranslateUi()
         form.setWindowTitle(tr("Separte vocal and instrument"))
@@ -142,5 +124,4 @@ class Ui_fn_separate(QtWidgets.QWidget):
 
     def retranslateUi(self):
         self.set.setText(tr("Start Separate"))
-        self.label_2.setText(tr("Outdir click open"))
         self.selectfile.setText(tr("Select file"))

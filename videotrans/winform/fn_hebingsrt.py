@@ -5,14 +5,11 @@ def openwin():
     from videotrans.winform import get_cls
     from videotrans.util._srt_parse import get_subtitle_from_srt
     from videotrans.util.help_misc import show_error
-    import json
+    import json,os
     from pathlib import Path
-    from PySide6.QtCore import QThread, Signal, QUrl,QTimer
-    from PySide6.QtGui import QDesktopServices
+    from PySide6.QtCore import QThread, Signal
     from PySide6.QtWidgets import QFileDialog
-    from videotrans.configure.config import tr,app_cfg, params, HOME_DIR
-    RESULT_DIR = HOME_DIR + "/Mergersrt"
-
+    from videotrans.configure.config import tr, params
 
     class CompThread(QThread):
         uito = Signal(str)
@@ -21,7 +18,7 @@ def openwin():
             super().__init__(parent=parent)
             self.file1 = file1
             self.file2 = file2
-            self.result_file = RESULT_DIR + "/" + Path(file1).stem + '-add-' + Path(file2).stem + '.srt'
+            self.result_file = os.path.normpath(winobj.output_data.text() + "/" + Path(file1).stem + '-add-' + Path(file2).stem + '.srt')
 
         def post(self, type='logs', text=""):
             self.uito.emit(json.dumps({"type": type, "text": text}))
@@ -59,7 +56,6 @@ def openwin():
             winobj.startbtn.setText(tr("commencement of execution"))
             winobj.startbtn.setDisabled(False)
             winobj.resultlabel.setText(d['text'])
-            winobj.resultbtn.setDisabled(False)
             winobj.resultinput.setPlainText(Path(winobj.resultlabel.text()).read_text(encoding='utf-8-sig'))
 
     def get_file(inputname):
@@ -82,7 +78,6 @@ def openwin():
 
         winobj.startbtn.setText(tr("Consolidation in progress..."))
         winobj.startbtn.setDisabled(True)
-        winobj.resultbtn.setDisabled(True)
         winobj.resultinput.setPlainText("")
 
         task = CompThread(parent=winobj, file1=srt1, file2=srt2)
@@ -90,18 +85,11 @@ def openwin():
         task.uito.connect(feed)
         task.start()
 
-    def opendir():
-        QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
-
-
-
     winobj = get_cls(Path(__file__).stem)()
     def _bind():
-        Path(RESULT_DIR).mkdir(parents=True,exist_ok=True)
         winobj.srtbtn1.clicked.connect(lambda: get_file(1))
         winobj.srtbtn2.clicked.connect(lambda: get_file(2))
 
-        winobj.resultbtn.clicked.connect(opendir)
         winobj.startbtn.clicked.connect(start)
     _bind()
     return winobj

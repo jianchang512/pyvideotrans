@@ -11,17 +11,14 @@ def openwin():
     import json
     import os
     from pathlib import Path
-    from PySide6.QtCore import QUrl
-    from PySide6.QtGui import QDesktopServices, QTextCursor, Qt
+    from PySide6.QtGui import QTextCursor, Qt
     from PySide6 import QtWidgets
     from PySide6.QtWidgets import QFileDialog, QPlainTextEdit
-    from videotrans.configure.config import tr,app_cfg,settings,params, HOME_DIR,logger
+    from videotrans.configure.config import tr,app_cfg,settings,params, logger
     from videotrans.configure import config
     from videotrans.task.taskcfg import TaskCfgSTS
     from videotrans import translator
 
-    RESULT_DIR = HOME_DIR + "/translate"
-    SOURCE_DIR = RESULT_DIR
     uuid_list=[]
     percent=""
     # LANGNAME_DICT 支持的30多种语言+ EDGE 语言列表
@@ -102,12 +99,9 @@ def openwin():
             winobj.fanyi_sourcetext.setPlainText(
                 f'{tr("yidaorujigewenjian")}{len(fnames)}\n{",".join(namestr)}')
 
-    def fanyi_save_fun():
-        nonlocal SOURCE_DIR
-        QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR if not SOURCE_DIR else SOURCE_DIR))
 
     def fanyi_start_fun():
-        nonlocal SOURCE_DIR,uuid_list
+        nonlocal uuid_list
         uuid_list=[]
         Path(config.TEMP_DIR).mkdir(parents=True, exist_ok=True)
         winobj.has_done = False
@@ -118,11 +112,7 @@ def openwin():
         # 直接返回 LANG_CODE 的键通用代码作为标识，真实目标语言名称在  runner 入口获取
         source_code,target_code=translator.get_code(source_language_name),translator.get_code(target_language)
 
-        logger.debug(f'{source_code=},{target_code=}')
-
-
         proxy = winobj.fanyi_proxy.text()
-
         if proxy:
             app_cfg.proxy = proxy
             set_proxy(proxy)
@@ -142,12 +132,12 @@ def openwin():
         from videotrans.util.help_ffmpeg import format_video
         video_list:List[InputFile] = [format_video(it, None) for it in winobj.files]
         uuid_list = [obj['uuid'] for obj in video_list]
-        if winobj.save_source.isChecked():
-            SOURCE_DIR = Path(video_list[0]['name']).parent.as_posix()
+
         _is_cuda=winobj.is_cuda.isChecked()
+        target_dir=winobj.output_data.text() if not winobj.save_source.isChecked() else video_list[0].dirname
         for it in video_list:
             app_cfg.rm_uuid(it['uuid'])
-            it['target_dir']=SOURCE_DIR if SOURCE_DIR else RESULT_DIR
+            it['target_dir']=target_dir
             cfg={
                 "translate_type": translate_type,
                 "uuid": it['uuid'],
@@ -295,7 +285,6 @@ def openwin():
     winobj = get_cls(Path(__file__).stem)()
 
     def _bind():
-        Path(RESULT_DIR).mkdir(parents=True,exist_ok=True)
         winobj.fanyi_translate_type.addItems(translator.TRANSLASTE_NAME_LIST)
         winobj.fanyi_translate_type.setCurrentIndex(int(params.get('trans_translate_type', 0)))
 
@@ -328,7 +317,6 @@ def openwin():
         winobj.fanyi_sourcetext.setReadOnly(True)
 
         winobj.fanyi_layout.insertWidget(0, winobj.fanyi_sourcetext)
-        winobj.daochu.clicked.connect(fanyi_save_fun)
         winobj.fanyi_model_list.currentTextChanged.connect(model_change)
         winobj.loglabel.clicked.connect(show_detail_error)
         winobj.exportsrt.clicked.connect(export_srt)

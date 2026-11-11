@@ -18,9 +18,8 @@ def openwin():
     from PySide6.QtWidgets import QFileDialog
 
     from videotrans.configure import constants
-    from videotrans.configure.config import tr,app_cfg,settings,params,logger, HOME_DIR
+    from videotrans.configure.config import tr,app_cfg,settings,params,logger
     from videotrans.configure import config
-    RESULT_DIR = HOME_DIR + "/videoandsrt"
 
     from videotrans import translator
 
@@ -68,11 +67,12 @@ def openwin():
             percent = 0
             self.post(type='logs',
                       text=tr('There are {} sets of videos with the same name and srt subtitles that need to be merged.',length))
+            target_dir=winobj.output_data.text()
             for name, info in vailfiles.items():
                 try:
                     srt = info['srt']
                     self.post(type='logs', text=f'{Path(srt).name} --> {Path(info["video"]).name} ')
-                    result_file = RESULT_DIR + f'/{name}.mp4'
+                    result_file = os.path.normpath(target_dir + f'/{name}.mp4')
                     cmd = [
                         '-y',
                         '-i',
@@ -141,7 +141,6 @@ def openwin():
             show_error(d['text'])
             winobj.startbtn.setText(tr("start operate"))
             winobj.startbtn.setDisabled(False)
-            winobj.opendir.setDisabled(False)
         elif d['type'] == 'jd':
             winobj.startbtn.setText(d['text'])
         elif d['type'] == 'logs':
@@ -151,7 +150,6 @@ def openwin():
             winobj.startbtn.setText(tr('zhixingwc'))
             winobj.startbtn.setDisabled(False)
             winobj.loglabel.setText(tr('quanbuend'))
-            winobj.opendir.setDisabled(False)
 
     def get_file():
         dirname = QFileDialog.getExistingDirectory(winobj, tr('selectsavedir'),
@@ -176,7 +174,6 @@ def openwin():
         winobj.startbtn.setText(
             tr("In Progress..."))
         winobj.startbtn.setDisabled(True)
-        winobj.opendir.setDisabled(True)
         task = CompThread(parent=winobj,
                           folder=folder,
                           is_soft=is_soft,
@@ -187,19 +184,13 @@ def openwin():
         task.uito.connect(feed)
         task.start()
 
-    def opendir():
-        QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
-
-
 
     from videotrans.translator import LANGNAME_DICT
     winobj = get_cls(Path(__file__).stem)()
 
     def _bind():
-        Path(RESULT_DIR).mkdir(parents=True,exist_ok=True)
         winobj.folder_btn.clicked.connect(get_file)
         winobj.startbtn.clicked.connect(start)
-        winobj.opendir.clicked.connect(opendir)
         winobj.language.addItems(list(LANGNAME_DICT.values()))
         winobj.set_ass.clicked.connect(lambda :get_win('set_ass'))
 

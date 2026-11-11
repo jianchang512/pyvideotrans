@@ -17,10 +17,8 @@ def openwin():
     from PySide6.QtWidgets import QFileDialog
 
     from videotrans.configure import constants
-    from videotrans.configure.config import tr,app_cfg, params, HOME_DIR
+    from videotrans.configure.config import tr,app_cfg, params
     from videotrans.configure import config
-    # 使用内置的 open 函数
-    RESULT_DIR = HOME_DIR + "/videoandaudio"
 
 
     class CompThread(QThread):
@@ -57,7 +55,8 @@ def openwin():
             self.uito.emit(json.dumps({"type": type, "text": text}))
 
         def run(self) -> None:
-            os.chdir(RESULT_DIR)
+            target_dir=winobj.output_data.text()
+            os.chdir(target_dir)
             # 确保临时目录存在
             os.makedirs(config.TEMP_DIR, exist_ok=True)
 
@@ -70,7 +69,7 @@ def openwin():
             percent = 0
             self.post(tr('There are {} sets of videos with the same name and audio that need to be merged.',length))
             for name, info in vailfiles.items():
-                result_file = RESULT_DIR + f'/{name}.mp4'
+                result_file = target_dir + f'/{name}.mp4'
                 audio = info['audio']
                 try:
                     self.post(f'{Path(audio).name} --> {Path(info["video"]).name} ')
@@ -120,7 +119,7 @@ def openwin():
                         "-map",
                         "1:a:0",
                         "-shortest",
-                        result_file
+                        os.path.normpath(result_file)
                     ],force_cpu=False)
                 except Exception as e:
                     from videotrans.configure.excepts import get_msg_from_except
@@ -149,7 +148,6 @@ def openwin():
             winobj.startbtn.setText(tr('zhixingwc'))
             winobj.startbtn.setDisabled(False)
             winobj.loglabel.setText(tr('quanbuend'))
-            winobj.resultbtn.setDisabled(False)
 
     def get_file():
         dirname = QFileDialog.getExistingDirectory(winobj,tr('selectsavedir'),
@@ -168,7 +166,6 @@ def openwin():
             tr("under implementation in progress..."))
         winobj.loglabel.setText('')
         winobj.startbtn.setDisabled(True)
-        winobj.resultbtn.setDisabled(True)
 
         task = CompThread(parent=winobj, folder=folder, remain=winobj.remain.isChecked(),
                           audio_process=winobj.audio_process.currentIndex())
@@ -176,16 +173,10 @@ def openwin():
         task.uito.connect(feed)
         task.start()
 
-    def opendir():
-        QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
-
-
 
     winobj = get_cls(Path(__file__).stem)()
     def _bind():
-        Path(RESULT_DIR).mkdir(parents=True,exist_ok=True)
         winobj.videobtn.clicked.connect(lambda: get_file())
-        winobj.resultbtn.clicked.connect(opendir)
         winobj.startbtn.clicked.connect(start)
     _bind()
     return winobj

@@ -7,12 +7,10 @@ def openwin():
     from videotrans.util.help_misc import show_error
     import os
     from pathlib import Path
-    from PySide6.QtCore import QThread, Signal, QUrl,QTimer
-    from PySide6.QtGui import QDesktopServices
+    from PySide6.QtCore import QThread, Signal
     from PySide6.QtWidgets import QFileDialog
     from videotrans.configure import constants
-    from videotrans.configure.config import tr,app_cfg, params, HOME_DIR
-    RESULT_DIR = HOME_DIR + "/hunliu"
+    from videotrans.configure.config import tr, params
 
 
     class CompThread(QThread):
@@ -21,7 +19,7 @@ def openwin():
         def __init__(self, *, parent=None, videourls=None):
             super().__init__(parent=parent)
             self.videourls = videourls
-            self.file = f'{RESULT_DIR}/{Path(self.videourls[0]).stem}-{Path(self.videourls[1]).stem}.wav'
+            self.file = os.path.normpath(f'{winobj.output_data.text()}/{Path(self.videourls[0]).stem}-{Path(self.videourls[1]).stem}.wav')
 
         def post(self, type='logs', text=""):
             self.uito.emit(json.dumps({"type": type, "text": text}))
@@ -54,15 +52,12 @@ def openwin():
             show_error(d['text'])
             winobj.hun_startbtn.setText(tr("start operate"))
             winobj.hun_startbtn.setDisabled(False)
-            winobj.hun_opendir.setDisabled(False)
         elif d['type'] == 'logs':
             winobj.hun_startbtn.setText(d['text'])
         else:
             winobj.has_done = True
             winobj.hun_startbtn.setText(tr("Ended/Start operate"))
             winobj.hun_startbtn.setDisabled(False)
-            winobj.hun_out.setText(d['text'])
-            winobj.hun_opendir.setDisabled(False)
 
     def get_file(num=1):
         format_str = " ".join(['*.' + f for f in constants.AUDIO_EXITS])
@@ -87,21 +82,15 @@ def openwin():
         winobj.hun_startbtn.setText(
             tr("In Progress..."))
         winobj.hun_startbtn.setDisabled(True)
-        winobj.hun_opendir.setDisabled(True)
         task = CompThread(parent=winobj, videourls=[audio1, audio2])
         task.uito.connect(feed)
         task.start()
 
-    def opendir():
-        QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
-
 
     winobj = get_cls(Path(__file__).stem)()
     def _bind():
-        Path(RESULT_DIR).mkdir(parents=True,exist_ok=True)
         winobj.hun_file1btn.clicked.connect(lambda: get_file(1))
         winobj.hun_file2btn.clicked.connect(lambda: get_file(2))
-        winobj.hun_opendir.clicked.connect(opendir)
         winobj.hun_startbtn.clicked.connect(start)
     _bind()
     return winobj

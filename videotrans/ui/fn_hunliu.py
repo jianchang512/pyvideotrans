@@ -4,15 +4,17 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (QHBoxLayout, QVBoxLayout)
 
 from videotrans.configure.config import tr, ROOT_DIR
+from videotrans.ui._bottom_btn import _Bottom_btn_layout
 
 
-class Ui_fn_hunliu(QtWidgets.QWidget):
+class Ui_fn_hunliu(QtWidgets.QWidget,_Bottom_btn_layout):
     def __init__(self):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
+        self.has_done = False
+        self.output_key="hunliu_output_data"
         self.setupUi(self)
     def setupUi(self, hunliu):
-        self.has_done = False
         if not hunliu.objectName():
             hunliu.setObjectName(u"hunliu")
         hunliu.setMinimumSize(643, 400)
@@ -70,18 +72,7 @@ class Ui_fn_hunliu(QtWidgets.QWidget):
 
         self.v1.addStretch()
 
-        self.h3 = QtWidgets.QHBoxLayout()
-        self.h3.setObjectName("horizontalLayout_21")
-        self.hun_out = QtWidgets.QLineEdit()
-        self.hun_out.setMinimumSize(QtCore.QSize(0, 30))
-        self.hun_out.setReadOnly(False)
-        self.hun_out.setObjectName("hun_out")
-        self.h3.addWidget(self.hun_out)
-        self.hun_opendir = QtWidgets.QPushButton()
-        self.hun_opendir.setMinimumSize(QtCore.QSize(0, 30))
-        self.hun_opendir.setObjectName("hun_opendir")
-        self.h3.addWidget(self.hun_opendir)
-        self.v1.addLayout(self.h3)
+        self.v1.addLayout(self.get_bottom_btn_layout())
         self.v1.addStretch()
         self.horizontalLayout_3.addLayout(self.v1)
         hunliu.setWindowTitle(tr("Mix 2 Audio"))
@@ -89,12 +80,10 @@ class Ui_fn_hunliu(QtWidgets.QWidget):
         QMetaObject.connectSlotsByName(hunliu)
 
     def retranslateUi(self):
-        self.l1.setText('Audio 1')
-        self.l2.setText('Audio 2')
+        self.l1.setText(tr('Audio')+" 1")
+        self.l2.setText(tr('Audio')+" 2")
         self.hun_file1.setPlaceholderText(tr("Select an audio"))
         self.hun_file1btn.setText(tr("Select Audio"))
         self.hun_file2.setPlaceholderText(tr("Select an audio"))
         self.hun_file2btn.setText(tr("Select Audio"))
-        self.hun_out.setPlaceholderText(tr("Output directory"))
-        self.hun_opendir.setText(tr("Open output directory"))
         self.hun_startbtn.setText(tr("Start operate"))

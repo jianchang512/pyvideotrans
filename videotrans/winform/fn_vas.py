@@ -27,10 +27,9 @@ def openwin():
     from pathlib import Path
     from PySide6.QtCore import QThread, Signal, QUrl, QTimer
     from PySide6.QtGui import QDesktopServices
-    from videotrans.configure.config import tr, app_cfg, settings, params, logger, HOME_DIR
+    from videotrans.configure.config import tr, app_cfg, settings, params, logger
     from videotrans.configure import config
 
-    RESULT_DIR = HOME_DIR + "/vas"
     STATE_DICT = {"stop": False}
 
     from videotrans.translator import LANGNAME_DICT, get_subtitle_code
@@ -51,7 +50,7 @@ def openwin():
             self.maxlen = maxlen
             self.remain_hr = remain_hr
             self.audio_process = audio_process
-            self.file = f'{RESULT_DIR}/{Path(self.video).stem}-{int(time.time())}.mp4'
+            self.file = os.path.normpath(f'{winobj.output_data.text()}/{Path(self.video).stem}-{int(time.time())}.mp4')
             self.video_info = get_video_info(self.video)
             self.video_time = get_video_duration(self.video)
             self.is_end = False
@@ -408,7 +407,6 @@ def openwin():
             winobj.ysphb_startbtn.setText(tr("start operate"))
             winobj.ysphb_startbtn.setDisabled(False)
             winobj.ysphb_stopbtn.setDisabled(True)
-            winobj.ysphb_opendir.setDisabled(False)
         elif d['type'] == 'jd':
             winobj.ysphb_startbtn.setText(d['text'] or "Processing...")
         elif d['type'] == 'logs':
@@ -418,8 +416,6 @@ def openwin():
             winobj.ysphb_startbtn.setText(tr('zhixingwc'))
             winobj.ysphb_startbtn.setDisabled(False)
             winobj.ysphb_stopbtn.setDisabled(True)
-            winobj.ysphb_out.setText(d['text'])
-            winobj.ysphb_opendir.setDisabled(False)
 
     def get_file(type='video'):
         fname = None
@@ -473,7 +469,6 @@ def openwin():
         winobj.ysphb_stopbtn.setDisabled(False)
         winobj.ysphb_startbtn.setText(
             tr("In Progress..."))
-        winobj.ysphb_opendir.setDisabled(True)
         task = CompThread(parent=winobj,
                           video=video,
                           audio=audio if audio else None,
@@ -488,8 +483,6 @@ def openwin():
         task.uito.connect(feed)
         task.start()
 
-    def opendir():
-        QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
 
     winobj = get_cls(Path(__file__).stem)()
 
@@ -497,13 +490,11 @@ def openwin():
         STATE_DICT['stop'] = True
 
     def _bind():
-        Path(RESULT_DIR).mkdir(parents=True, exist_ok=True)
         winobj.ysphb_selectvideo.clicked.connect(lambda: get_file('video'))
         winobj.ysphb_selectwav.clicked.connect(lambda: get_file('wav'))
         winobj.ysphb_selectsrt.clicked.connect(lambda: get_file('srt'))
         winobj.ysphb_startbtn.clicked.connect(start)
         winobj.ysphb_stopbtn.clicked.connect(_set_state)
-        winobj.ysphb_opendir.clicked.connect(opendir)
         winobj.language.addItems(list(LANGNAME_DICT.values()))
         winobj.set_ass.clicked.connect(lambda: get_win('set_ass'))
 

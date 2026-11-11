@@ -7,12 +7,10 @@ def openwin():
     import json
     import os
     from pathlib import Path
-    from PySide6.QtCore import QThread, Signal, QUrl,QTimer
-    from PySide6.QtGui import QDesktopServices
+    from PySide6.QtCore import QThread, Signal
     from PySide6.QtWidgets import QFileDialog
     from videotrans.configure import constants
-    from videotrans.configure.config import tr,app_cfg, params, HOME_DIR
-    RESULT_DIR = HOME_DIR + "/audiofromvideo"
+    from videotrans.configure.config import tr, params
 
 
     class CompThread(QThread):
@@ -28,7 +26,7 @@ def openwin():
 
         def run(self):
             try:
-
+                target_dir=winobj.output_data.text()
                 for i, v in enumerate(self.videourls):
                     runffmpeg([
                         "-y",
@@ -41,7 +39,7 @@ def openwin():
                         "48000",
                         "-c:a",
                         "pcm_s16le",
-                        RESULT_DIR + f"/{Path(v).stem}.wav"
+                        os.path.normpath(target_dir + f"/{Path(v).stem}.wav")
                     ])
                     if self.export_video:
                         runffmpeg([
@@ -51,7 +49,7 @@ def openwin():
                             "-an",
                             "-c:v",
                             "copy",
-                            RESULT_DIR + f"/{Path(v).stem}-novoice.mp4"
+                            os.path.normpath(target_dir + f"/{Path(v).stem}-novoice.mp4")
                         ])
                     jd = round((i + 1) * 100 / len(self.videourls), 2)
                     self.post(type='jd', text=f'{jd}%')
@@ -70,14 +68,12 @@ def openwin():
             show_error(d['text'])
             winobj.startbtn.setText(tr("start operate"))
             winobj.startbtn.setDisabled(False)
-            winobj.resultbtn.setDisabled(False)
         elif d['type'] == 'jd' or d['type'] == 'logs':
             winobj.startbtn.setText(d['text'])
         else:
             winobj.has_done = True
             winobj.startbtn.setText(tr('zhixingwc'))
             winobj.startbtn.setDisabled(False)
-            winobj.resultbtn.setDisabled(False)
             winobj.videourls = []
 
     def get_file():
@@ -104,20 +100,14 @@ def openwin():
         winobj.startbtn.setText(
             tr("under implementation in progress..."))
         winobj.startbtn.setDisabled(True)
-        winobj.resultbtn.setDisabled(True)
         task = CompThread(parent=winobj, videourls=winobj.videourls, export_video=winobj.getvideo.isChecked())
         task.uito.connect(feed)
         task.start()
 
-    def opendir():
-        QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
-
 
     winobj = get_cls(Path(__file__).stem)()
     def _bind():
-        Path(RESULT_DIR).mkdir(parents=True,exist_ok=True)
         winobj.videobtn.clicked.connect(lambda: get_file())
-        winobj.resultbtn.clicked.connect(opendir)
         winobj.startbtn.clicked.connect(start)
     _bind()
     return winobj

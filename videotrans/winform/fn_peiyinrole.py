@@ -1,7 +1,7 @@
-from videotrans.util._srt_parse import ass_to_srt
 
 
 def openwin():
+    from videotrans.util._srt_parse import ass_to_srt
     from videotrans.translator import LANGNAME_DICT
     from videotrans.winform import get_cls
     from videotrans.task.taskcfg import InputFile
@@ -13,10 +13,9 @@ def openwin():
     import json
     import os,time
     from pathlib import Path
-    from PySide6.QtCore import QUrl, Qt, QTimer
-    from PySide6.QtGui import QDesktopServices
+    from PySide6.QtCore import Qt
     from PySide6.QtWidgets import QFileDialog
-    from videotrans.configure.config import tr, app_cfg, params, defaulelang, HOME_DIR
+    from videotrans.configure.config import tr, app_cfg, params
     from videotrans.configure import config
     from videotrans.task.dubbing import DubbingSrt
     from videotrans import translator, tts
@@ -27,8 +26,6 @@ def openwin():
         if k != 'auto':
             EDGE_LANGUANGES_DICT[k]=v
 
-    RESULT_DIR = HOME_DIR + "/tts"
-    Path(RESULT_DIR).mkdir(parents=True, exist_ok=True)
     uuid = None
 
     def toggle_state(state):
@@ -136,7 +133,7 @@ def openwin():
         wk.start()
 
     def hecheng_start_fun():
-        nonlocal RESULT_DIR, uuid
+        nonlocal uuid
 
         if not winobj.srt_path:
             return show_error(
@@ -174,13 +171,9 @@ def openwin():
         volume = f'+{volume}%' if volume >= 0 else f'{volume}%'
         pitch = f'+{pitch}Hz' if pitch >= 0 else f'{pitch}Hz'
 
-        if winobj.save_to_srt.isChecked():
-            RESULT_DIR = Path(winobj.srt_path).parent.as_posix()
-        else:
-            RESULT_DIR = HOME_DIR + '/tts'
         video_obj:InputFile = format_video(winobj.srt_path, None)
         # 与文字配音相同，输出目录设在 video_obj 上：cfg | video_obj 时以 video_obj 的值为准
-        video_obj['target_dir'] = RESULT_DIR
+        video_obj['target_dir'] = winobj.output_data.text() if not winobj.save_to_srt.isChecked() else video_obj.dirname
         uuid = video_obj['uuid']
         app_cfg.rm_uuid(uuid)
         cfg = {
@@ -321,13 +314,6 @@ def openwin():
         else:
             winobj.parse_and_display_srt(fname,None)
 
-    def opendir_fn():
-        nonlocal RESULT_DIR
-        if winobj.srt_path and winobj.save_to_srt.isChecked():
-            RESULT_DIR = Path(winobj.srt_path).parent.as_posix()
-        else:
-            RESULT_DIR = HOME_DIR + '/tts'
-        QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
 
     def show_detail_error():
         if winobj.error_msg:
@@ -349,7 +335,6 @@ def openwin():
 
     winobj = get_cls(Path(__file__).stem)()
     def _bind():
-        Path(RESULT_DIR).mkdir(parents=True, exist_ok=True)
         if not params.get('dubb_voice_autorate', False):
             winobj.remove_silent_mid.setVisible(True)
             winobj.remove_silent_mid.setChecked(bool(params.get('dubb_remove_silent_mid', False)))
@@ -368,15 +353,11 @@ def openwin():
         winobj.hecheng_language.addItems(getlangnamelist(last_tts_type))
         winobj.hecheng_language.setCurrentIndex(int(params.get("dubb_source_language", 0)))
 
-
-
-
         winobj.is_cuda.toggled.connect(check_cuda)
         winobj.hecheng_importbtn.clicked.connect(hecheng_import_fun)
         winobj.hecheng_startbtn.clicked.connect(hecheng_start_fun)
         winobj.hecheng_stop.clicked.connect(stop_tts)
         winobj.listen_btn.clicked.connect(listen_voice_fun)
-        winobj.hecheng_opendir.clicked.connect(opendir_fn)
         winobj.loglabel.clicked.connect(show_detail_error)
 
         winobj.tts_type.currentIndexChanged.connect(tts_type_change)

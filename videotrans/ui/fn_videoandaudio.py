@@ -6,15 +6,17 @@ from PySide6.QtWidgets import (QHBoxLayout, QLabel, QLineEdit,
                                QVBoxLayout, QCheckBox)
 
 from videotrans.configure.config import tr, ROOT_DIR
+from videotrans.ui._bottom_btn import _Bottom_btn_layout
 
 
-class Ui_fn_videoandaudio(QtWidgets.QWidget):
+class Ui_fn_videoandaudio(QtWidgets.QWidget,_Bottom_btn_layout):
     def __init__(self):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
+        self.has_done = False
+        self.output_key="videoandaudio_output_data"
         self.setupUi(self)
     def setupUi(self, videoandaudio):
-        self.has_done = False
         if not videoandaudio.objectName():
             videoandaudio.setObjectName(u"videoandaudio")
         videoandaudio.setMinimumSize(700, 300)
@@ -81,11 +83,6 @@ class Ui_fn_videoandaudio(QtWidgets.QWidget):
         self.verticalLayout.addLayout(self.h2)
         self.verticalLayout.addLayout(h3)
 
-        self.resultbtn = QPushButton()
-        self.resultbtn.setObjectName(u"resultbtn")
-        self.resultbtn.setStyleSheet("""background-color:transparent""")
-        self.resultbtn.setMinimumSize(QSize(0, 30))
-        self.resultbtn.setCursor(QCursor(Qt.PointingHandCursor))
 
         self.loglabel = QLabel()
         self.loglabel.setStyleSheet('''color:#148cd2''')
@@ -93,7 +90,7 @@ class Ui_fn_videoandaudio(QtWidgets.QWidget):
 
         self.verticalLayout.addStretch()
 
-        self.verticalLayout.addWidget(self.resultbtn)
+        self.verticalLayout.addLayout(self.get_bottom_btn_layout())
         self.horizontalLayout_3.addLayout(self.verticalLayout)
 
         videoandaudio.setWindowTitle(tr("video/audio merger"))
@@ -106,7 +103,6 @@ class Ui_fn_videoandaudio(QtWidgets.QWidget):
             tr("Select the folder where you want to merge the video and audio"))
         self.videobtn.setText(tr("Select the folder"))
         self.startbtn.setText(tr("Start of execution"))
-        self.resultbtn.setText(tr("Open the save results directory"))
         self.labeltips.setText(
             tr("Will merge video and audio with the same name in that folder, e.g. 1.mp4 and 1.wav"))
         self.remain.setText(tr("Preserve the original sound in the video"))

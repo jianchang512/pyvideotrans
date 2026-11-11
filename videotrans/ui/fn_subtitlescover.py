@@ -6,16 +6,18 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
 
 from videotrans.configure.config import tr, ROOT_DIR
+from videotrans.ui._bottom_btn import _Bottom_btn_layout
 
 
-class Ui_fn_subtitlescover(QtWidgets.QWidget):
+class Ui_fn_subtitlescover(QtWidgets.QWidget,_Bottom_btn_layout):
     def __init__(self):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
-        self.setupUi(self)
-    def setupUi(self, subtitlescover):
         self.subtitlefiles = []
         self.has_done = False
+        self.output_key="subtitlescover_output_data"
+        self.setupUi(self)
+    def setupUi(self, subtitlescover):
         subtitlescover.setObjectName("subtitlescover")
         subtitlescover.setMinimumSize(800, 400)
 
@@ -68,11 +70,6 @@ class Ui_fn_subtitlescover(QtWidgets.QWidget):
         self.startbtn.setObjectName("startbtn")
         self.startbtn.setCursor(Qt.PointingHandCursor)
 
-        self.opendir = QtWidgets.QPushButton()
-        self.opendir.setMinimumSize(QtCore.QSize(0, 35))
-        self.opendir.setStyleSheet('''background-color:transparent''')
-        self.opendir.setObjectName("opendir")
-        self.opendir.setCursor(Qt.PointingHandCursor)
 
         self.layout_btn = QtWidgets.QHBoxLayout()
         self.layout_btn.setObjectName("layout_btn")
@@ -80,16 +77,11 @@ class Ui_fn_subtitlescover(QtWidgets.QWidget):
         self.layout_btn.addWidget(self.startbtn)
         self.layout_btn.addStretch()
 
-        self.opendir_layout = QtWidgets.QHBoxLayout()
-        self.opendir_layout.setObjectName("opendir_layout")
-        self.opendir_layout.addStretch()
-        self.opendir_layout.addWidget(self.opendir)
-        self.opendir_layout.addStretch()
 
         v1.addLayout(self.layout_btn)
         v1.addWidget(self.logs)
         v1.addStretch()
-        v1.addLayout(self.opendir_layout)
+        v1.addLayout(self.get_bottom_btn_layout())
 
         subtitlescover.setWindowTitle(
             tr("Convert subtitles between SRT/ASS/VTT/TXT formats"))
@@ -107,4 +99,3 @@ class Ui_fn_subtitlescover(QtWidgets.QWidget):
             tr("Select files to be converted/multiple selections possible"))
 
         self.startbtn.setText(tr("Start"))
-        self.opendir.setText(tr("Open the results catalog"))

@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import List
 
 from videotrans.configure import constants
-from videotrans.configure.config import ROOT_DIR, tr, settings, logger, HOME_DIR
+from videotrans.configure.config import ROOT_DIR, tr, settings, logger
 from videotrans.configure import config
 from videotrans.configure.constants import PUNC_RESTORE_MS, PUNC_RESTORE_HF
 from videotrans.recognition import run
@@ -44,7 +44,7 @@ class SpeechToText(BaseTask):
             self.max_speakers += 1
         # 存放目标文件夹
         if not self.cfg.target_dir:
-            self.cfg.target_dir = HOME_DIR + f"/recogn"
+            self.cfg.target_dir = f"{ROOT_DIR}/recogn"
         # 转录后的目标字幕文件，先统一转为srt，然后再使用ffmpeg转为其他格式字幕
         self.cfg.target_sub = self.cfg.target_dir + '/' + self.cfg.noextname + '.srt'
         # 临时文件夹

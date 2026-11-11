@@ -4,18 +4,23 @@ import platform
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtGui import Qt, QIcon
 
-from videotrans.configure.config import tr, ROOT_DIR
+from videotrans.configure.config import tr, ROOT_DIR, params
+
+from videotrans.ui._bottom_btn import _Bottom_btn_layout
 
 
-class Ui_fn_recogn(QtWidgets.QWidget):
+class Ui_fn_recogn(QtWidgets.QWidget,_Bottom_btn_layout):
     def __init__(self):
         super().__init__()
-        self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
-        self.setupUi(self)
-    def setupUi(self, recogn):
         self.has_done = False
         self.error_msg = ""
         self.shibie_out_path = None
+        self.output_key="stt_output_data"
+        self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
+        self.setupUi(self)
+
+
+    def setupUi(self, recogn):
         recogn.setObjectName("recogn")
         recogn.setMinimumSize(1200, 500)
 
@@ -151,20 +156,11 @@ class Ui_fn_recogn(QtWidgets.QWidget):
         self.shibie_text.setReadOnly(True)
         self.verticalLayout_3.addWidget(self.shibie_text)
 
-        self.shibie_opendir = QtWidgets.QPushButton()
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.shibie_opendir.sizePolicy().hasHeightForWidth())
-        self.shibie_opendir.setSizePolicy(sizePolicy)
-        self.shibie_opendir.setFixedHeight(30)
-        self.shibie_opendir.setObjectName("shibie_opendir")
-        self.shibie_opendir.setDisabled(True)
 
-        self.horizontalLayout_shibie8 = QtWidgets.QHBoxLayout()
 
-        self.horizontalLayout_shibie8.addWidget(self.shibie_opendir)
-        self.verticalLayout_3.addLayout(self.horizontalLayout_shibie8)
+
+        self.verticalLayout_3.addLayout(self.get_bottom_btn_layout())
+
 
         self.label_shibie10 = QtWidgets.QLabel()
         self.verticalLayout_3.addWidget(self.label_shibie10)
@@ -172,7 +168,7 @@ class Ui_fn_recogn(QtWidgets.QWidget):
         self.horizontalLayout_9.addLayout(self.verticalLayout_3)
 
         self.shibie_startbtn.setCursor(Qt.PointingHandCursor)
-        self.shibie_opendir.setCursor(Qt.PointingHandCursor)
+
         self.is_cuda.setText(tr("Enable CUDA?"))
         self.shibie_label.setText(tr("Speech Recognit"))
 
@@ -192,7 +188,6 @@ class Ui_fn_recogn(QtWidgets.QWidget):
         self.copysrt_rawvideo.setToolTip(
             tr("If selected, the subtitles will be saved to the original audio and video location and renamed to the same name as the original audio and video"))
         self.loglabel.setStyleSheet('''color:#148cd2;background-color:transparent''')
-        self.shibie_opendir.setText(tr("Open output directory"))
 
         self.label_3.setText(tr("Speech language"))
         self.shibie_startbtn.setText(tr("Start"))

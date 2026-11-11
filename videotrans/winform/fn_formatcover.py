@@ -14,9 +14,7 @@ def openwin():
     from PySide6.QtWidgets import QFileDialog
 
     from videotrans.configure import constants
-    from videotrans.configure.config import tr,app_cfg, params, HOME_DIR
-
-    RESULT_DIR = HOME_DIR + "/formatcover"
+    from videotrans.configure.config import tr, params
 
 
     class CompThread(QThread):
@@ -32,17 +30,18 @@ def openwin():
 
         def run(self):
             try:
+                target_dir=winobj.output_data.text()
                 for i, v in enumerate(self.videourls):
                     raw_path = Path(v)
                     # 格式不变直接复制
                     if raw_path.suffix.lower() == self.target_format:
-                        shutil.copy2(v, os.path.normpath(RESULT_DIR + f'/{raw_path.name}'))
+                        shutil.copy2(v, os.path.normpath(target_dir + f'/{raw_path.name}'))
                         continue
                     runffmpeg([
                         "-y",
                         "-i",
                         os.path.normpath(v),
-                        RESULT_DIR + f"/{Path(v).stem}.{self.target_format}"
+                        os.path.normpath(target_dir + f"/{Path(v).stem}.{self.target_format}")
                     ])
                     jd = round((i + 1) * 100 / len(self.videourls), 2)
                     self.post(type='jd', text=f'{jd}%')
@@ -61,14 +60,12 @@ def openwin():
             show_error(d['text'])
             winobj.startbtn.setText(tr("start operate"))
             winobj.startbtn.setDisabled(False)
-            winobj.opendir.setDisabled(False)
         elif d['type'] == 'jd' or d['type'] == 'logs':
             winobj.startbtn.setText(d['text'])
         else:
             winobj.has_done = True
             winobj.startbtn.setText(tr('zhixingwc'))
             winobj.startbtn.setDisabled(False)
-            winobj.opendir.setDisabled(False)
             winobj.videourls = []
 
     def get_file():
@@ -95,21 +92,15 @@ def openwin():
         winobj.startbtn.setText(
             tr("under implementation in progress..."))
         winobj.startbtn.setDisabled(True)
-        winobj.opendir.setDisabled(True)
         target_format = winobj.formatlist.currentText()
         task = CompThread(parent=winobj, videourls=winobj.videourls, target_format=target_format)
         task.uito.connect(feed)
         task.start()
 
-    def opendir():
-        QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
-
 
     winobj = get_cls(Path(__file__).stem)()
     def _bind():
-        Path(RESULT_DIR).mkdir(parents=True,exist_ok=True)
         winobj.selectbtn.clicked.connect(lambda: get_file())
-        winobj.opendir.clicked.connect(opendir)
         winobj.startbtn.clicked.connect(start)
     _bind()
     return winobj

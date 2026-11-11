@@ -24,7 +24,6 @@ class AppSettings:
     """
     AppSettings: 对应 cfg.json，包含 parse_init 功能
     """
-    homedir: str = ROOT_DIR + "/output"
     lang: str = ""
     hf_token: str = ""
     proxy: str = ''
@@ -133,7 +132,6 @@ class AppSettings:
     def _get_defaults(self) -> Dict:
         _d = {
             "lang": "",
-            "homedir": ROOT_DIR + "/output",
             "Faster_Whisper_XXL": "",
             "Whisper_cpp": "",
             "crf": 23,

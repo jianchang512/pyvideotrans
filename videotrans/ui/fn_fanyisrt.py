@@ -5,12 +5,17 @@ from PySide6.QtCore import (QMetaObject, Qt, QEvent)
 from PySide6.QtGui import QIcon
 
 from videotrans.configure.config import tr, settings, ROOT_DIR
+from videotrans.ui._bottom_btn import _Bottom_btn_layout
 
 
-class Ui_fn_fanyisrt(QtWidgets.QWidget):
+class Ui_fn_fanyisrt(QtWidgets.QWidget,_Bottom_btn_layout):
     def __init__(self):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
+        self.output_key="trans_output_data"
+        self.has_done = False
+        self.files = []
+        self.error_msg = ""
         self.setupUi(self)
 
     def changeEvent(self, event):
@@ -20,9 +25,6 @@ class Ui_fn_fanyisrt(QtWidgets.QWidget):
 
 
     def setupUi(self, fanyisrt):
-        self.has_done = False
-        self.files = []
-        self.error_msg = ""
         if not fanyisrt.objectName():
             fanyisrt.setObjectName(u"fanyisrt")
         fanyisrt.setMinimumSize(1150, 535)
@@ -163,10 +165,6 @@ class Ui_fn_fanyisrt(QtWidgets.QWidget):
         self.save_source = QtWidgets.QCheckBox()
         self.save_source.setText(tr("save in situ"))
 
-        self.daochu = QtWidgets.QToolButton()
-        self.daochu.setMinimumSize(QtCore.QSize(0, 28))
-        self.daochu.setObjectName("daochu")
-        self.daochu.setCursor(Qt.PointingHandCursor)
         self.exportsrt = QtWidgets.QToolButton()
         self.exportsrt.setMinimumSize(QtCore.QSize(0, 28))
         self.exportsrt.setObjectName("exportsrt")
@@ -175,7 +173,6 @@ class Ui_fn_fanyisrt(QtWidgets.QWidget):
         self.horizontalLayout_19.addStretch()
         self.horizontalLayout_19.addWidget(self.save_source)
         self.horizontalLayout_19.addWidget(self.exportsrt)
-        self.horizontalLayout_19.addWidget(self.daochu)
         self.verticalLayout_13.addLayout(self.horizontalLayout_19)
 
         self.fanyi_layout = QtWidgets.QHBoxLayout()
@@ -207,6 +204,9 @@ class Ui_fn_fanyisrt(QtWidgets.QWidget):
         self.reslabel = QtWidgets.QLabel()
 
         self.verticalLayout_13.addWidget(self.reslabel)
+        self.verticalLayout_13.addLayout(self.get_bottom_btn_layout())
+
+
 
         self.horizontalLayout_23.addLayout(self.verticalLayout_13)
 
@@ -227,7 +227,6 @@ class Ui_fn_fanyisrt(QtWidgets.QWidget):
         self.fanyi_proxy.setPlaceholderText(
             tr("Failed to access Google services. Please set up the proxy correctly"))
         self.fanyi_import.setText(tr("tuodongfanyi"))
-        self.daochu.setText(tr('dakaizimubaocunmulu'))
         self.fanyi_start.setText(tr("Start>"))
         self.exportsrt.setText(tr("Save"))
         self.fanyi_targettext.setPlaceholderText(

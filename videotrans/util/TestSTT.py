@@ -15,7 +15,7 @@ class TestSTT(QThread):
         try:
             from videotrans import recognition
 
-            from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,logger,defaulelang,HOME_DIR
+            from videotrans.configure.config import ROOT_DIR,tr,app_cfg,settings,params,logger,defaulelang
             from videotrans.configure import config
             from videotrans.util._srt_parse import get_srt_from_list
             res = recognition.run(

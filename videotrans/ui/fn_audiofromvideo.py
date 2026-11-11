@@ -8,16 +8,18 @@ from PySide6.QtWidgets import (QHBoxLayout, QLineEdit,
                                QVBoxLayout)
 
 from videotrans.configure.config import tr, ROOT_DIR
+from videotrans.ui._bottom_btn import _Bottom_btn_layout
 
 
-class Ui_fn_audiofromvideo(QtWidgets.QWidget):
+class Ui_fn_audiofromvideo(QtWidgets.QWidget,_Bottom_btn_layout):
     def __init__(self):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
-        self.setupUi(self)
-    def setupUi(self, getaudio):
         self.has_done = False
         self.videourls = []
+        self.output_key="audiofromvideo_output_data"
+        self.setupUi(self)
+    def setupUi(self, getaudio):
 
         if not getaudio.objectName():
             getaudio.setObjectName(u"getaudio")
@@ -66,12 +68,7 @@ class Ui_fn_audiofromvideo(QtWidgets.QWidget):
 
         self.verticalLayout.addLayout(h1)
 
-        self.resultbtn = QPushButton()
-        self.resultbtn.setObjectName(u"resultbtn")
-        self.resultbtn.setStyleSheet("""background-color:transparent""")
-        self.resultbtn.setMinimumSize(QSize(0, 30))
-        self.resultbtn.setCursor(QCursor(Qt.PointingHandCursor))
-        self.verticalLayout.addWidget(self.resultbtn)
+        self.verticalLayout.addLayout(self.get_bottom_btn_layout())
         self.horizontalLayout_3.addLayout(self.verticalLayout)
 
         getaudio.setWindowTitle(tr("Separating audio from video"))
@@ -86,4 +83,4 @@ class Ui_fn_audiofromvideo(QtWidgets.QWidget):
             tr("Videos to be separated"))
         self.videobtn.setText(tr("Select the videos"))
         self.startbtn.setText(tr("Start of execution"))
-        self.resultbtn.setText(tr("Open the save results directory"))
+

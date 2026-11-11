@@ -14,11 +14,9 @@ def openwin():
     from PySide6.QtGui import QDesktopServices
     from PySide6.QtWidgets import QFileDialog
     from videotrans.configure import constants
-    from videotrans.configure.config import tr,app_cfg,settings,params, HOME_DIR
+    from videotrans.configure.config import tr,app_cfg,settings,params
     from videotrans.configure import config
     # 使用内置的 open 函数
-    RESULT_DIR = HOME_DIR + "/watermark"
-
 
     class CompThread(QThread):
         uito = Signal(str)
@@ -63,7 +61,10 @@ def openwin():
                     self.post(type='jd', text=f'{end_time}')
                     time.sleep(1)
                     continue
-                h, m, s = end_time.split(':')
+                try:
+                    h, m, s = end_time.split(':')
+                except ValueError:
+                    continue
                 tmp1 = round((int(h) * 3600000 + int(m) * 60000 + int(s[:2]) * 1000) / video_time, 2)
                 if percent + tmp1 < 99.9:
                     percent += tmp1
@@ -73,11 +74,12 @@ def openwin():
 
 
         def run(self) -> None:
-            os.chdir(RESULT_DIR)
+            target=winobj.output_data.text()
+            os.chdir(target)
             # 确保临时目录存在
 
             for video in winobj.videourls:
-                result_file = RESULT_DIR + f'/{Path(video).stem}.mp4'
+                result_file = target + f'/{Path(video).stem}.mp4'
 
                 # 计算水印位置
                 duration = get_video_duration(video)
@@ -107,7 +109,7 @@ def openwin():
                     "-preset", f"{settings.get('preset','fast')}",
                     "-c:a", "aac",
                     "-pix_fmt", "yuv420p",
-                    result_file
+                    os.path.normpath(result_file)
                 ]
                 try:
                     runffmpeg(ffmpeg_command,force_cpu=False)
@@ -139,20 +141,19 @@ def openwin():
             winobj.startbtn.setText(tr('zhixingwc'))
             winobj.startbtn.setDisabled(False)
             winobj.resultlabel.setText(tr('quanbuend'))
-            winobj.resultbtn.setDisabled(False)
 
     def get_file(type):
         if type == 1:
             format_str = " ".join(['*.' + f for f in constants.VIDEO_EXTS])
             fname, _ = QFileDialog.getOpenFileNames(winobj, "Select Video",
-                                                    params['last_opendir'],
+                                                    params.get('last_opendir'),
                                                     f"Video files({format_str})")
             if len(fname) > 0:
                 winobj.videourls = fname.copy()
                 winobj.videourl.setText(",".join(winobj.videourls))
         else:
             fname, _ = QFileDialog.getOpenFileName(winobj, "Select Image",
-                                                   params['last_opendir'],
+                                                   params.get('last_opendir'),
                                                    "files(*.png *.jpg *.jpeg *.gif)")
             if fname:
                 winobj.pngurl.setText(fname)
@@ -168,7 +169,6 @@ def openwin():
         winobj.startbtn.setText(
             tr("under implementation in progress..."))
         winobj.startbtn.setDisabled(True)
-        winobj.resultbtn.setDisabled(True)
 
         x, y = 10, 10
         try:
@@ -192,17 +192,12 @@ def openwin():
         task.uito.connect(feed)
         task.start()
 
-    def opendir():
-        QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
-
 
     winobj = get_cls(Path(__file__).stem)()
     def _bind():
-        Path(RESULT_DIR).mkdir(parents=True,exist_ok=True)
         winobj.videobtn.clicked.connect(lambda: get_file(1))
         winobj.pngbtn.clicked.connect(lambda: get_file(2))
 
-        winobj.resultbtn.clicked.connect(opendir)
         winobj.startbtn.clicked.connect(start)
     _bind()
     return winobj

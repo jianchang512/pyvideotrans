@@ -10,9 +10,8 @@ def openwin():
     import json
     from pathlib import Path
     from PySide6 import QtWidgets
-    from PySide6.QtCore import QUrl
-    from PySide6.QtGui import QDesktopServices, QTextCursor, Qt
-    from videotrans.configure.config import tr, app_cfg, settings, params, HOME_DIR
+    from PySide6.QtGui import QTextCursor, Qt
+    from videotrans.configure.config import tr, app_cfg, settings, params
     from videotrans.configure import config
     from videotrans.task.taskcfg import TaskCfgSTT
     from videotrans import translator, recognition
@@ -22,9 +21,6 @@ def openwin():
 
 
 
-    RESULT_DIR = HOME_DIR + f"/recogn"
-    Path(RESULT_DIR).mkdir(exist_ok=True, parents=True)
-    COPYSRT_TO_RAWDIR = RESULT_DIR
     uuid_list = []
     percent = ""
 
@@ -67,8 +63,6 @@ def openwin():
             winobj.shibie_startbtn.setText(tr("zhixingwc"))
             winobj.shibie_dropbtn.setText(tr('quanbuend') + ". " + tr('xuanzeyinshipin'))
 
-    def opendir_fn():
-        QDesktopServices.openUrl(QUrl.fromLocalFile(COPYSRT_TO_RAWDIR))
 
     def toggle_state(state):
         winobj.shibie_language.setDisabled(state)
@@ -78,7 +72,6 @@ def openwin():
         winobj.shibie_model.setDisabled(True if state or _recogn_type not in recognition.ALLOW_CHANGE_MODEL else False)
         
         winobj.out_format.setDisabled(state)
-        winobj.shibie_opendir.setDisabled(state)
         winobj.shibie_startbtn.setDisabled(state)
         winobj.shibie_dropbtn.setDisabled(state)
         winobj.rephrase.setDisabled(state)
@@ -91,8 +84,9 @@ def openwin():
         winobj.shibie_stop.setDisabled(not state)
 
     def shibie_start_fun():
-        nonlocal COPYSRT_TO_RAWDIR, uuid_list
+        nonlocal  uuid_list
         uuid_list = []
+        print(winobj.output_data.text())
         Path(config.TEMP_DIR).mkdir(parents=True, exist_ok=True)
         winobj.has_done = False
         model = winobj.shibie_model.currentText().strip()
@@ -137,7 +131,6 @@ def openwin():
         settings.save()
         from videotrans.util.help_ffmpeg import format_video
         try:
-            COPYSRT_TO_RAWDIR = RESULT_DIR if not winobj.copysrt_rawvideo.isChecked() else RESULT_DIR
             winobj.loglabel.setText('')
             video_list:List[InputFile] = [format_video(it, None) for it in files]
             uuid_list = [obj['uuid'] for obj in video_list]
@@ -146,12 +139,12 @@ def openwin():
             nums_diariz = winobj.nums_diariz.currentIndex()
             spk_insert=winobj.spk_insert.isChecked()
             for it in video_list:
+                it["target_dir"]=winobj.output_data.text()
                 app_cfg.rm_uuid(it['uuid'])
                 cfg = {
                     "recogn_type": recogn_type,
                     "model_name": model,
                     "is_cuda": is_cuda,
-                    "target_dir": RESULT_DIR,
                     "detect_language": langcode,
                     "remove_noise": remove_noise_is,
                     "enable_diariz": enable_diariz_is,
@@ -159,6 +152,8 @@ def openwin():
                     "rephrase": stt_rephrase,
                     "fix_punc": fix_punc
                 }
+                print(f'{cfg=}')
+                print(f'{it=}')
                 from videotrans.task.speech2text import SpeechToText
                 trk = SpeechToText(cfg=TaskCfgSTT(**cfg | it),
                                        out_format=winobj.out_format.currentText(),
@@ -285,7 +280,6 @@ def openwin():
 
         winobj.shibie_startbtn.clicked.connect(shibie_start_fun)
         winobj.shibie_stop.clicked.connect(stop_recogn)
-        winobj.shibie_opendir.clicked.connect(opendir_fn)
         winobj.is_cuda.toggled.connect(check_cuda)
 
         default_lang = int(params.get('stt_source_language', 0))

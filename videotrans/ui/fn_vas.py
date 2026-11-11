@@ -8,15 +8,17 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QHBoxLayout
 
 from videotrans.configure.config import tr, ROOT_DIR
+from videotrans.ui._bottom_btn import _Bottom_btn_layout
 
 
-class Ui_fn_vas(QtWidgets.QWidget):
+class Ui_fn_vas(QtWidgets.QWidget,_Bottom_btn_layout):
     def __init__(self):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
+        self.has_done = False
+        self.output_key="vas_output_data"
         self.setupUi(self)
     def setupUi(self, vasrt):
-        self.has_done = False
         if not vasrt.objectName():
             vasrt.setObjectName(u"vasrt")
         vasrt.setMinimumSize(1000, 500)
@@ -209,18 +211,22 @@ class Ui_fn_vas(QtWidgets.QWidget):
         self.v3.addLayout(h_btn)
         self.v3.addStretch()
 
-        self.h8 = QtWidgets.QHBoxLayout()
-        self.h8.setObjectName("horizontalLayout_20")
-        self.ysphb_out = QtWidgets.QLineEdit()
-        self.ysphb_out.setMinimumSize(QtCore.QSize(0, 30))
-        self.ysphb_out.setReadOnly(True)
-        self.ysphb_out.setObjectName("ysphb_out")
-        self.h8.addWidget(self.ysphb_out)
-        self.ysphb_opendir = QtWidgets.QPushButton()
-        self.ysphb_opendir.setMinimumSize(QtCore.QSize(0, 30))
-        self.ysphb_opendir.setObjectName("ysphb_opendir")
-        self.h8.addWidget(self.ysphb_opendir)
-        self.v3.addLayout(self.h8)
+        # self.h8 = QtWidgets.QHBoxLayout()
+        # self.h8.setObjectName("horizontalLayout_20")
+        # self.ysphb_out = QtWidgets.QLineEdit()
+        # self.ysphb_out.setMinimumSize(QtCore.QSize(0, 30))
+        # self.ysphb_out.setReadOnly(True)
+        # self.ysphb_out.setObjectName("ysphb_out")
+        # self.h8.addWidget(self.ysphb_out)
+        # self.ysphb_opendir = QtWidgets.QPushButton()
+        # self.ysphb_opendir.setMinimumSize(QtCore.QSize(0, 30))
+        # self.ysphb_opendir.setObjectName("ysphb_opendir")
+        #
+        # self.h8.addWidget(self.ysphb_opendir)
+
+
+
+        self.v3.addLayout(self.get_bottom_btn_layout())
 
         # end
         self.horizontalLayout_3.addLayout(self.v3)
@@ -257,4 +263,4 @@ class Ui_fn_vas(QtWidgets.QWidget):
         self.ysphb_srtinput.setPlaceholderText(tr("Select a Srt file"))
         self.ysphb_startbtn.setText(tr("Start operating"))
         self.ysphb_stopbtn.setText(tr("stopImmediately"))
-        self.ysphb_opendir.setText(tr("Open the results catalog"))
+

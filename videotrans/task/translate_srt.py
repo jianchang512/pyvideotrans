@@ -4,7 +4,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List
 
-from videotrans.configure.config import tr, HOME_DIR, logger, settings
+from videotrans.configure._paths import ROOT_DIR
+from videotrans.configure.config import tr, logger, settings
 from videotrans.task._base import BaseTask
 from videotrans.task.taskcfg import TaskCfgSTS, SrtItem
 from videotrans.translator import run, AI_TRANS_CHANNELS, HYMT2_INDEX
@@ -21,14 +22,15 @@ class TranslateSrt(BaseTask):
     out_format: int = field(init=True, default=0)
     # 固定应该翻译
     should_trans: bool = True
-    
+
     def __post_init__(self):
         super().__post_init__()
         # 存放目标文件夹
         if not self.cfg.target_dir:
-            self.cfg.target_dir = HOME_DIR + f"/translate"
+            self.cfg.target_dir = f"{ROOT_DIR}/translate"
         # 生成目标字幕文件
         self.cfg.target_sub = self.cfg.target_dir + '/' + self.cfg.noextname + f'.{self.cfg.target_language_code}.srt'
+
         self.cfg.source_sub = self.cfg.name
         # 如果原始和结果文件相同，为避免覆盖，提前复制
         if self.cfg.name == self.cfg.target_sub:
@@ -49,7 +51,7 @@ class TranslateSrt(BaseTask):
         ]
         from videotrans.util.tools import get_tanslate_type
         _msg.append(tr("Text  Or Srt  Translation"))
-        _msg.append(f'{self.cfg.name=}, \n{self.cfg.target_dir=}')
+        _msg.append(f'{self.cfg.name=}, \n{self.cfg.target_sub=}')
         _msg.append(f"{tr('Translate channel')}:{get_tanslate_type(self.cfg.translate_type)},{tr('Speech language')}:{self.cfg.source_language},{tr('Target lang')}:{self.cfg.target_language}")
         if self.cfg.translate_type in AI_TRANS_CHANNELS and self.cfg.translate_type != HYMT2_INDEX:
             _msg.append(f"{isTrue[settings['aisendsrt']]} {tr('Send SRT')}, {tr('aitrans_thread_title')}:{settings.get('aitrans_thread')}")

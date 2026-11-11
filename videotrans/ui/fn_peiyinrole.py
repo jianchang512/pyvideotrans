@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout,
 
 from videotrans import tts
 from videotrans.configure.config import tr, app_cfg, ROOT_DIR, params
+from videotrans.ui._bottom_btn import _Bottom_btn_layout
 from videotrans.util._srt_parse import get_subtitle_from_srt
 from videotrans.util.help_misc import show_error
 
@@ -35,14 +36,20 @@ class SpkRowWidget(QtWidgets.QWidget):
         self.checkbox.toggle()
 
 
-class Ui_fn_peiyinrole(QtWidgets.QWidget):
+class Ui_fn_peiyinrole(QtWidgets.QWidget,_Bottom_btn_layout):
     def __init__(self):
         super().__init__()
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
-        self.setupUi(self)
-
         self.spk_role = {}
         self.spk_lines = {}
+        self.output_key="dubb_output_data"
+        self.has_done = False
+        # 全局变量初始化
+        self.srt_path = None
+        self.subtitles = []
+        self.error_msg = ""
+        self.setupUi(self)
+
         self.clear_button.clicked.connect(self.clear_all_ui)
         self.assign_role_button.clicked.connect(self.assign_role_to_selected)
         self.assign_role_button2.clicked.connect(self.assign_role_to_spk)
@@ -227,11 +234,7 @@ class Ui_fn_peiyinrole(QtWidgets.QWidget):
 
 
     def setupUi(self, peiyinrole):
-        self.has_done = False
-        # 全局变量初始化
-        self.srt_path = None
-        self.subtitles = []
-        self.error_msg = ""
+
         if not peiyinrole.objectName():
             peiyinrole.setObjectName(u"peiyinrole")
         peiyinrole.setMinimumSize(1200, 750)
@@ -493,11 +496,7 @@ class Ui_fn_peiyinrole(QtWidgets.QWidget):
         self.loglabel.setStyleSheet('''color:#148cd2;background-color:transparent''')
         self.bottom_layout.addWidget(self.loglabel)
 
-        self.hecheng_opendir = QtWidgets.QPushButton()
-        self.hecheng_opendir.setStyleSheet("""background-color:transparent""")
-        self.hecheng_opendir.setMinimumSize(QtCore.QSize(100, 35))
-        self.hecheng_opendir.setCursor(Qt.PointingHandCursor)
-        self.bottom_layout.addWidget(self.hecheng_opendir)
+        self.bottom_layout.addLayout(self.get_bottom_btn_layout())
         self.main_layout.addLayout(self.bottom_layout)
 
         self.retranslateUi(peiyinrole)
@@ -524,6 +523,5 @@ class Ui_fn_peiyinrole(QtWidgets.QWidget):
         self.save_to_srt.setToolTip(
             tr("If checked, the synthesized audio is saved to the original folder where the srt file is located."))
         self.hecheng_startbtn.setText(tr("Start"))
-        self.hecheng_opendir.setText(tr("Open output directory"))
         self.remove_silent_mid.setText(tr("Del inline mute?"))
         self.remove_silent_mid.setToolTip(tr("Selecting this option will delete the silent intervals between subtitles"))

@@ -12,15 +12,12 @@ from PySide6.QtWidgets import (
     QComboBox, QPlainTextEdit, QScroller
 )
 
-from videotrans.configure.config import ROOT_DIR, tr, settings, HOME_DIR
+from videotrans.configure.config import ROOT_DIR, tr, settings
 # 全局输出文件夹
+from videotrans.ui._bottom_btn import _Bottom_btn_layout
 from videotrans.util._ffmpeg_runner import runffmpeg
 from videotrans.util._ffprobe import get_video_info
 from videotrans.util._srt_parse import get_subtitle_from_srt
-
-output_folder = HOME_DIR
-
-
 
 class Signals(QObject):
     progress = Signal(str)
@@ -28,7 +25,7 @@ class Signals(QObject):
     load_error = Signal(str)
 
 class ClipTask(QRunnable):
-    def __init__(self, video_path, sub, line_num, subtitle_name, signals, mode,video_info=None):
+    def __init__(self, video_path, sub, line_num, subtitle_name, signals, mode,video_info=None,output_folder=None):
         super().__init__()
         self.video_path = video_path
         self.sub = sub
@@ -37,6 +34,7 @@ class ClipTask(QRunnable):
         self.signals = signals
         self.mode = mode
         self.video_info=video_info
+        self.output_folder=output_folder
 
     def run(self):
         try:
@@ -45,7 +43,7 @@ class ClipTask(QRunnable):
             if duration<0.1:
                 self.signals.progress.emit(f"Failed:{self.line_num} : {duration}s")
                 return
-            output_dir = f'{output_folder}/{self.subtitle_name}-clip'
+            output_dir = f'{self.output_folder}/{self.subtitle_name}-clip'
             os.makedirs(output_dir, exist_ok=True)
 
             if self.mode == 0:  # 默认
@@ -107,13 +105,14 @@ class ClipTask(QRunnable):
 
 
 
-class CLIP_VIDEO(QWidget):
+class CLIP_VIDEO(QWidget,_Bottom_btn_layout):
     def __init__(self):
         super().__init__()
         self.setWindowTitle(tr("appTitle"))
         self.resize(1000, 600)
         self.setWindowFlags(self.windowFlags() | Qt.WindowMaximizeButtonHint | Qt.WindowMinimizeButtonHint)
 
+        self.output_key="clip_output_data"
         self.video_path = None
         self.subtitle_path = None
         self.subtitles = None
@@ -128,7 +127,6 @@ class CLIP_VIDEO(QWidget):
         self.total_clips = 0
         self.completed_clips = 0
         self.failed_clips = []
-        self.open_button = None
         self.active_tasks = 0
 
         self.setup_ui()
@@ -211,13 +209,7 @@ class CLIP_VIDEO(QWidget):
         self.clear_btn.clicked.connect(self.clear_all)
         btn_layout.addWidget(self.clear_btn)
         
-        self.open_button = QPushButton(tr("openOutputDirectory"))
-        self.open_button.setMaximumWidth(200)
-        self.open_button.setCursor(Qt.PointingHandCursor)
-        self.open_button.clicked.connect(self.open_output_folder)
-        self.open_button.hide()
-        btn_layout.addWidget(self.open_button)
-        
+
 
         layout.addLayout(btn_layout)
 
@@ -227,6 +219,7 @@ class CLIP_VIDEO(QWidget):
         self.progress_label.setReadOnly(True)
         self.progress_label.setFixedHeight(80)
         layout.addWidget(self.progress_label)
+        layout.addLayout(self.get_bottom_btn_layout())
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setLayout(layout)
 
@@ -241,12 +234,11 @@ class CLIP_VIDEO(QWidget):
         return self
 
     def select_subtitle(self):
-        global output_folder
         path, _ = QFileDialog.getOpenFileName(self, tr("selectSubtitle"), settings.get('last_opendir',''), "Subtitle Files (*.srt *.ass *.vtt)")
         if path:
             self.progress_label.setPlainText(tr("renderingSubtitles"))
             self.subtitle_list.clear()
-            output_folder=Path(path).parent.as_posix()
+            output_folder=self.output_data.text()
             self.subtitle_path = path
             self.subtitle_name = Path(path).name
             self.subtitle_label.setText(self.subtitle_name)
@@ -259,7 +251,7 @@ class CLIP_VIDEO(QWidget):
                 self.subtitle_list.addItem(item)
                 self.subtitle_list.setItemWidget(item, check)
                 item.setSizeHint(check.sizeHint() + QSize(0, 10))  # 增加垂直间距
-            self.progress_label.setPlainText(f"{tr('renderCompleteOutputTo')}:{output_folder}/{self.subtitle_name}-clip")
+            self.progress_label.setPlainText(f"{tr('renderCompleteOutputTo')}:{output_folder}")
             self.select_all_btn.setVisible(True)
             self.deselect_all_btn.setVisible(True)
             self.invert_btn.setVisible(True)
@@ -304,7 +296,6 @@ class CLIP_VIDEO(QWidget):
         self.failed_clips = []
         self.output_mode.setCurrentIndex(0)
         self.active_tasks = 0
-        self.open_button.hide()
         self.select_all_btn.setVisible(False)
         self.deselect_all_btn.setVisible(False)
         self.invert_btn.setVisible(False)
@@ -336,10 +327,9 @@ class CLIP_VIDEO(QWidget):
         self.total_clips = len(self.selected_lines)
         self.completed_clips = 0
         self.failed_clips = []
-        self.open_button.show()
         self.active_tasks = self.total_clips
         self.progress_label.setPlainText(f"Total:{self.total_clips}")
-        task = Worker(parent=self,mode=mode)
+        task = Worker(parent=self,mode=mode,output_folder=self.output_data.text())
         task.uito.connect(self.update_progress)
         task.start()
 
@@ -374,19 +364,16 @@ class CLIP_VIDEO(QWidget):
         self.active_tasks = 0
 
 
-    def open_output_folder(self):
-        output_dir = f'{output_folder}/{self.subtitle_name}-clip'
-        QDesktopServices.openUrl(QUrl.fromLocalFile(output_dir))
-
 class Worker(QThread):
     uito = Signal(str)
 
     def __init__(self, *,
         parent=None,
-        mode=None):
+        mode=None,output_folder=None):
         super().__init__(parent=parent)
         self.parent=parent
         self.mode=mode
+        self.output_folder=output_folder
 
     def run(self):
         try:
@@ -396,7 +383,7 @@ class Worker(QThread):
                 return
             for line_num in self.parent.selected_lines:
                 sub = self.parent.subtitles[line_num - 1]
-                task = ClipTask(self.parent.video_path, sub, line_num, self.parent.subtitle_name, self.parent.signals, self.mode,video_info)
+                task = ClipTask(self.parent.video_path, sub, line_num, self.parent.subtitle_name, self.parent.signals, self.mode,video_info,self.output_folder)
                 self.parent.thread_pool.start(task)
 
         except Exception as e:

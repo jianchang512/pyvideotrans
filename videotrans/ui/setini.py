@@ -22,16 +22,6 @@ class Ui_setini(QtWidgets.QWidget):
         self.setWindowIcon(QIcon(f"{ROOT_DIR}/videotrans/styles/icon.ico"))
         self.setupUi(self)
 
-
-    def get_target(self):
-        dirname = QFileDialog.getExistingDirectory(self, tr('selectsavedir'), Path.home().as_posix())
-        if dirname:
-            dirpath = Path(dirname)
-            HOME_DIR = dirpath.as_posix()
-            settings['homedir'] = HOME_DIR
-            self.homedir_btn.setText(HOME_DIR)
-            settings.save()
-
     def _is_comboBox(self,key):
         return key in ComboBox_List
 
@@ -66,19 +56,7 @@ class Ui_setini(QtWidgets.QWidget):
             tmp.addStretch(1)
             parent_layout.addLayout(tmp)
             return
-        # 设置家目录按钮
-        if key == 'homedir':
-            self.homedir_btn = QtWidgets.QPushButton()
-            self.homedir_btn.setCursor(Qt.PointingHandCursor)
-            self.homedir_btn.setText(str(val))
-            self.homedir_btn.setToolTip(
-                tr("Click on Set Home Directory to save the result files for video separation, subtitle translation, subtitle dubbing, etc."))
-            self.homedir_btn.clicked.connect(self.get_target)
-            self.homedir_btn.setObjectName(key)
-            tmp.addWidget(self.homedir_btn)
-            tmp.addStretch(1)
-            parent_layout.addLayout(tmp)
-            return
+
         # 是checkbox 复选框
         if val.lower() in ['true', 'false']:
             tmp_1 = QtWidgets.QCheckBox()
@@ -122,8 +100,6 @@ class Ui_setini(QtWidgets.QWidget):
         label_title.setAlignment(Qt.AlignCenter)
         label_title.setStyleSheet("""color:#eeeeee;text-align:center;font-size:16px;margin-top:10px""")
         self.layout.addWidget(label_title)
-
-        self.homedir_btn = None
 
         # 使用 QTabWidget 替代原来的双列滚动布局，每个模块一个标签卡
         self.tab_widget = QtWidgets.QTabWidget()

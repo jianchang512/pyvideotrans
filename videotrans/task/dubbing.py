@@ -8,7 +8,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List
 from videotrans import tts
-from videotrans.configure.config import tr, settings, app_cfg, logger, HOME_DIR
+from videotrans.configure._paths import ROOT_DIR
+from videotrans.configure.config import tr, settings, app_cfg, logger
 from videotrans.task._base import BaseTask
 from videotrans.task.taskcfg import TaskCfgTTS, SrtItem
 import asyncio
@@ -37,7 +38,7 @@ class DubbingSrt(BaseTask):
         super().__post_init__()
         # 输出目标位置
         if not self.cfg.target_dir:
-            self.cfg.target_dir = f"{HOME_DIR}/tts"
+            self.cfg.target_dir = f"{ROOT_DIR}/tts"
         # 需要配音的字幕文件
         self.cfg.target_sub = self.cfg.name
         # 配音后音频文件保存为

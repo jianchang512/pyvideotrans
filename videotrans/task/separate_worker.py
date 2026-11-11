@@ -1,4 +1,5 @@
 # 从日志队列获取日志
+import os
 import time
 from pathlib import Path
 
@@ -20,16 +21,19 @@ class SeparateWorker(QThread):
         self.uuid = uuid
         self.out = out
         self.vocal=None
+        self.instr_file=None
         self.error=None
 
     def run(self):
         try:
             p=Path(self.file)
-            self.vocal=f"{self.out}/vocal-{p.stem}.wav"
+
+            self.vocal=os.path.normpath(f"{self.out}/vocal-{p.stem}.wav")
+            self.instr_file=os.path.normpath(f"{self.out}/instrument-{p.stem}.wav")
             self.finish_event.emit(f'logs:{tr("Separating vocals and background music, which may take a longer time")} ...')
             # 如果不是wav，需要先转为wav
             if  p.suffix.lower()!= '.wav':
-                newfile = config.TEMP_DIR + f'/sep-{time.time()}.wav'
+                newfile = os.path.normpath(config.TEMP_DIR + f'/sep-{time.time()}.wav')
                 cmd = [
                     "-y",
                     "-i",
@@ -44,7 +48,7 @@ class SeparateWorker(QThread):
                 tools.runffmpeg(cmd)
                 self.file = newfile
             tools.set_process(text='start separate...',uuid=self.uuid)
-            kw={"input_file":self.file,"vocal_file":self.vocal,"instr_file":f"{self.out}/instrument-{p.stem}.wav","uvr_models":settings.get('uvr_models')}
+            kw={"input_file":self.file,"vocal_file":self.vocal,"instr_file":self.instr_file,"uvr_models":settings.get('uvr_models')}
             future=GlobalProcessManager.submit_task_cpu(
                         vocal_bgm,
                         **kw

@@ -14,9 +14,8 @@ def openwin():
     from PySide6.QtCore import QThread, Signal, QUrl,QTimer
     from PySide6.QtGui import QDesktopServices
     from PySide6.QtWidgets import QFileDialog
-    from videotrans.configure.config import tr,app_cfg, params, HOME_DIR
+    from videotrans.configure.config import tr,app_cfg, params
     from videotrans.configure import config
-    RESULT_DIR = HOME_DIR + "/subtitlescover"
 
     def ffmpeg_input(file):
         """交给 ffmpeg 转换的字幕文件
@@ -56,11 +55,12 @@ def openwin():
 
         def run(self):
             try:
+                target_dir=winobj.output_data.text()
                 for i, v in enumerate(self.subtitlefiles):
                     raw_path = Path(v)
                     # 格式不变直接复制
                     if raw_path.suffix.lower() == self.target_format:
-                        shutil.copy2(v, os.path.normpath(RESULT_DIR + f'/{raw_path.name}'))
+                        shutil.copy2(v, os.path.normpath(target_dir + f'/{raw_path.name}'))
                         continue
                     if self.target_format == 'txt':
                         if raw_path.name.lower().endswith('.srt'):
@@ -77,14 +77,14 @@ def openwin():
                         txt_list = []
                         for srt in srt_list:
                             txt_list.append(srt['text'])
-                        with open(RESULT_DIR + f"/{Path(v).stem}.{self.target_format}", 'w', encoding='utf-8') as f:
+                        with open(os.path.normpath(target_dir + f"/{Path(v).stem}.{self.target_format}"), 'w', encoding='utf-8') as f:
                             f.write("\n".join(txt_list))
                         continue
                     runffmpeg([
                         "-y",
                         "-i",
                         os.path.normpath(ffmpeg_input(v)),
-                        RESULT_DIR + f"/{Path(v).stem}.{self.target_format}"
+                        os.path.normpath(target_dir + f"/{Path(v).stem}.{self.target_format}")
                     ])
                     jd = round((i + 1) * 100 / len(self.subtitlefiles), 2)
                     self.post(type='jd', text=f'{jd}%')
@@ -103,7 +103,6 @@ def openwin():
             show_error(d['text'])
             winobj.startbtn.setText(tr("start operate"))
             winobj.startbtn.setDisabled(False)
-            winobj.opendir.setDisabled(False)
             winobj.logs.setText(d['text'])
             winobj.logs.setStyleSheet("""color:#ff0000""")
         elif d['type'] == 'jd' or d['type'] == 'logs':
@@ -113,7 +112,6 @@ def openwin():
             winobj.startbtn.setText(tr('zhixingwc'))
             winobj.startbtn.setDisabled(False)
             winobj.logs.setText(tr('quanbuend'))
-            winobj.opendir.setDisabled(False)
             winobj.subtitlefiles = []
             winobj.pathdir.setText('')
 
@@ -141,7 +139,6 @@ def openwin():
         winobj.startbtn.setText(
             tr("under implementation in progress..."))
         winobj.startbtn.setDisabled(True)
-        winobj.opendir.setDisabled(True)
         target_format = winobj.formatlist.currentText()
         task = CompThread(parent=winobj, subtitlefiles=winobj.subtitlefiles,
                           target_format=target_format)
@@ -150,15 +147,9 @@ def openwin():
         params['subtitlecover_outformat']=target_format
         params.save()
 
-    def opendir():
-        QDesktopServices.openUrl(QUrl.fromLocalFile(RESULT_DIR))
-
-
     winobj = get_cls(Path(__file__).stem)()
     def _bind():
-        Path(RESULT_DIR).mkdir(parents=True,exist_ok=True)
         winobj.selectbtn.clicked.connect(lambda: get_file())
-        winobj.opendir.clicked.connect(opendir)
         winobj.startbtn.clicked.connect(start)
         winobj.formatlist.setCurrentText(params.get('subtitlecover_outformat','srt'))
     _bind()

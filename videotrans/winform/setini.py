@@ -42,11 +42,8 @@ def openwin():
                     # 将objectName作为key，text作为value添加到字典中
                     settings[name] = line_edit.currentText()
 
-        settings['homedir'] = winobj.homedir_btn.text()
-        
         settings.save()
         
-
         winobj.close()
 
 

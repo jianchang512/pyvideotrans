@@ -55,7 +55,7 @@ for code in LANG_CODE.keys():
     prompt_a.append(f'initial_prompt_{code.replace("-", "_")}')
 
 notices = {
-    'common': ['lang', 'countdown_sec', 'homedir', 'retry_nums', 'dont_notify',
+    'common': ['lang', 'countdown_sec', 'retry_nums', 'dont_notify',
                'noise_separate_nums', 
                'uvr_models', 
                'noise_model',
