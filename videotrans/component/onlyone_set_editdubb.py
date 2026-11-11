@@ -421,6 +421,7 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
                 QTimer.singleShot(0, lambda: self._load_remaining(200))
             
             # 8. 连接信号
+            self.table.itemChanged.connect(self._text_change)
             self.table.cellDoubleClicked.connect(self._on_cell_double_clicked)
             self.table.setContextMenuPolicy(Qt.CustomContextMenu)
             self.table.customContextMenuRequested.connect(self._show_context_menu)
@@ -471,6 +472,14 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
 
     def _batch_fill(self, start_row, end_row):
         """批量填充表格数据"""
+        # setItem() 也会发出 itemChanged，填充时屏蔽表格信号，否则 _text_change() 会把填入的时间当作用户修改，并停止倒计时
+        self.table.blockSignals(True)
+        try:
+            self._fill_rows(start_row, end_row)
+        finally:
+            self.table.blockSignals(False)
+
+    def _fill_rows(self, start_row, end_row):
         for row in range(start_row, end_row):
             data = self.queue_tts[row]
             
@@ -529,7 +538,6 @@ class EditDubbingResultDialog(QDialog,DanspMixin):
             text_item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable)
             text_item.setTextAlignment(Qt.AlignmentFlag.AlignVCenter)
             self.table.setItem(row, 6, text_item)
-        self.table.itemChanged.connect(self._text_change)
 
     def _load_remaining(self, start_row):
         """延迟加载剩余行"""
