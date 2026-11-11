@@ -158,6 +158,11 @@ class TestTranslatorIndexConstants:
         assert STANDARDCOMPUTE_INDEX == 34
         assert STANDARDCOMPUTE_INDEX in AI_TRANS_CHANNELS
 
+    def test_uberllm_index(self):
+        from videotrans.translator import UBERLLM_INDEX, AI_TRANS_CHANNELS
+        assert UBERLLM_INDEX == 35
+        assert UBERLLM_INDEX in AI_TRANS_CHANNELS
+
     def test_infistar_index(self):
         from videotrans.translator import INFISTAR_INDEX, AI_TRANS_CHANNELS
         assert INFISTAR_INDEX == 28
