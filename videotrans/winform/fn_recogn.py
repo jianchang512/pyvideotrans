@@ -138,8 +138,9 @@ def openwin():
             fix_punc = winobj.fix_punc.currentIndex()
             nums_diariz = winobj.nums_diariz.currentIndex()
             spk_insert=winobj.spk_insert.isChecked()
+            target_dir=winobj.output_data.text() if not winobj.copysrt_rawvideo.isChecked() else video_list[0].dirname
             for it in video_list:
-                it["target_dir"]=winobj.output_data.text()
+                it["target_dir"]=target_dir
                 app_cfg.rm_uuid(it['uuid'])
                 cfg = {
                     "recogn_type": recogn_type,
@@ -152,12 +153,9 @@ def openwin():
                     "rephrase": stt_rephrase,
                     "fix_punc": fix_punc
                 }
-                print(f'{cfg=}')
-                print(f'{it=}')
                 from videotrans.task.speech2text import SpeechToText
                 trk = SpeechToText(cfg=TaskCfgSTT(**cfg | it),
                                        out_format=winobj.out_format.currentText(),
-                                       copysrt_rawvideo=winobj.copysrt_rawvideo.isChecked(),
                                        spk_insert=spk_insert
                                        )
                 app_cfg.prepare_queue.put_nowait(trk)

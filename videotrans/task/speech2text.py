@@ -29,8 +29,6 @@ class SpeechToText(BaseTask):
     out_format: str = field(init=True, default='srt')
     # 在这个子类中，should_recogn 总是 True。
     should_recogn: bool = True
-    # 是否需要将生成的字幕复制到原始视频所在目录下，并重命名为视频同名，以方便视频自动加载软字幕
-    copysrt_rawvideo: bool = field(default=False, init=True)
     # 存放原始语言字幕
     source_srt_list: List = field(default_factory=list)
     # 插入说话人到字幕开头
@@ -44,7 +42,7 @@ class SpeechToText(BaseTask):
             self.max_speakers += 1
         # 存放目标文件夹
         if not self.cfg.target_dir:
-            self.cfg.target_dir = f"{ROOT_DIR}/recogn"
+            self.cfg.target_dir = f"{ROOT_DIR}/output"
         # 转录后的目标字幕文件，先统一转为srt，然后再使用ffmpeg转为其他格式字幕
         self.cfg.target_sub = self.cfg.target_dir + '/' + self.cfg.noextname + '.srt'
         # 临时文件夹
@@ -98,8 +96,6 @@ class SpeechToText(BaseTask):
 
         _msg.append(f'{tr("Out format")}: {self.out_format}')
         _msg.append(f'{tr("cjk_len_title")}:{settings.get("cjk_len")}, {tr("other_len_title")}:{settings.get("other_len")}')
-        if self.copysrt_rawvideo:
-            _msg.append(f'{isTrue[True]}: {tr("Save to original location")}')
         _msg.append(f'{self.cfg=}')
         return "\n".join(_msg)
 
@@ -235,10 +231,4 @@ class SpeechToText(BaseTask):
             Path(self.cfg.target_sub).unlink(missing_ok=True)
             self.cfg.target_sub = self.cfg.target_sub[:-3] + self.out_format
 
-        if self.copysrt_rawvideo:
-            p = Path(self.cfg.name)
-            try:
-                shutil.copy2(self.cfg.target_sub, os.path.normpath(f'{p.parent.as_posix()}/{p.stem}.{self.out_format}'))
-            except shutil.SameFileError:
-                pass
         self.set_end(True)

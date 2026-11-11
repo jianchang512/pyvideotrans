@@ -295,7 +295,7 @@
   "Select the second subtitle": "Select Second Subtitle File",
   "Select the videos": "Select Video File(s)",
   "Select to perform noise reduction processing from modelscope.cn, which takes a long time": "Use AI model for audio noise reduction (may take longer)",
-  "Select where to save the processed output resources": "Select output directory",
+  "Select where to save the processed output resources": "Set output directory",
   "Send SRT": "SendSRT",
   "Separate End/Restart": "Separation Complete / Restart",
   "Separate Video to audio": "Batch Extract Audio from Video",

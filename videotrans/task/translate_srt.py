@@ -27,7 +27,7 @@ class TranslateSrt(BaseTask):
         super().__post_init__()
         # 存放目标文件夹
         if not self.cfg.target_dir:
-            self.cfg.target_dir = f"{ROOT_DIR}/translate"
+            self.cfg.target_dir = f"{ROOT_DIR}/output"
         # 生成目标字幕文件
         self.cfg.target_sub = self.cfg.target_dir + '/' + self.cfg.noextname + f'.{self.cfg.target_language_code}.srt'
 

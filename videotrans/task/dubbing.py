@@ -38,7 +38,7 @@ class DubbingSrt(BaseTask):
         super().__post_init__()
         # 输出目标位置
         if not self.cfg.target_dir:
-            self.cfg.target_dir = f"{ROOT_DIR}/tts"
+            self.cfg.target_dir = f"{ROOT_DIR}/output"
         # 需要配音的字幕文件
         self.cfg.target_sub = self.cfg.name
         # 配音后音频文件保存为

@@ -295,7 +295,7 @@
   "Select the second subtitle": "选择第二个字幕",
   "Select the videos": "选择视频",
   "Select to perform noise reduction processing from modelscope.cn, which takes a long time": "若选中将使用模型对音频内容做降噪处理，比较耗时",
-  "Select where to save the processed output resources": "选择输出目录",
+  "Select where to save the processed output resources": "设置输出目录",
   "Send SRT": "发送完整字幕",
   "Separate End/Restart": "分离完成/再次开始",
   "Separate Video to audio": "批量从视频中分离音频",
