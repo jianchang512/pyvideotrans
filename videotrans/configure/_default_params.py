@@ -336,6 +336,15 @@ _default["standardcompute"] = {
     "standardcompute_max_token": 16384,
 }
 
+from videotrans.configure.constants import UBERLLM_MODELS
+
+_default["uberllm"] = {
+    # uberllm.dev
+    "uberllm_key": "",
+    "uberllm_model": UBERLLM_MODELS.split(',')[0],
+    "uberllm_max_token": 16384,
+}
+
 
 # todo: 根据 name 返回配置dict???
 # 返回默认值
