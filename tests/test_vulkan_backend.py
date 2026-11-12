@@ -1,0 +1,125 @@
+from pathlib import Path
+import tempfile
+
+from videotrans.configure.config import ROOT_DIR, settings
+from videotrans.util.gpus import (
+    get_audiocpp_backend_args,
+    get_vulkan_device_index,
+    get_vulkan_devices,
+    getset_gpu,
+    is_vulkan_available,
+)
+from videotrans.util.whisper_vulkan import (
+    PyWhisperCppModel,
+    get_ggml_model_info,
+    is_pywhispercpp_available,
+    should_use_whisper_vulkan,
+)
+
+
+def test_vulkan_gpu_detection():
+    devices = get_vulkan_devices()
+    assert len(devices) >= 1
+    assert is_vulkan_available() is True
+    assert getset_gpu() >= 1
+
+    # Auto/vulkan should pick the highest-memory Vulkan GPU (AMD Radeon 8060S = index 1 on dual-GPU host)
+    auto_idx = get_vulkan_device_index("auto")
+    assert auto_idx in [d["index"] for d in devices]
+    assert get_vulkan_device_index("vulkan:0") == 0
+    if len(devices) > 1:
+        assert get_vulkan_device_index("vulkan:1") == 1
+
+
+def test_audiocpp_backend_args():
+    assert get_audiocpp_backend_args("cpu") == ["--backend", "cpu"]
+    vk0_args = get_audiocpp_backend_args("vulkan:0")
+    assert vk0_args == ["--backend", "vulkan", "--device", "0"]
+    auto_args = get_audiocpp_backend_args("auto")
+    assert auto_args[:2] == ["--backend", "vulkan"]
+    assert auto_args[2] == "--device"
+
+
+def test_ggml_model_mapping():
+    assert get_ggml_model_info("tiny")[0] == "ggml-tiny.bin"
+    assert get_ggml_model_info("large-v3-turbo")[0] == "ggml-large-v3-turbo.bin"
+    assert get_ggml_model_info("distil-large-v3")[0] == "ggml-distil-large-v3.bin"
+    assert get_ggml_model_info("custom-fine-tuned") is None
+
+    assert should_use_whisper_vulkan("tiny", device_name="vulkan") is True
+    assert should_use_whisper_vulkan("custom-fine-tuned", device_name="vulkan") is False
+
+
+def test_pywhispercpp_vulkan_transcribe():
+    assert is_pywhispercpp_available() is True
+    model_path = f"{ROOT_DIR}/models/ggml-tiny.bin"
+    audio_path = f"{ROOT_DIR}/f5-tts/en_female_1.wav"
+
+    model = PyWhisperCppModel(
+        model_path,
+        device="vulkan",
+        device_index=get_vulkan_device_index("vulkan"),
+        compute_type="default",
+    )
+    segments, info = model.transcribe(
+        audio_path,
+        beam_size=2,
+        best_of=2,
+        vad_filter=True,
+        word_timestamps=True,
+        language="en",
+    )
+    segs = list(segments)
+    assert len(segs) >= 1
+    assert info.language == "en"
+    full_text = " ".join(s.text for s in segs).lower()
+    assert "calcium" in full_text or "blood pressure" in full_text
+    assert len(segs[0].words) >= 1
+    assert segs[0].words[0].end >= segs[0].words[0].start
+
+
+def test_stt_faster_vulkan_end_to_end():
+    from videotrans.process.stt_faster import faster_whisper
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        srt_out = Path(tmpdir) / "out.srt"
+        log_out = Path(tmpdir) / "test.log"
+        log_out.touch()
+        raws, err = faster_whisper(
+            detect_language="en",
+            model_name="tiny",
+            logs_file=str(log_out),
+            is_cuda=True,
+            audio_file=f"{ROOT_DIR}/f5-tts/en_female_1.wav",
+            local_dir=f"{ROOT_DIR}/models/ggml-tiny.bin",
+            compute_type="default",
+            beam_size=2,
+            best_of=2,
+            subtitle_srt=str(srt_out),
+            raw_device_name="vulkan",
+            device_name="auto",
+        )
+        assert err is None
+        assert len(raws) >= 1
+        assert any("calcium" in item["text"].lower() or "blood" in item["text"].lower() for item in raws)
+
+
+def test_cpp_recogn_vulkan():
+    from videotrans.recognition._cpp import CPPRecogn
+
+    orig_dev = settings.get("device_name", "auto")
+    try:
+        settings["device_name"] = "vulkan"
+        with tempfile.TemporaryDirectory() as tmpdir:
+            rec = CPPRecogn(
+                detect_language="en",
+                audio_file=f"{ROOT_DIR}/f5-tts/en_female_1.wav",
+                cache_folder=tmpdir,
+                model_name="ggml-tiny.bin",
+                is_cuda=True,
+            )
+            srts = rec._exec()
+            assert len(srts) >= 1
+            assert any("calcium" in item["text"].lower() or "blood" in item["text"].lower() for item in srts)
+    finally:
+        settings["device_name"] = orig_dev

@@ -142,7 +142,17 @@ class MainWindow(BindSignalsMixin, LifecycleMixin, QMainWindow, Ui_MainWindow):
         self.remove_silent_mid.setChecked(bool(params.get('remove_silent_mid', False)))
         self.align_sub_audio.setChecked(bool(params.get('align_sub_audio', True)))
         self.clear_cache.setChecked(bool(params.get('clear_cache', False)))
-        self.enable_cuda.setChecked(bool(params.get('is_cuda', False)))
+        from videotrans.util.gpus import get_device_choices, is_vulkan_available
+        self.device_combo.clear()
+        _dev_choices = get_device_choices()
+        _saved_dev = str(settings.get('device_name', 'auto') or 'auto')
+        _sel_idx = 0
+        for _i, (_label, _val) in enumerate(_dev_choices):
+            self.device_combo.addItem(_label, _val)
+            if _val == _saved_dev:
+                _sel_idx = _i
+        self.device_combo.setCurrentIndex(_sel_idx)
+        self.enable_cuda.setChecked(bool(params.get('is_cuda', is_vulkan_available())) and _saved_dev != 'cpu')
         self.enable_diariz.setChecked(bool(params.get('enable_diariz', False)))
         self.nums_diariz.setCurrentIndex(int(params.get('nums_diariz', 0)))
         self.is_separate.setChecked(bool(params.get('is_separate', False)))
