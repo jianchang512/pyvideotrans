@@ -138,9 +138,9 @@ def openwin():
             fix_punc = winobj.fix_punc.currentIndex()
             nums_diariz = winobj.nums_diariz.currentIndex()
             spk_insert=winobj.spk_insert.isChecked()
-            target_dir=winobj.output_data.text() if not winobj.copysrt_rawvideo.isChecked() else video_list[0].dirname
             for it in video_list:
-                it["target_dir"]=target_dir
+                # 字幕输出原位置：每个字幕保存到各自音视频所在文件夹，所选文件可能来自不同文件夹
+                it["target_dir"]=it.dirname if winobj.copysrt_rawvideo.isChecked() else winobj.output_data.text()
                 app_cfg.rm_uuid(it['uuid'])
                 cfg = {
                     "recogn_type": recogn_type,

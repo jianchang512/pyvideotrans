@@ -198,10 +198,13 @@ def openwin():
         from videotrans.util.help_ffmpeg import format_video
         video_list:List[InputFile] = [format_video(it, None) for it in winobj.hecheng_importbtn.filelist]
         uuid_list = [obj['uuid'] for obj in video_list]
-        target_dir = winobj.output_data.text() if not winobj.save_to_srt.isChecked() else video_list[0].dirname
         for it in video_list:
             app_cfg.rm_uuid(it['uuid'])
-            it['target_dir']=target_dir
+            # 保存到原位置：保存到各自字幕所在文件夹。文本框中输入的文字被保存在临时文件夹中，没有原位置，且临时文件夹在退出软件时会被删除，因此仍保存到输出目录
+            if winobj.save_to_srt.isChecked() and Path(it.dirname) != Path(config.TEMP_DIR).resolve():
+                it['target_dir'] = it.dirname
+            else:
+                it['target_dir'] = winobj.output_data.text()
             cfg = {
                 "voice_role": role,
                 "cache_folder": config.TEMP_DIR + f'/{it["uuid"]}',
