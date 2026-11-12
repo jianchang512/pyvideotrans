@@ -43,7 +43,7 @@ class HYMT2(BaseTrans):
 
         # Load model
         device=settings.get('device_name','auto')
-        if device=='auto':
+        if device=='auto' or str(device).startswith('vulkan'):
             import torch
             device="cpu" if not self.is_cuda or not torch.cuda.is_available() else "cuda"
         self.hy.hymt2_model = AutoModelForCausalLM.from_pretrained(

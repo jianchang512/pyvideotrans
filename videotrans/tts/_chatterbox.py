@@ -35,8 +35,9 @@ class ChatterBoxTTS(BaseTTS):
     def _exec(self):
         from chatterbox.mtl_tts import ChatterboxMultilingualTTS
         device=settings.get('device_name','auto')
-        if device=='auto':
-            device='cuda' if self.is_cuda else mps_or_cpu()
+        if device=='auto' or str(device).startswith('vulkan'):
+            import torch
+            device='cuda' if (self.is_cuda and torch.cuda.is_available()) else mps_or_cpu()
         logger.debug(f'Chatterbox running on {device}')
         model = ChatterboxMultilingualTTS.from_local(self.local_dir, device=device,  t3_model="v3")
 

@@ -252,15 +252,18 @@ class BaseCon:
         try:
             Path(logs_file).touch()
             threading.Thread(target=self._signal_of_process, args=(logs_file,status_dict), daemon=True).start()
-            # 再次判断cuda是否有效，防止预先获取失败
+            # 再次判断cuda/vulkan是否有效，防止预先获取失败
             if is_cuda:
                 import torch
-                if not torch.cuda.is_available():
+                from videotrans.util.gpus import is_vulkan_available
+                if not torch.cuda.is_available() and not is_vulkan_available():
                     is_cuda = False
 
             # gpu， device_index 固定使用第0号
             kwargs['device_index'] = 0
-            kwargs['device_name']=settings.get('device_name','auto')
+            raw_dev = settings.get('device_name', 'auto')
+            kwargs['raw_device_name'] = raw_dev
+            kwargs['device_name'] = 'auto' if str(raw_dev).startswith('vulkan') else raw_dev
             logger.debug(f'新进程任务 参数:{kwargs=}')
             future = GlobalProcessManager.submit_task_cpu(
                 callback,
