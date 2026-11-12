@@ -83,12 +83,13 @@ def openwin():
 
                 # 计算水印位置
                 duration = get_video_duration(video)
+                # overlay 滤镜中 main_w/main_h 是视频的宽高，w/h 与 overlay_w/overlay_h 相同，是水印的宽高：用 w/h 计算时，右侧、底部和居中的水印都会落在左上角
                 positions = [
                     f"{self.x}:{self.y}",  # 左上角
-                    f"(w-overlay_w-{self.x}):{self.y}",  # 右上角
-                    f"(w-overlay_w-{self.x}):(h-overlay_h-{self.y})",  # 右下角
-                    f"{self.x}:(h-overlay_h-{self.y})",  # 左下角
-                    f"(w-overlay_w)/2:(h-overlay_h)/2"  # 中心
+                    f"(main_w-overlay_w-{self.x}):{self.y}",  # 右上角
+                    f"(main_w-overlay_w-{self.x}):(main_h-overlay_h-{self.y})",  # 右下角
+                    f"{self.x}:(main_h-overlay_h-{self.y})",  # 左下角
+                    "(main_w-overlay_w)/2:(main_h-overlay_h)/2"  # 中心
                 ]
 
                 position = positions[self.pos]
