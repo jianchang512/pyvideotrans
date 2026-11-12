@@ -38,6 +38,8 @@ def openwin():
 
         def hebing_pro(self, protxt, video_time=0):
             percent = 0
+            # 此前已处理完的视频所占的进度，本视频的进度加在它上面
+            done = self.percent
             while 1:
                 if app_cfg.exit_soft:return
                 if self.end or percent >= 100:
@@ -48,7 +50,8 @@ def openwin():
                     continue
                 
                 
-                if content[-1] == 'progress=end':
+                # read_last_n_lines 返回的行末尾带换行符：不去掉时视频处理完后仍会继续发送进度，直到所有视频都处理完
+                if content[-1].strip() == 'progress=end':
                     return
                 idx = len(content) - 1
                 end_time = "00:00:00"
@@ -65,11 +68,9 @@ def openwin():
                     h, m, s = end_time.split(':')
                 except ValueError:
                     continue
-                tmp1 = round((int(h) * 3600000 + int(m) * 60000 + int(s[:2]) * 1000) / video_time, 2)
-                if percent + tmp1 < 99.9:
-                    percent += tmp1
-                self.percent += percent * self.every_percent / 100
-                self.post(type='jd', text=f'{self.percent * 100}%')
+                # 本视频已处理的百分比，每次按 out_time 重新计算，不累加；self.percent 只在每个视频处理完后增加
+                percent = min((int(h) * 3600000 + int(m) * 60000 + int(s[:2]) * 1000) * 100 / video_time, 99.9)
+                self.post(type='jd', text=f'{(done + percent * self.every_percent / 100) * 100}%')
                 time.sleep(1)
 
 
