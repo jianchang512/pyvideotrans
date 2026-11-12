@@ -213,6 +213,7 @@ class WinActionCheckMixin:
 
         self.cfg['rephrase'] = self.main.rephrase.isChecked()
         self.cfg['is_cuda'] = self.main.enable_cuda.isChecked()
+
         self.cfg['remove_silent_mid'] = False
         self.cfg['align_sub_audio'] = True
         if not self.cfg['voice_autorate'] and not self.cfg['video_autorate']:
@@ -261,6 +262,9 @@ class WinActionCheckMixin:
                 self.cfg['backaudio_volume'] = float(self.main.bgmvolume.text())
             except (TypeError, ValueError):
                 pass
+        if self.main.tts_type.currentIndex()==tts.AUDIOCPP_TTS:
+            params["audiocpp_model"] = self.main.tts_model.currentText()
+            self.cfg['tts_model_name'] = self.main.tts_model.currentText()
 
         params.getset_params(self.cfg | {"select_file_type": self.main.select_file_type.isChecked()})
         params.save()

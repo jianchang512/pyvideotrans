@@ -32,20 +32,20 @@ class BaseRecogn(BaseCon):
     # 字幕嵌入类型 0 1 2 3 4
     subtitle_type: int = 0
     # 是否已结束
-    has_done: bool = field(default=False, init=False)
+    has_done: bool = field(default=False)
     # 错误消息
-    error: str = field(default='', init=False)
+    error: str = field(default='')
     # 识别 api地址
-    api_url: str = field(default='', init=False)
-    api_key: str = field(default='', init=False)
+    api_url: str = field(default='')
+    api_key: str = field(default='')
     # 设备类型 cpu cuda
-    device: str = field(init=False, default='cpu')
+    device: str = field( default='cpu')
     # 标点符号
-    flag: List[str] = field(init=False, default_factory=list)
+    flag: List[str] = field( default_factory=list)
     # 存放返回的字幕列表
-    raws: List = field(default_factory=list, init=False)
+    raws: List = field(default_factory=list)
     # 文字之间连接，中日韩粤语高棉语泰语 直接相连，其他空格
-    join_word_flag: str = field(init=False, default=' ')
+    join_word_flag: str = field( default=' ')
     # 是否需转为简体中文
     jianfan: bool = False
     # 单行字幕字符数

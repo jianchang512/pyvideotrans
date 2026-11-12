@@ -2,6 +2,8 @@ import platform
 import time
 import tempfile
 from pathlib import Path
+
+from videotrans import tts
 from videotrans.configure.config import tr, app_cfg
 from videotrans.configure import constants
 from videotrans.configure.constants import LISTEN_TEXT
@@ -103,7 +105,10 @@ class WinActionBaseMiscMixin:
 
         self.main.listen_btn.setDisabled(True)
         self.main.listen_btn.setText('load...')
-        wk = ListenVoice(parent=self.main, queue_tts=[obj], language=lang, tts_type=obj['tts_type'])
+        model_name=None
+        if obj['tts_type']==tts.AUDIOCPP_TTS:
+            model_name=self.main.tts_model.currentText()
+        wk = ListenVoice(parent=self.main, queue_tts=[obj], language=lang, tts_type=obj['tts_type'],model_name=model_name)
         wk.uito.connect(feed)
         wk.start()
 

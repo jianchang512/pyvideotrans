@@ -19,6 +19,7 @@ class BindSignalsMixin:
         self.video_autorate.toggled.connect(self.win_action.check_video_autorate)
         self.enable_cuda.toggled.connect(self.win_action.check_cuda)
         self.tts_type.currentIndexChanged.connect(self.win_action.tts_type_change)
+        self.tts_model.currentTextChanged.connect(self.win_action.set_tts_language_tips)
 
         self.translate_type.currentIndexChanged.connect(self.win_action.set_translate_type)
         self.subtitle_type.currentIndexChanged.connect(self.win_action.set_subtitle_type)

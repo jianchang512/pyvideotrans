@@ -20,21 +20,21 @@ Omnilingual = 7
 HUGGINGFACE_ASR = 8
 MOSS_DIARIZE = 9
 VIBEVOICE_ASR = 10
-Whisper_CPP = 11
+AUDIOCPP_API= 11
+Whisper_CPP = 12
 
 # 在线API
-OPENAI_API = 12
-QWEN3ASR = 13
-XIAOMIASR = 14
-ZIJIE_RECOGN_MODEL = 15
-ZHIPUAI_API = 16
-GEMINI_SPEECH = 17
+OPENAI_API = 13
+QWEN3ASR = 14
+XIAOMIASR = 15
+ZIJIE_RECOGN_MODEL = 16
+ZHIPUAI_API = 17
+GEMINI_SPEECH = 18
 
 # 本地API
-Faster_Whisper_XXL = 18
-WHISPERX_API = 19
-PARAKEET = 20
-AUDIOCPP_API= 21
+Faster_Whisper_XXL = 19
+WHISPERX_API = 20
+PARAKEET = 21
 
 # 在线API
 AI_302 = 22
@@ -95,6 +95,7 @@ ID_NAME_DICT = {
                                   imp="._moss"),
     VIBEVOICE_ASR: ChannelProvider(f'{tr("VibeVoice-ASR")}({tr("Built-in")})',
                                    imp="._vibeasr"),
+    AUDIOCPP_API: ChannelProvider(f"Audio.cpp({tr('Local')})", imp="._audiocpp"),
     Whisper_CPP: ChannelProvider(f"Whisper.cpp(Win{tr('Built-in')})",
                                  imp="._cpp"),
 
@@ -131,7 +132,7 @@ ID_NAME_DICT = {
                               key_name="parakeet_api",
                               win="parakeet",
                               imp="._parakeet"),
-    AUDIOCPP_API: ChannelProvider(f"Audio.cpp({tr('Local')})", imp="._audiocpp"),
+
 
     AI_302: ChannelProvider("302.ai",
                             key_name="ai302_key",

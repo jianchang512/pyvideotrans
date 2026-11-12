@@ -146,6 +146,7 @@ class TaskCfgTTS(TaskCfgBase):
     video_autorate: bool = False  # 是否启用视频慢速
     remove_silent_mid: bool = False  # 是否移除字幕间的空隙
     align_sub_audio: bool = True  # 是否强制对齐字幕和声音
+    tts_model_name: str = None  # 配音模型
 
 
 # 字幕翻译

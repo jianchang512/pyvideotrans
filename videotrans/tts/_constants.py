@@ -124,7 +124,7 @@ ID_NAME_DICT = {
     CONFUCIUS_TTS: ChannelProvider(f"Confucius4({tr('Built-in')})",
                                    imp="._confuciustts"),
     AUDIOCPP_TTS: ChannelProvider(f"Audio.cpp({tr('Local')})",
-                           imp="._audiocpp",win="audiocpp"),
+                           imp="._audiocpp"),
     MOSS_TTS: ChannelProvider(f"MOSS-TTS-Nano({tr('Built-in')})",
                               imp="._mosstts"),
     ZIPVOICE_TTS: ChannelProvider(f"{tr('ZipVoice')}({tr('Built-in')})",

@@ -9,6 +9,9 @@ from ._constants import *
 
 # 检查当前配音渠道是否支持所选配音语言
 # 返回True为支持，其他为不支持并返回错误字符串
+from ..util.help_role import get_audiocpp_rolelist
+
+
 def is_allow_lang(langcode: str = None, tts_type: int = None):
     """
 
@@ -23,9 +26,7 @@ def is_allow_lang(langcode: str = None, tts_type: int = None):
     name = ID_NAME_DICT.get(tts_type).name
     _lang2 = langcode.split('-')[0]
     if tts_type==AUDIOCPP_TTS:
-        _model_name=params.get("audiocpp_model")
-        jsondata=json.loads(Path(f'{ROOT_DIR}/videotrans/voicejson/audiocpp.json').read_text(encoding="utf-8"))
-        _obj=jsondata.get(_model_name,{}).get('support_languages')
+        _obj=get_audiocpp_rolelist(params.get("audiocpp_model")).get('support_languages')
         if _obj and _lang2 not in _obj:
             is_support=False
 
@@ -98,7 +99,7 @@ def clone_tips(role: str = 'No'):
 
 # 统一调用 tts渠道入口，通过 tts_type 调用对应渠道
 def run(*, queue_tts=None, language="", uuid=None, play=False, tts_type=0, is_cuda=False,
-        is_redubb=False) -> None:
+        is_redubb=False,model_name=None) -> None:
     """
 
     Args:
@@ -123,7 +124,8 @@ def run(*, queue_tts=None, language="", uuid=None, play=False, tts_type=0, is_cu
         "play": play,
         "tts_type": tts_type,
         "is_cuda": is_cuda,
-        "is_redubb": is_redubb
+        "is_redubb": is_redubb,
+        "model_name": model_name
     }
     logger.debug(f'文字配音前参数:{[{k:v} for k,v in kwargs.items() if k !="queue_tts"]}')
 

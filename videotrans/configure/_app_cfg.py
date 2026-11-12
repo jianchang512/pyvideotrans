@@ -55,6 +55,7 @@ class AppCfg:
     onlyone_is_cuda: bool = False
     onlyone_importsrtfile: str = None
     onlyone_importsrtfile_target: str = None
+    onlyone_tts_model_name: str = None
 
     # cli模式、qt界面模式、web模式
     exec_mode: str = "gui"

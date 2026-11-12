@@ -9,6 +9,7 @@ from videotrans import tts
 from videotrans.component.component import Textedit
 from videotrans.configure.config import tr, ROOT_DIR, params
 from videotrans.ui._bottom_btn import _Bottom_btn_layout
+from videotrans.util.help_role import get_audiocpp_rolelist
 
 
 class Ui_fn_peiyin(QtWidgets.QWidget,_Bottom_btn_layout):
@@ -90,6 +91,14 @@ class Ui_fn_peiyin(QtWidgets.QWidget,_Bottom_btn_layout):
         self.tts_type.addItems(tts.TTS_NAME_LIST)
         self.formLayout_7.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.tts_type)
         self.horizontalLayout_10.addLayout(self.formLayout_7)
+
+        self.tts_model = QtWidgets.QComboBox()
+        self.tts_model.setObjectName("tts_model")
+        self.tts_model.setVisible(False)
+        self.tts_model.addItems(list(get_audiocpp_rolelist().keys()))
+        self.tts_model.setCurrentText(params.get("audiocpp_model"))
+        self.horizontalLayout_10.addWidget(self.tts_model)
+
         self.formLayout_4 = QtWidgets.QFormLayout()
         self.formLayout_4.setFormAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         self.formLayout_4.setObjectName("formLayout_4")
@@ -201,13 +210,6 @@ class Ui_fn_peiyin(QtWidgets.QWidget,_Bottom_btn_layout):
         self.loglabel.setStyleSheet('''color:#148cd2;background-color:transparent''')
         self.verticalLayout_4.addWidget(self.loglabel)
 
-
-        # self.hecheng_opendir = QtWidgets.QPushButton()
-        # self.hecheng_opendir.setStyleSheet("""background-color:transparent""")
-        # self.hecheng_opendir.setObjectName("hecheng_opendir")
-        # self.hecheng_opendir.setMinimumSize(QtCore.QSize(100, 35))
-        # self.hecheng_opendir.setCursor(Qt.PointingHandCursor)
-
         self.verticalLayout_4.addLayout(self.get_bottom_btn_layout())
         self.horizontalLayout_11.addLayout(self.verticalLayout_4)
 
@@ -215,13 +217,13 @@ class Ui_fn_peiyin(QtWidgets.QWidget,_Bottom_btn_layout):
         self.retranslateUi()
         QMetaObject.connectSlotsByName(peiyin)
 
-    def update_ui(self):
-        if self.tts_type.currentIndex()==tts.AUDIOCPP_TTS:
-            self.loglabel.setText(tr('toggle audiocpp model',params.get("audiocpp_model")))
+    # def update_ui(self):
+    #     if self.tts_type.currentIndex()==tts.AUDIOCPP_TTS:
+    #         self.loglabel.setText(tr('toggle audiocpp model',params.get("audiocpp_model")))
 
-    def changeEvent(self, event):
-        if event.type() == QEvent.ActivationChange and self.tts_type.currentIndex()==tts.AUDIOCPP_TTS and self.isActiveWindow():
-            self.loglabel.setText(tr('toggle audiocpp model',params.get("audiocpp_model")))
+    # def changeEvent(self, event):
+    #     if event.type() == QEvent.ActivationChange and self.tts_type.currentIndex()==tts.AUDIOCPP_TTS and self.isActiveWindow():
+    #         self.loglabel.setText(tr('toggle audiocpp model',params.get("audiocpp_model")))
 
     def retranslateUi(self):
 

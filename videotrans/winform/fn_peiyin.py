@@ -1,4 +1,5 @@
 # 合成配音
+from videotrans.util.help_role import get_audiocpp_rolelist
 
 
 def openwin():
@@ -135,8 +136,11 @@ def openwin():
         winobj.listen_btn.setDisabled(True)
         winobj.listen_btn.setText('load...')
 
+        model_name=None
+        if tts_type==tts.AUDIOCPP_TTS:
+            model_name=winobj.tts_model.currentText()
         from videotrans.util.ListenVoice import ListenVoice
-        wk = ListenVoice(parent=winobj, queue_tts=[obj], language=lang, tts_type=tts_type)
+        wk = ListenVoice(parent=winobj, queue_tts=[obj], language=lang, tts_type=tts_type,model_name=model_name)
         wk.uito.connect(feed)
         wk.start()
 
@@ -214,7 +218,8 @@ def openwin():
                 "voice_autorate": winobj.voice_autorate.isChecked(),
                 "remove_silent_mid": winobj.remove_silent_mid.isChecked(),
                 "align_sub_audio": False,
-                "is_cuda": winobj.is_cuda.isChecked()
+                "is_cuda": winobj.is_cuda.isChecked(),
+                "tts_model_name":winobj.tts_model.currentText() if tts_type==tts.AUDIOCPP_TTS else None
             }
             from videotrans.task.dubbing import DubbingSrt
             trk = DubbingSrt(cfg=TaskCfgTTS(**cfg | it), out_ext=winobj.out_format.currentText())
@@ -227,7 +232,7 @@ def openwin():
         th.start()
         winobj.hecheng_startbtn.setText(tr("running"))
         params["dubb_source_language"] = winobj.hecheng_language.currentIndex()
-        params["dubb_tts_type"] = winobj.tts_type.currentIndex()
+        params["dubb_tts_type"] = tts_type
         params["dubb_role"] = winobj.hecheng_role.currentIndex()
         params["dubb_out_format"] = winobj.out_format.currentIndex()
         params["dubb_voice_autorate"] = winobj.voice_autorate.isChecked()
@@ -236,6 +241,9 @@ def openwin():
         params["dubb_hecheng_rate"] = int(winobj.hecheng_rate.value())
         params["dubb_pitch_rate"] = int(winobj.pitch_rate.value())
         params["dubb_volume_rate"] = int(winobj.volume_rate.value())
+        if tts_type==tts.AUDIOCPP_TTS:
+            params["audiocpp_model"] = winobj.tts_model.currentText()
+
         if not params["dubb_voice_autorate"]:
             params['dubb_remove_silent_mid'] = winobj.remove_silent_mid.isChecked()
         params.save()
@@ -285,7 +293,14 @@ def openwin():
         if isinstance(_rs,str):
             return show_error(_rs)
         if type==tts.AUDIOCPP_TTS:
-            winobj.loglabel.setText(tr('toggle audiocpp model',params.get("audiocpp_model")))
+            model_name=params.get("audiocpp_model")
+            support_languages=get_audiocpp_rolelist(model_name).get('support_languages')
+            if support_languages:
+                winobj.loglabel.setText( f"{model_name} {tr('Only support')} "+(",".join([tr(code) for code in support_languages])))
+            winobj.tts_model.show()
+        else:
+            winobj.tts_model.hide()
+
 
     # 合成语言变化，需要获取到角色
     def hecheng_language_fun(t):
@@ -336,7 +351,12 @@ def openwin():
                 winobj.is_cuda.setDisabled(True)
                 return False
         return True
-
+    def set_tts_language_tips(model_name):
+        support_languages=get_audiocpp_rolelist(model_name).get('support_languages')
+        if support_languages:
+            winobj.loglabel.setText( f"{model_name} {tr('Only support')} "+(",".join([tr(code) for code in support_languages])))
+        else:
+            winobj.loglabel.setText('')
 
     winobj = get_cls(Path(__file__).stem)()
     def _bind():
@@ -373,6 +393,7 @@ def openwin():
         winobj.hecheng_stop.clicked.connect(stop_tts)
         winobj.listen_btn.clicked.connect(listen_voice_fun)
         winobj.hecheng_language.currentTextChanged.connect(hecheng_language_fun)
+        winobj.tts_model.currentTextChanged.connect(set_tts_language_tips)
         winobj.tts_type.currentIndexChanged.connect(tts_type_change)
         winobj.voice_autorate.toggled.connect(check_voice_autorate)
         winobj.loglabel.clicked.connect(show_detail_error)

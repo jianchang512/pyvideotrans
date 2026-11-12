@@ -256,7 +256,8 @@ class DubbingSrt(BaseTask):
             language=self.cfg.target_language_code,
             uuid=self.uuid,
             tts_type=self.cfg.tts_type,
-            is_cuda=self.cfg.is_cuda
+            is_cuda=self.cfg.is_cuda,
+            model_name=self.cfg.tts_model_name
         )
         # 如果需要单独保存每条字幕的配音
         if settings.get('save_segment_audio', False):

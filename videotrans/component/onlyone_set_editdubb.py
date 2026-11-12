@@ -68,7 +68,8 @@ class ReDubb(QThread):
                 language=self.language,
                 tts_type=self.tts_dict['tts_type'],
                 is_redubb=True,
-                is_cuda=app_cfg.onlyone_is_cuda
+                is_cuda=app_cfg.onlyone_is_cuda,
+                model_name=app_cfg.onlyone_tts_model_name
             )
         except Exception as e:
             from videotrans.configure.excepts import get_msg_from_except

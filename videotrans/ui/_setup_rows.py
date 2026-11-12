@@ -3,6 +3,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QSizePolicy
 
 from videotrans.configure.config import tr, settings
+from videotrans.util.help_role import get_audiocpp_rolelist
 
 _channel_com = 200
 
@@ -176,6 +177,11 @@ def _create_tts_row(ui, parent):
     ui.tts_type.setMinimumSize(QtCore.QSize(_channel_com, 30))
     ui.tts_type.setObjectName("tts_type")
     ui.tts_type.setToolTip(tr("Select the channel used to dub"))
+    ui.tts_model = QtWidgets.QComboBox(parent)
+    ui.tts_model.setMinimumSize(QtCore.QSize(_channel_com, 30))
+    ui.tts_model.setObjectName("tts_model")
+    ui.tts_model.setVisible(False)
+    ui.tts_model.addItems(list(get_audiocpp_rolelist().keys()) )
 
     ui.label_4 = QtWidgets.QPushButton(parent)
     ui.label_4.setObjectName("label_4")
@@ -190,6 +196,7 @@ def _create_tts_row(ui, parent):
 
     layout.addWidget(ui.tts_text)
     layout.addWidget(ui.tts_type)
+    layout.addWidget(ui.tts_model)
     layout.addWidget(ui.label_4)
     layout.addWidget(ui.voice_role)
     layout.addWidget(ui.listen_btn)

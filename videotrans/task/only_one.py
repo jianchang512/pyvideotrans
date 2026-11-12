@@ -69,6 +69,7 @@ class Worker(QThread):
         app_cfg.onlyone_target_wav = trk.cfg.target_wav
         app_cfg.onlyone_voice_role = trk.cfg.voice_role
         app_cfg.onlyone_novoice_mp4 = trk.cfg.novoice_mp4
+        app_cfg.onlyone_tts_model_name = trk.cfg.tts_model_name
         app_cfg.onlyone_name = trk.cfg.name
         app_cfg.onlyone_is_cuda = trk.cfg.is_cuda
         app_cfg.onlyone_recogn2_video = f'{trk.cfg.cache_folder}/recogn2_tmp_video.mp4'

@@ -14,6 +14,7 @@ from videotrans.configure.config import tr, app_cfg, ROOT_DIR, params
 from videotrans.ui._bottom_btn import _Bottom_btn_layout
 from videotrans.util._srt_parse import get_subtitle_from_srt
 from videotrans.util.help_misc import show_error
+from videotrans.util.help_role import get_audiocpp_rolelist
 
 
 class SpkRowWidget(QtWidgets.QWidget):
@@ -418,6 +419,14 @@ class Ui_fn_peiyinrole(QtWidgets.QWidget,_Bottom_btn_layout):
         self.horizontalLayout_10.addLayout(self.formLayout_3)
         self.horizontalLayout_10.addLayout(self.formLayout_7)
 
+        self.tts_model = QtWidgets.QComboBox()
+        self.tts_model.setObjectName("tts_model")
+        self.tts_model.setVisible(False)
+        self.tts_model.addItems(list(get_audiocpp_rolelist().keys()))
+        self.tts_model.setCurrentText(params.get("audiocpp_model"))
+        self.horizontalLayout_10.addWidget(self.tts_model)
+
+
         self.formLayout_4 = QtWidgets.QFormLayout()
         self.formLayout_4.setFormAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         self.label_11 = QtWidgets.QLabel()
@@ -503,12 +512,13 @@ class Ui_fn_peiyinrole(QtWidgets.QWidget,_Bottom_btn_layout):
         QtCore.QMetaObject.connectSlotsByName(peiyinrole)
 
 
-    def update_ui(self):
-        if self.tts_type.currentIndex()==tts.AUDIOCPP_TTS:
-            self.loglabel.setText(tr('toggle audiocpp model',params.get("audiocpp_model")))
-    def changeEvent(self, event):
-        if event.type() == QEvent.ActivationChange and self.tts_type.currentIndex()==tts.AUDIOCPP_TTS and self.isActiveWindow():
-            self.loglabel.setText(tr('toggle audiocpp model',params.get("audiocpp_model")))
+    # def update_ui(self):
+    #     if self.tts_type.currentIndex()==tts.AUDIOCPP_TTS:
+    #         self.loglabel.setText(tr('toggle audiocpp model',params.get("audiocpp_model")))
+    # def changeEvent(self, event):
+    #     if event.type() == QEvent.ActivationChange and self.tts_type.currentIndex()==tts.AUDIOCPP_TTS and self.isActiveWindow():
+    #         self.loglabel.setText(tr('toggle audiocpp model',params.get("audiocpp_model")))
+
     def retranslateUi(self, peiyinrole):
         peiyinrole.setWindowTitle(
             tr("multi-windows-title"))

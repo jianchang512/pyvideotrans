@@ -1,5 +1,6 @@
 import platform
 
+from videotrans import tts
 from videotrans.configure.config import tr, defaulelang
 from videotrans.recognition import ALLOW_CHANGE_MODEL
 
@@ -30,6 +31,7 @@ class WinActionBaseModeMixin:
         self.main.tts_text.show()
         self.main.tts_type.show()
         self.main.tts_type.setDisabled(False)
+        self.main.tts_model.setVisible(self.main.tts_type()== tts.AUDIOCPP_TTS)
         self.main.label_4.show()
         self.main.voice_role.show()
         self.main.listen_btn.show()
@@ -93,6 +95,7 @@ class WinActionBaseModeMixin:
         self.main.recogn2pass.hide()
         self.main.only_out_mp4.hide()
         self.main.tts_text.hide()
+        self.main.tts_model.hide()
         self.main.tts_type.hide()
         self.main.label_4.hide()
         self.main.voice_role.hide()

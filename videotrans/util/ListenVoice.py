@@ -7,10 +7,11 @@ from videotrans.util.help_misc import get_tts_type
 class ListenVoice(QThread):
     uito = Signal(str)
 
-    def __init__(self, *, parent=None, queue_tts=None, language=None, tts_type=None):
+    def __init__(self, *, parent=None, queue_tts=None, language=None, tts_type=None,model_name=None):
         super().__init__(parent=parent)
         self.queue_tts = queue_tts
         self.tts_type = tts_type
+        self.model_name = model_name
         self.language = language
 
     def run(self):
@@ -23,7 +24,8 @@ class ListenVoice(QThread):
                 queue_tts=self.queue_tts,
                 language=self.language,
                 play=True,
-                tts_type=self.tts_type
+                tts_type=self.tts_type,
+                model_name=self.model_name
             )
             self.uito.emit("ok")
         except Exception as e:

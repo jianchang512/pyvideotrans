@@ -152,6 +152,13 @@ def get_doubao2_rolelist(role_name=None, langcode="zh"):
 
     return {key: ['No'] + list(item.keys()) for key, item in roledata.items()}
 
+@lru_cache(maxsize=None)
+def get_audiocpp_rolelist(model_name=None):
+    jsondata=json.loads(Path(f'{ROOT_DIR}/videotrans/voicejson/audiocpp.json').read_text(encoding="utf-8"))
+    print(f'{model_name=}')
+    if not model_name:
+        return jsondata
+    return jsondata.get(model_name,{})
 
 #  get role by edge tts
 @lru_cache(maxsize=None)

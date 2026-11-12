@@ -24,7 +24,7 @@ class BaseTTS(BaseCon):
     # 参考音频或角色字典
     roledict: Dict[str, Any] = field(default_factory=dict, repr=False)
     # queue_tts 数量
-    len: int = field(init=False)
+    len: int = field(default=0)
     # 语言代码
     language: Optional[str] = ""
     # 唯一uid
@@ -32,12 +32,12 @@ class BaseTTS(BaseCon):
     # 是否立即播放
     play: bool = False
     # 音量 音速 音调，默认 edge-tts格式， % 号结尾
-    volume: Union[float, str] = field(default='+0%', init=False)
-    pitch: Union[float, str] = field(default='+0Hz', init=False)
-    rate: Union[float, str] = field(default='+0%', init=False)
+    volume: Union[float, str] = field(default='+0%')
+    pitch: Union[float, str] = field(default='+0Hz')
+    rate: Union[float, str] = field(default='+0%')
     speed:Union[float,str]=1.0
     # 是否完成
-    has_done: int = field(default=0, init=False)
+    has_done: int = field(default=0)
     # 每次任务后暂停时间
     wait_sec: float = float(settings.get('dubbing_wait', 0))
     # 并发线程数量
@@ -45,7 +45,7 @@ class BaseTTS(BaseCon):
     # 存放消息
     error: Union[str, Exception, None] = None
     # 配音api地址
-    api_url: str = field(default='', init=False)
+    api_url: str = field(default='')
     # 启用CUDA，仅 qwen3-tts-local 游戏哦啊
     is_cuda: bool = False
     # 本地模型目录
@@ -53,7 +53,7 @@ class BaseTTS(BaseCon):
     # 单视频模式下，配音校对面板可能需要重新配音，对于 F5-TTS等重型独立配音进程不能再任务完成后退出，需轮询等待是否有新的配音任务
     # is_redubb is True 代表是配音校对面板发起的
     is_redubb:bool=False
-    model_name: str = field(default='', init=False)
+    model_name: str = field(default='')
     ainame: str = None
 
     def __post_init__(self):

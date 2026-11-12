@@ -4,6 +4,8 @@ import sys
 import os
 
 from videotrans.translator import LANGNAME_DICT
+from videotrans.util.help_role import get_audiocpp_rolelist
+
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 from PySide6.QtCore import QEvent, QTimer
@@ -165,6 +167,11 @@ class MainWindow(BindSignalsMixin, LifecycleMixin, QMainWindow, Ui_MainWindow):
             self.target_language.setCurrentText(_target_language)
             if _role in _rolelist:
                 self.voice_role.setCurrentText(_role)
+
+        if _tts_type==tts.AUDIOCPP_TTS:
+            self.tts_model.setCurrentText(params.get("audiocpp_model"))
+            self.tts_model.show()
+
         self.callback('show main window ...')
         self.show()
         QTimer.singleShot(10,self._bind_signal)
@@ -205,6 +212,6 @@ class MainWindow(BindSignalsMixin, LifecycleMixin, QMainWindow, Ui_MainWindow):
         super().changeEvent(event)
         if event.type() == QEvent.Type.ActivationChange and self.isActiveWindow():
             self.aisendsrt.setChecked(settings.get('aisendsrt'))
-            if self.tts_type.currentIndex()==tts.AUDIOCPP_TTS:
-                self.show_tips.setText(tr('toggle audiocpp model',params.get("audiocpp_model")))
+            # if self.tts_type.currentIndex()==tts.AUDIOCPP_TTS:
+            #     self.show_tips.setText(tr('toggle audiocpp model',params.get("audiocpp_model")))
 

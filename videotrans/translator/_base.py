@@ -32,10 +32,10 @@ class BaseTrans(BaseCon):
     common_target_code:str=''
 
     # 翻译API 地址
-    api_url: str = field(default="", init=False)
+    api_url: str = field(default="")
     api_key:str=""
     # 模型名
-    model_name: str = field(default="", init=False)
+    model_name: str = field(default="")
     # 同时翻译的字幕行数量
     trans_thread: int = 5
     # 翻译后暂停秒
@@ -46,7 +46,7 @@ class BaseTrans(BaseCon):
     #  是AI翻译渠道并且选中了以完整srt格式字幕发送
     aisendsrt: bool = False
     ainame:str=None
-    prompt: str = field(init=False)
+    prompt: str = None
     temperature:float=1.0
     max_tokens:int=8192
     reasoning_effort:str=None
