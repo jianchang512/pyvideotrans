@@ -14,7 +14,7 @@ from videotrans import translator, tts, winform
 from videotrans.configure import config
 from videotrans.configure._app_params import AppParams
 from videotrans.configure.config import app_cfg
-from videotrans.task import child_win_sign, dubbing
+from videotrans.task import child_win_sign
 from videotrans.util import help_misc
 from videotrans.util.help_srt import get_subtitle_from_srt
 from videotrans.winform import fn_peiyinrole
@@ -39,10 +39,6 @@ def _app(monkeypatch, tmp_path):
     monkeypatch.setattr(app_cfg, "stoped_uuid_set", set())
     monkeypatch.setattr(app_cfg, "dubbing_role", {})
     monkeypatch.setattr(app_cfg, "dubb_queue", Queue())
-    home = (tmp_path / "home").as_posix()
-    # the window reads HOME_DIR from config, DubbingSrt from its own import of it
-    monkeypatch.setattr(config, "HOME_DIR", home)
-    monkeypatch.setattr(dubbing, "HOME_DIR", home)
     monkeypatch.setattr(config, "TEMP_DIR", (tmp_path / "tmp").as_posix())
     # params of its own: openwin() reads the last settings from them, and
     # Start keeps the chosen ones there without saving them to params.json
@@ -65,6 +61,8 @@ def _start(
     subs = get_subtitle_from_srt(srt.as_posix())
     # stands in for the window, whose widgets hold what the user chose
     win = MagicMock(srt_path=srt.as_posix(), subtitles=subs)
+    # the output folder shown at the bottom of the window
+    win.output_data.text.return_value = (tmp_path / "out").as_posix()
     monkeypatch.setattr(winform, "get_cls", lambda name: lambda: win)
     fn_peiyinrole.openwin()
     win.hecheng_language.currentText.return_value = translator.LANGNAME_DICT["en"]
@@ -96,7 +94,7 @@ def _tone(duration=1000):
 def _saved_audio(tmp_path):
     return sorted(
         p.relative_to(tmp_path).as_posix()
-        for folder in ("home", "subs")
+        for folder in ("out", "subs")
         for p in (tmp_path / folder).rglob("*")
         if p.suffix in (".wav", ".mp3")
     )
@@ -128,7 +126,7 @@ def _dub(trk):
 
 @pytest.mark.parametrize(
     "save_to_srt, saved",
-    [(False, "home/tts/talk.wav"), (True, "subs/talk.wav")],
+    [(False, "out/talk.wav"), (True, "subs/talk.wav")],
 )
 def test_wav_is_saved_once_in_the_chosen_folder(
     monkeypatch, tmp_path, save_to_srt, saved
@@ -187,7 +185,7 @@ def test_wav_next_to_a_one_line_srt_is_kept_with_mp3(monkeypatch, tmp_path):
 @needs_ffmpeg
 @pytest.mark.parametrize(
     "save_to_srt, saved",
-    [(False, "home/tts/talk.mp3"), (True, "subs/talk.mp3")],
+    [(False, "out/talk.mp3"), (True, "subs/talk.mp3")],
 )
 def test_mp3_is_saved_in_the_chosen_folder(monkeypatch, tmp_path, save_to_srt, saved):
     trk = _start(monkeypatch, tmp_path, save_to_srt, "mp3")

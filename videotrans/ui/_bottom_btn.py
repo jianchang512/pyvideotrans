@@ -39,6 +39,12 @@ class _Bottom_btn_layout(object):
         self.output_data.setReadOnly(True)
         if hasattr(self,'output_key'):
             default_output=params.get(self.output_key) or f'{ROOT_DIR}/output'
+            # 各功能直接把结果保存到该目录，但它可能还不存在：例如首次运行时的 output 目录，或选择后又被删除的目录
+            try:
+                Path(default_output).mkdir(parents=True, exist_ok=True)
+            except OSError:
+                # 无法创建时（例如所在的移动硬盘已拔出）仍照常打开窗口
+                pass
             self.output_data.setPlaceholderText(f'{tr("Output directory")}:{default_output}')
             self.output_data.setText(default_output)
         self.output_data.setStyleSheet("""QLineEdit {border: none; background: transparent;}""")
