@@ -31,7 +31,7 @@ class WinActionBaseModeMixin:
         self.main.tts_text.show()
         self.main.tts_type.show()
         self.main.tts_type.setDisabled(False)
-        self.main.tts_model.setVisible(self.main.tts_type()== tts.AUDIOCPP_TTS)
+        self.main.tts_model.setVisible(self.main.tts_type.currentIndex() == tts.AUDIOCPP_TTS)
         self.main.label_4.show()
         self.main.voice_role.show()
         self.main.listen_btn.show()
