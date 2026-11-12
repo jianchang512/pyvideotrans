@@ -452,10 +452,12 @@ class EditRecognResultDialog2(QDialog,DanspMixin):
             return
         self.table.setUpdatesEnabled(False)
         for i, data in enumerate(self.display_data):
-            if search_text in data['text']:
-                new_text = data['text'].replace(search_text, replace_text)
+            # 按表格中当前的文本替换，其中可能有手动修改，保存时取的也是表格中的文本；尚未显示到表格中的行，按加载时的文本替换
+            item = self.table.item(i, 5)
+            text = item.text() if item else data['text']
+            if search_text in text:
+                new_text = text.replace(search_text, replace_text)
                 data['text'] = new_text
-                item = self.table.item(i, 5)
                 if item:
                     item.setText(new_text)
         self.table.setUpdatesEnabled(True)
