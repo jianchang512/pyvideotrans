@@ -84,7 +84,10 @@ def window(monkeypatch, tmp_path):
     # openwin() imports them from PySide6.QtCore when it is called
     monkeypatch.setattr(QtCore, "QThread", Thread)
     monkeypatch.setattr(QtCore, "Signal", Signal)
-    monkeypatch.setattr(config, "HOME_DIR", (tmp_path / "home").as_posix())
+    # the output folder shown at the bottom of the window: the window creates it
+    out = tmp_path / "out"
+    out.mkdir()
+    win.output_data.text.return_value = out.as_posix()
     temp = tmp_path / "tmp"
     temp.mkdir()
     monkeypatch.setattr(config, "TEMP_DIR", temp.as_posix())
@@ -117,7 +120,7 @@ def test_converted_file_has_every_subtitle(
     start()
 
     # the result has the name of the chosen file, and is saved as UTF-8
-    result = tmp_path / "home" / "subtitlescover" / f"talk.{target}"
+    result = tmp_path / "out" / f"talk.{target}"
     converted = result.read_text(encoding="utf-8")
     assert [line in converted for line in LINES] == [True, True]
     # the window reports that every file has been converted
@@ -145,7 +148,7 @@ def test_file_neither_utf8_nor_gbk_does_not_stop_the_batch(window, tmp_path):
     start = window.startbtn.clicked.connect.call_args.args[0]
     start()
 
-    results = tmp_path / "home" / "subtitlescover"
+    results = tmp_path / "out"
     for name in ("one", "three"):
         converted = (results / f"{name}.vtt").read_text(encoding="utf-8")
         assert [line in converted for line in LINES] == [True, True]

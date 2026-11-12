@@ -11,7 +11,6 @@ from pydub.generators import Sine
 from videotrans import tts
 from videotrans.configure import config
 from videotrans.configure.config import app_cfg
-from videotrans.task import dubbing
 from videotrans.task.dubbing import DubbingSrt
 from videotrans.task.taskcfg import TaskCfgTTS
 from videotrans.util.help_ffmpeg import format_video
@@ -53,7 +52,6 @@ def _app(monkeypatch, tmp_path):
     monkeypatch.setattr(app_cfg, "exec_mode", "cli")
     # task_done() adds the finished task to this global set
     monkeypatch.setattr(app_cfg, "stoped_uuid_set", set())
-    monkeypatch.setattr(dubbing, "HOME_DIR", (tmp_path / "home").as_posix())
     monkeypatch.setattr(config, "TEMP_DIR", (tmp_path / "tmp").as_posix())
     monkeypatch.setattr(tts, "run", _tts_run)
     monkeypatch.setattr(DubbingSrt, "_edgetts_single", _edgetts_single)
