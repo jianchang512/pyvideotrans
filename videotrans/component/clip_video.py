@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 import os
+import re
 import subprocess
 import time
 from pathlib import Path
@@ -18,7 +19,7 @@ from videotrans.configure.config import ROOT_DIR, tr, settings, TEMP_ROOT
 from videotrans.ui._bottom_btn import _Bottom_btn_layout
 from videotrans.util._ffmpeg_runner import runffmpeg
 from videotrans.util._ffprobe import get_video_info
-from videotrans.util._srt_parse import get_subtitle_from_srt, ass_to_srt
+from videotrans.util._srt_parse import get_subtitle_from_srt, ass_to_srt, read_srt_text
 
 class Signals(QObject):
     progress = Signal(str)
@@ -250,7 +251,16 @@ class CLIP_VIDEO(QWidget,_Bottom_btn_layout):
                 # .ass 字幕先转为 srt，否则按 srt 解析只得到一行（0 到 2 秒，文本为整个文件）
                 srt_file = f'{TEMP_ROOT}/clip-from-ass-{time.time()}.srt'
                 ass_to_srt(self.subtitle_path, srt_file)
-            self.subtitles = get_subtitle_from_srt(srt_file)  # Reload if needed
+            if srt_file.lower().endswith('.vtt'):
+                # vtt 字幕在第一小时内的时间可以不写小时（ffmpeg 转换得到的 vtt 即如此，如 00:01.000 --> 00:03.500），按 srt 解析时找不到这些时间，
+                # 只得到一行（0 到 2 秒，文本为整个文件）或第一小时之后的字幕。因此先给时间行中不带小时的时间补上 00:，带小时的时间不变
+                lines = read_srt_text(srt_file).splitlines()
+                for i, line in enumerate(lines):
+                    if '-->' in line:
+                        lines[i] = re.sub(r'(?<![\d:])(\d+:\d+[.,]\d+)', r'00:\1', line)
+                self.subtitles = get_subtitle_from_srt('\n'.join(lines), is_file=False)
+            else:
+                self.subtitles = get_subtitle_from_srt(srt_file)  # Reload if needed
             for i, it in enumerate(self.subtitles):
                 item = QListWidgetItem()
                 check = QCheckBox(f"第{i+1}行 [{(it['end_time']-it['start_time'])/1000.0}s] {it['startraw']}->{it['endraw']}  {it['text']}")
