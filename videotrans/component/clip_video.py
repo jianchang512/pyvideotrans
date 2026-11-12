@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 import os
 import subprocess
+import time
 from pathlib import Path
 
 from PySide6.QtCore import Qt, QThreadPool, QRunnable, Signal, QObject, QUrl, Slot, QSize, QThread
@@ -12,12 +13,12 @@ from PySide6.QtWidgets import (
     QComboBox, QPlainTextEdit, QScroller
 )
 
-from videotrans.configure.config import ROOT_DIR, tr, settings
+from videotrans.configure.config import ROOT_DIR, tr, settings, TEMP_ROOT
 # 全局输出文件夹
 from videotrans.ui._bottom_btn import _Bottom_btn_layout
 from videotrans.util._ffmpeg_runner import runffmpeg
 from videotrans.util._ffprobe import get_video_info
-from videotrans.util._srt_parse import get_subtitle_from_srt
+from videotrans.util._srt_parse import get_subtitle_from_srt, ass_to_srt
 
 class Signals(QObject):
     progress = Signal(str)
@@ -244,7 +245,12 @@ class CLIP_VIDEO(QWidget,_Bottom_btn_layout):
             self.subtitle_label.setText(self.subtitle_name)
 
 
-            self.subtitles = get_subtitle_from_srt(self.subtitle_path)  # Reload if needed
+            srt_file = self.subtitle_path
+            if srt_file.lower().endswith('.ass'):
+                # .ass 字幕先转为 srt，否则按 srt 解析只得到一行（0 到 2 秒，文本为整个文件）
+                srt_file = f'{TEMP_ROOT}/clip-from-ass-{time.time()}.srt'
+                ass_to_srt(self.subtitle_path, srt_file)
+            self.subtitles = get_subtitle_from_srt(srt_file)  # Reload if needed
             for i, it in enumerate(self.subtitles):
                 item = QListWidgetItem()
                 check = QCheckBox(f"第{i+1}行 [{(it['end_time']-it['start_time'])/1000.0}s] {it['startraw']}->{it['endraw']}  {it['text']}")
