@@ -96,7 +96,7 @@ ID_NAME_DICT = {
     VIBEVOICE_ASR: ChannelProvider(f'{tr("VibeVoice-ASR")}({tr("Built-in")})',
                                    imp="._vibeasr"),
     AUDIOCPP_API: ChannelProvider(f"Audio.cpp({tr('Local')})", imp="._audiocpp"),
-    Whisper_CPP: ChannelProvider(f"Whisper.cpp(Win{tr('Built-in')})",
+    Whisper_CPP: ChannelProvider(f"Whisper.cpp({tr('Built-in')})",
                                  imp="._cpp"),
 
     OPENAI_API: ChannelProvider(tr("OpenAI Speech to Text"),

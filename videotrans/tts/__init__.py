@@ -79,8 +79,6 @@ def is_input_api(tts_type: int = None, return_str=False):
     _cls = ID_NAME_DICT.get(tts_type)
     if not _cls:
         return True
-    if tts_type==AUDIOCPP_TTS and platform.system()=='Linux' and not Path(f'{ROOT_DIR}/audio_cpp/audiocpp_cli').exists():
-        return tr("The audio.cpp binary file does not exist",f'{ROOT_DIR}/audio_cpp','audiocpp_cli','https://github.com/0xShug0/audio.cpp/releases')
 
     if _cls.key_name and not params.get(_cls.key_name):
         if return_str:

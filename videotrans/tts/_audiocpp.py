@@ -24,6 +24,8 @@ class AudiocppTTS(BaseTTS):
         super().__post_init__()
         self.roledict = get_f5tts_role()
         self.jsondata = json.loads(Path(f'{ROOT_DIR}/videotrans/voicejson/audiocpp.json').read_text(encoding='utf-8'))
+        if not self.model_name:
+            self.model_name = params.get("audiocpp_model", "omnivoice") or "omnivoice"
         print(f'[audio.cpp] 使用模型 {self.model_name=}')
 
     def _download(self):

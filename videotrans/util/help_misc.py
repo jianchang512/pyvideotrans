@@ -605,6 +605,13 @@ def is_dir_not_empty(dir_path: str) -> bool:
 
 # 调用 audio.cpp
 def exec_audiocpp(cmd):
+    from videotrans.util.gpus import get_audiocpp_backend_args
+    cmd = list(cmd)
+    for i in range(len(cmd) - 1):
+        if cmd[i] == "--backend" and cmd[i + 1] == "best":
+            backend_args = get_audiocpp_backend_args()
+            cmd[i : i + 2] = backend_args
+            break
     logger.debug(f'audio.cpp start: {cmd=}')
     proc = subprocess.Popen(
         cmd,
