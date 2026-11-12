@@ -300,9 +300,10 @@ def openwin():
 
                     # 不存在字幕，则结束了
                     if not self.srt:
-                        self.post(type='ok', text=self.file)
                         self.is_end = True
                         shutil.copy2(audiovideoend_mp4, os.path.normpath(self.file))
+                        # 复制到输出目录后再发送 ok：否则复制尚未完成就显示执行完成，复制失败（例如输出目录已被删除）时错误也不会显示
+                        self.post(type='ok', text=self.file)
                         return
                     self.video = audiovideoend_mp4
                 # 软字幕
