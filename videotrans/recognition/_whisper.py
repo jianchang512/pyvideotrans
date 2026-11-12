@@ -40,12 +40,17 @@ class FasterAll(BaseRecogn):
         return raws
 
     def _download(self):
-        if self.recogn_type == 0 and not Path(f'{self.local_dir}/model.bin').exists():
-            if self.model_name in FASTER_MODELS_DICT:
-                repo_id = FASTER_MODELS_DICT[self.model_name]
-            else:
-                repo_id = self.model_name
-            check_and_down_hf(self.model_name,repo_id,self.local_dir,callback=self._process_callback)
+        if self.recogn_type == 0:
+            from videotrans.util.whisper_vulkan import should_use_whisper_vulkan, ensure_ggml_whisper_model
+            if should_use_whisper_vulkan(self.model_name):
+                ensure_ggml_whisper_model(self.model_name, callback=self._process_callback)
+                return
+            if not Path(f'{self.local_dir}/model.bin').exists():
+                if self.model_name in FASTER_MODELS_DICT:
+                    repo_id = FASTER_MODELS_DICT[self.model_name]
+                else:
+                    repo_id = self.model_name
+                check_and_down_hf(self.model_name,repo_id,self.local_dir,callback=self._process_callback)
         elif self.recogn_type==1 and not Path(f'{ROOT_DIR}/models/{self.model_name}.pt').exists():
             import whisper            
             down_file_from_hf(f'{ROOT_DIR}/models',[whisper._MODELS[self.model_name]],callback=self._process_callback)
