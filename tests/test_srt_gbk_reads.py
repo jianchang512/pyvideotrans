@@ -79,10 +79,8 @@ def _app(monkeypatch, tmp_path):
     for field in dataclasses.fields(AppCfg):
         if field.name.startswith("onlyone_"):
             monkeypatch.setattr(app_cfg, field.name, field.default)
-    home = (tmp_path / "home").as_posix()
-    # the windows read HOME_DIR from config, DubbingSrt from its own import of it
-    monkeypatch.setattr(config, "HOME_DIR", home)
-    monkeypatch.setattr(dubbing, "HOME_DIR", home)
+    # DubbingSrt saves into ROOT_DIR/output when it is given no output folder
+    monkeypatch.setattr(dubbing, "ROOT_DIR", (tmp_path / "root").as_posix())
     monkeypatch.setattr(config, "TEMP_DIR", (tmp_path / "tmp").as_posix())
 
 
@@ -346,6 +344,8 @@ def window(monkeypatch, tmp_path):
     """Stands in for the Text-to-Speech or Translate SRT window, whose widgets
     hold what the user chose"""
     win = MagicMock()
+    # the output folder shown at the bottom of the window
+    win.output_data.text.return_value = (tmp_path / "out").as_posix()
     monkeypatch.setattr(winform, "get_cls", lambda name: lambda: win)
     # the drop button for the files, which openwin() of Text-to-Speech adds
     monkeypatch.setattr(component, "PeiyinDropButton", lambda *args: MagicMock())

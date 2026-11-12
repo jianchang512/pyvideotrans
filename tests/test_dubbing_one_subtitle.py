@@ -13,7 +13,7 @@ from pydub.silence import detect_leading_silence
 from videotrans import tts
 from videotrans.configure import config
 from videotrans.configure.config import app_cfg
-from videotrans.task import _rate, dubbing
+from videotrans.task import _rate
 from videotrans.task.dubbing import DubbingSrt
 from videotrans.task.taskcfg import TaskCfgTTS
 from videotrans.util.help_ffmpeg import format_video
@@ -49,7 +49,6 @@ def _app(monkeypatch, tmp_path):
     monkeypatch.setattr(app_cfg, "stoped_uuid_set", set())
     # Multi-Speaker keeps the voice of each line here
     monkeypatch.setattr(app_cfg, "dubbing_role", {1: ROLE})
-    monkeypatch.setattr(dubbing, "HOME_DIR", (tmp_path / "home").as_posix())
     monkeypatch.setattr(config, "TEMP_DIR", (tmp_path / "tmp").as_posix())
     monkeypatch.setattr(tts, "run", _tts_run)
     # auto speed-up shortens the dubbing in worker processes, which import

@@ -83,7 +83,10 @@ def window(monkeypatch, tmp_path):
     # openwin() imports them from PySide6.QtCore when it is called
     monkeypatch.setattr(QtCore, "QThread", Thread)
     monkeypatch.setattr(QtCore, "Signal", Signal)
-    monkeypatch.setattr(config, "HOME_DIR", (tmp_path / "home").as_posix())
+    # the output folder shown at the bottom of the window: the window creates it
+    out = tmp_path / "out"
+    out.mkdir()
+    win.output_data.text.return_value = out.as_posix()
     temp = tmp_path / "tmp"
     temp.mkdir()
     monkeypatch.setattr(config, "TEMP_DIR", temp.as_posix())
@@ -139,11 +142,11 @@ def test_hard_subtitles_are_burned_into_the_video(window, tmp_path, kinds):
     start = window.ysphb_startbtn.clicked.connect.call_args.args[0]
     start()
 
-    # the window shows the merged video, which keeps the sound track, if any
-    results = list((tmp_path / "home" / "vas").glob("*.mp4"))
+    # the merged video is saved in the output folder, and keeps the sound
+    # track, if any
+    results = list((tmp_path / "out").glob("*.mp4"))
     assert len(results) == 1
     result = results[0].as_posix()
-    window.ysphb_out.setText.assert_called_once_with(result)
     assert streams(result) == kinds
     # the picture is black, and shows the first subtitle at 1 s
     gray = ["-f", "rawvideo", "-pix_fmt", "gray", "-"]
@@ -195,11 +198,10 @@ def test_a_shorter_wav_is_padded_without_changing_the_file(
 
     # the chosen file is left as it was
     assert wav.read_bytes() == chosen
-    # the window shows the merged video
-    results = list((tmp_path / "home" / "vas").glob("*.mp4"))
+    # the merged video is saved in the output folder
+    results = list((tmp_path / "out").glob("*.mp4"))
     assert len(results) == 1
     result = results[0].as_posix()
-    window.ysphb_out.setText.assert_called_once_with(result)
     assert streams(result) == ["Video", "Audio"]
     # its sound track is 3 s long: the tone, then silence up to the end of the
     # video. AAC blurs the start and the end of the tone, so the checks leave
