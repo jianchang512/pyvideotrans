@@ -55,8 +55,8 @@ def openwin():
             self.uito.emit(json.dumps({"type": type, "text": text}))
 
         def run(self) -> None:
+            # 不切换工作目录：所用路径都是绝对路径。os.chdir 会改变整个软件的工作目录，输出目录不存在时还会在发出任何消息前出错，按钮一直显示“执行中”
             target_dir=winobj.output_data.text()
-            os.chdir(target_dir)
             # 确保临时目录存在
             os.makedirs(config.TEMP_DIR, exist_ok=True)
 
