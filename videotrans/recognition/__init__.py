@@ -65,7 +65,7 @@ def is_allow_lang(langcode: str = None, recogn_type: int = None, model_name=None
         if _lang and langcode!='auto' and langcode.split('-')[0] not in _lang:
             return f"{model_name} {tr('may not support')} {tr(langcode)}"
         return True
-
+    
     # huggingface_asr 渠道里的 openai 和 Systran 模型也支持所有语言
     if recogn_type == HUGGINGFACE_ASR:
         if not HUGGINGFACE_ASR_MODELS.get(model_name):
@@ -80,7 +80,10 @@ def is_allow_lang(langcode: str = None, recogn_type: int = None, model_name=None
 
     if recogn_type == FIREREDASR:
         return tr('Chinese & English and Chinese dialects')
-
+    
+    if recogn_type==DEEPSEEK_API and langcode.split('-')[0] not in ['auto','zh','yue','en','ja','ko','de','fr','es','pt','it','ru','ar','hi','id','vi','th','tr','ms','fil','pl','hu']:
+        return f"DeepSeek {tr('Dubbing channel')} {tr('may not support')} {tr(langcode)}"
+    
     return True
 
 

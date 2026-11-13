@@ -68,6 +68,8 @@ def is_allow_lang(langcode: str = None, tts_type: int = None):
     elif tts_type == CONFUCIUS_TTS and _lang2 not in ["zh", "en", "ja", "ko", "de", "fr", "th",
                                                     "id", "vi", "es", "pt", "it", "ru", "ms"]:
         is_support=False
+    elif tts_type == DEEPSEEK_TTS and _lang2 not in ['zh','yue','en','ja','ko','ms','ar','id','th','vi']:
+        is_support=False
     if not is_support:
         return f"{name} {tr('Dubbing channel')} {tr('may not support')} {tr(langcode)}"
     return True

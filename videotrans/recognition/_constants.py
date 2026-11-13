@@ -24,37 +24,38 @@ AUDIOCPP_API= 11
 Whisper_CPP = 12
 
 # 在线API
-OPENAI_API = 13
-QWEN3ASR = 14
-XIAOMIASR = 15
-ZIJIE_RECOGN_MODEL = 16
-ZHIPUAI_API = 17
-GEMINI_SPEECH = 18
+DEEPSEEK_API = 13
+OPENAI_API = 14
+QWEN3ASR = 15
+XIAOMIASR = 16
+ZIJIE_RECOGN_MODEL = 17
+ZHIPUAI_API = 18
+GEMINI_SPEECH = 19
 
 # 本地API
-Faster_Whisper_XXL = 19
-WHISPERX_API = 20
-PARAKEET = 21
+Faster_Whisper_XXL = 20
+WHISPERX_API = 21
+PARAKEET = 22
 
 # 在线API
-AI_302 = 22
-ElevenLabs = 23
-GOOGLE_SPEECH = 24
-Deepgram = 25
-CAMB_ASR = 26
-STT_API = 27
+AI_302 = 23
+ElevenLabs = 24
+GOOGLE_SPEECH = 25
+Deepgram = 26
+CAMB_ASR = 27
+STT_API = 28
 # .net
-WHISPER_NET = 28
+WHISPER_NET = 29
 
 # 自定义API
-CUSTOM_API = 29
+CUSTOM_API = 30
 
 # 在线API
-SILICONFLOW_API = 30
-OPENROUTER_API = 31
-MINIMAX_API = 32
-FISHAUDIO_API = 33
-AUDEXUM_API = 34
+SILICONFLOW_API = 31
+OPENROUTER_API = 32
+MINIMAX_API = 33
+FISHAUDIO_API = 34
+AUDEXUM_API = 35
 
 # 允许切换不同模型的渠道
 ALLOW_CHANGE_MODEL = [
@@ -99,6 +100,10 @@ ID_NAME_DICT = {
     Whisper_CPP: ChannelProvider(f"Whisper.cpp({tr('Built-in')})",
                                  imp="._cpp"),
 
+    DEEPSEEK_API: ChannelProvider("DeepSeek",
+                                key_name="deepseek_key",
+                                win="deepseek",
+                                imp="._deepseek"),
     OPENAI_API: ChannelProvider(tr("OpenAI Speech to Text"),
                                 key_name="openairecognapi_key",
                                 win="openairecognapi",

@@ -220,6 +220,22 @@ def get_minimaxi_rolelist():
         except (OSError, json.JSONDecodeError):
             pass
     return voice_list
+
+
+@lru_cache
+def get_deepseek_rolelist():
+    from . import help_misc
+    voice_list = {"No":"No"}
+    voice_file = ROOT_DIR + "/videotrans/voicejson/deepseek.json"
+
+    if help_misc.vail_file(voice_file):
+        try:
+            with open(voice_file, 'r', encoding='utf-8-sig') as f:
+                voice_list = voice_list | json.loads(f.read())
+        except (OSError, json.JSONDecodeError):
+            pass
+    return voice_list
+
 @lru_cache
 def get_fishaudio_rolelist():
     from . import help_misc
@@ -338,7 +354,8 @@ def role_menu(tts_type, langcode=None) -> List:
     from videotrans import tts
     if tts_type == tts.DEEPGRAM_TTS:
         return get_deepgram_role(langcode)
-
+    if tts_type==tts.DEEPSEEK_TTS:
+        return list(get_deepseek_rolelist().keys())
     if tts_type == tts.OPENROUTER_API:
         return get_openrouter_role(config.params.get("openrouter_tts_model"))
 
