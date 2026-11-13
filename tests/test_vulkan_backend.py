@@ -190,3 +190,26 @@ def test_omnivoice_builtin_routes_to_audiocpp_vulkan():
     finally:
         settings["device_name"] = orig_dev
 
+
+def test_exec_audiocpp_falls_back_to_cpu_on_gpu_failure(monkeypatch):
+    from videotrans.util import help_misc
+
+    calls = []
+
+    def fake_run(cmd):
+        calls.append(list(cmd))
+        if "--backend" in cmd and cmd[cmd.index("--backend") + 1] != "cpu":
+            return 1, "", "ggml_vulkan: ErrorOutOfDeviceMemory", False
+        return 0, "ok", "", False
+
+    orig_dev = settings.get("device_name", "auto")
+    try:
+        settings["device_name"] = "vulkan:1"
+        monkeypatch.setattr(help_misc, "_run_audiocpp_proc", fake_run)
+        assert help_misc.exec_audiocpp(["audiocpp_cli", "--backend", "best", "--text", "hi"]) is True
+        assert len(calls) == 2
+        assert calls[0][:4] == ["audiocpp_cli", "--backend", "vulkan", "--device"]
+        assert calls[1] == ["audiocpp_cli", "--backend", "cpu", "--text", "hi"]
+    finally:
+        settings["device_name"] = orig_dev
+

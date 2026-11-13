@@ -603,16 +603,31 @@ def is_dir_not_empty(dir_path: str) -> bool:
     except Exception:
         return False
 
-# 调用 audio.cpp
-def exec_audiocpp(cmd):
-    from videotrans.util.gpus import get_audiocpp_backend_args
-    cmd = list(cmd)
+def _audiocpp_cmd_uses_gpu(cmd) -> bool:
     for i in range(len(cmd) - 1):
-        if cmd[i] == "--backend" and cmd[i + 1] == "best":
-            backend_args = get_audiocpp_backend_args()
-            cmd[i : i + 2] = backend_args
-            break
-    logger.debug(f'audio.cpp start: {cmd=}')
+        if cmd[i] == "--backend":
+            return str(cmd[i + 1]).strip().lower() != "cpu"
+    return False
+
+
+def _audiocpp_cmd_to_cpu(cmd) -> list:
+    out = []
+    skip_next = False
+    for i, tok in enumerate(cmd):
+        if skip_next:
+            skip_next = False
+            continue
+        if tok == "--backend" and i + 1 < len(cmd):
+            out.extend(["--backend", "cpu"])
+            skip_next = True
+        elif tok == "--device" and i + 1 < len(cmd):
+            skip_next = True
+        else:
+            out.append(tok)
+    return out
+
+
+def _run_audiocpp_proc(cmd):
     proc = subprocess.Popen(
         cmd,
         encoding="utf-8",
@@ -626,22 +641,46 @@ def exec_audiocpp(cmd):
     )
     while True:
         try:
-            # 内部超时等待 0.1s，同时自动清空缓冲区（无需 sleep）
             stdout, stderr = proc.communicate(timeout=0.1)
-            break  # 进程执行完成，跳出循环
+            return proc.returncode, stdout, stderr, False
         except subprocess.TimeoutExpired:
             if app_cfg.exit_soft or Path(IPC_STATUS_FILE).exists():
                 proc.kill()
                 proc.communicate()
+                return 0, "", "", True
+
+
+# 调用 audio.cpp
+def exec_audiocpp(cmd):
+    from videotrans.util.gpus import get_audiocpp_backend_args
+    cmd = list(cmd)
+    for i in range(len(cmd) - 1):
+        if cmd[i] == "--backend" and cmd[i + 1] == "best":
+            backend_args = get_audiocpp_backend_args()
+            cmd[i : i + 2] = backend_args
+            break
+    logger.debug(f'audio.cpp start: {cmd=}')
+    rc, stdout, stderr, aborted = _run_audiocpp_proc(cmd)
+    if aborted:
+        return True
+
+    if rc != 0 and _audiocpp_cmd_uses_gpu(cmd):
+        combined = f"{stdout}{stderr}"
+        if "Access is denied" not in combined and "could not open" not in combined:
+            cpu_cmd = _audiocpp_cmd_to_cpu(cmd)
+            logger.warning(f'audio.cpp GPU backend failed (rc={rc}), falling back to CPU: {stderr or stdout}')
+            rc, stdout, stderr, aborted = _run_audiocpp_proc(cpu_cmd)
+            cmd = cpu_cmd
+            if aborted:
                 return True
 
-    if proc.returncode != 0:
+    if rc != 0:
         logger.error(f'audio.cpp 执行失败:{stdout=},{stderr=},{cmd=}')
         if "Access is denied" in f"{stdout}{stderr}" or "could not open" in f"{stdout}{stderr}":
             raise RuntimeError('audio.cpp '+tr('Insufficient permissions'))
         if "mem_buffer" in f"{stdout}{stderr}":
             raise RuntimeError(tr('OOMerror'))
         raise RuntimeError(
-            f'{proc.returncode=},{stderr=}\n{stdout=}\n{cmd=}'
+            f'proc.returncode={rc},{stderr=}\n{stdout=}\n{cmd=}'
         )
     return True

@@ -10,7 +10,7 @@ from videotrans.configure.excepts import DubbingSrtError
 from videotrans.configure.constants import AUDIO_CPP_MAC_MS, AUDIO_CPP_WIN_MS, AUDIO_CPP_WIN_HF, AUDIO_CPP_MAC_HF
 from videotrans.tts._base import BaseTTS
 from videotrans.util.help_role import get_f5tts_role
-from videotrans.util.help_misc import vail_file, is_connect_hf, exec_audiocpp
+from videotrans.util.help_misc import vail_file, is_connect_hf, exec_audiocpp, _audiocpp_cmd_uses_gpu, _audiocpp_cmd_to_cpu
 from videotrans.util.help_down import down_zip, down_file_from_hf, down_audiocpp_bin
 from videotrans.util.gpus import get_audiocpp_backend_args
 
@@ -125,57 +125,68 @@ class AudiocppTTS(BaseTTS):
 
             logger.debug(f"audio.cpp batch start ({len(requests_list)} items): {cmd=}")
             self.signal(text=f'{tr("Dubbing")} 0/{self.len}')
-            proc = subprocess.Popen(
-                cmd,
-                encoding="utf-8",
-                errors="ignore",
-                text=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                stdin=subprocess.DEVNULL,
-                creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0,
-                cwd=f"{ROOT_DIR}/audio_cpp",
-            )
-            current_req_id = ""
-            ok, err = 0, 0
-            logs = []
-            assert proc.stdout is not None
-            for line in proc.stdout:
-                if app_cfg.exit_soft or Path(IPC_STATUS_FILE).exists():
-                    proc.kill()
-                    proc.wait()
-                    return ok, err, None
-                s = line.strip()
-                if s:
-                    logs.append(s)
-                if s.startswith("request_id="):
-                    current_req_id = s[len("request_id="):]
-                    if current_req_id in id_to_item:
-                        idx, _ = id_to_item[current_req_id]
-                        self.signal(text=f'{tr("Dubbing")} {idx + 1}/{self.len}')
-                elif s.startswith("audio_out=") and current_req_id in id_to_item:
-                    wav_path = s[len("audio_out="):]
-                    _, item = id_to_item[current_req_id]
-                    if vail_file(wav_path):
-                        self.convert_to_wav(wav_path, item["filename"])
+
+            def _exec_batch(run_cmd):
+                proc = subprocess.Popen(
+                    run_cmd,
+                    encoding="utf-8",
+                    errors="ignore",
+                    text=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    stdin=subprocess.DEVNULL,
+                    creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0,
+                    cwd=f"{ROOT_DIR}/audio_cpp",
+                )
+                current_req_id = ""
+                b_ok, b_err = 0, 0
+                logs = []
+                assert proc.stdout is not None
+                for line in proc.stdout:
+                    if app_cfg.exit_soft or Path(IPC_STATUS_FILE).exists():
+                        proc.kill()
+                        proc.wait()
+                        return b_ok, b_err, logs, 0, True
+                    s = line.strip()
+                    if s:
+                        logs.append(s)
+                    if s.startswith("request_id="):
+                        current_req_id = s[len("request_id="):]
+                        if current_req_id in id_to_item:
+                            idx, _ = id_to_item[current_req_id]
+                            self.signal(text=f'{tr("Dubbing")} {idx + 1}/{self.len}')
+                    elif s.startswith("audio_out=") and current_req_id in id_to_item:
+                        wav_path = s[len("audio_out="):]
+                        _, item = id_to_item[current_req_id]
+                        if vail_file(wav_path):
+                            self.convert_to_wav(wav_path, item["filename"])
+                            if vail_file(item["filename"]):
+                                b_ok += 1
+                proc.wait()
+                for req_id, (_, item) in id_to_item.items():
+                    if not vail_file(item["filename"]):
+                        cand = out_dir / f"{req_id}.wav"
+                        if vail_file(cand.as_posix()):
+                            self.convert_to_wav(cand.as_posix(), item["filename"])
                         if vail_file(item["filename"]):
-                            ok += 1
-            proc.wait()
+                            b_ok += 1
+                        else:
+                            b_err += 1
+                return b_ok, b_err, logs, proc.returncode, False
 
-            # Check any remaining output files in out_dir
-            for req_id, (_, item) in id_to_item.items():
-                if not vail_file(item["filename"]):
-                    cand = out_dir / f"{req_id}.wav"
-                    if vail_file(cand.as_posix()):
-                        self.convert_to_wav(cand.as_posix(), item["filename"])
-                    if vail_file(item["filename"]):
-                        ok += 1
-                    else:
-                        err += 1
+            ok, err, logs, rc, aborted = _exec_batch(cmd)
+            if aborted:
+                return ok, err, None
 
-            if proc.returncode != 0 and ok == 0:
+            if rc != 0 and ok == 0 and _audiocpp_cmd_uses_gpu(cmd):
+                logger.warning(f"audio.cpp batch GPU backend failed (rc={rc}), falling back to CPU")
+                ok, err, logs, rc, aborted = _exec_batch(_audiocpp_cmd_to_cpu(cmd))
+                if aborted:
+                    return ok, err, None
+
+            if rc != 0 and ok == 0:
                 tail = "\n".join(logs[-20:])
-                return ok, err, RuntimeError(f"audio.cpp batch failed ({proc.returncode}): {tail}")
+                return ok, err, RuntimeError(f"audio.cpp batch failed ({rc}): {tail}")
             return ok, err, None
 
     def _exec(self):
