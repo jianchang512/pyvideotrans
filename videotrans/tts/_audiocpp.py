@@ -24,6 +24,9 @@ class AudiocppTTS(BaseTTS):
         super().__post_init__()
         self.roledict = get_f5tts_role()
         self.jsondata = json.loads(Path(f'{ROOT_DIR}/videotrans/voicejson/audiocpp.json').read_text(encoding='utf-8'))
+        # 未传入模型时（如单视频配音角色面板中的试听、webui、cli），使用最后保存的模型
+        if not self.model_name:
+            self.model_name = params.get("audiocpp_model")
         print(f'[audio.cpp] 使用模型 {self.model_name=}')
 
     def _download(self):
