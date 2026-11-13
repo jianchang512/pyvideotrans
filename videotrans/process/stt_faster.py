@@ -41,19 +41,36 @@ def faster_whisper(
     from videotrans.process._stt_utils import _write_log,_resegment2,_resegment
     from videotrans.util._srt_parse import ms_to_time_string
     from faster_whisper import WhisperModel, BatchedInferencePipeline
+    from videotrans.util.whisper_vulkan import should_use_whisper_vulkan, PyWhisperCppModel
 
     raws = []
     if detect_language == 'fil':
         detect_language = 'tl'
-    device=kw.get('device_name','auto')
+    raw_device = kw.get('raw_device_name') or kw.get('device_name', 'auto')
+    device = raw_device
     if device == 'auto':
-        device="cuda" if is_cuda else 'cpu'
+        device = "cuda" if is_cuda else 'cpu'
     def _create_model(_compute_type):
+        if should_use_whisper_vulkan(model_name, device_name=raw_device):
+            try:
+                logger.debug(f'[faster_whisper/vulkan]加载GGML模型 {model_name}: running on {raw_device} ({is_cuda=})')
+                return PyWhisperCppModel(
+                    local_dir or model_name,
+                    device=raw_device,
+                    compute_type=_compute_type,
+                    model_name=model_name,
+                    is_cuda=is_cuda,
+                )
+            except Exception as vulkan_err:
+                if not local_dir or not Path(f'{local_dir}/model.bin').exists():
+                    raise
+                logger.warning(f'faster-whisper Vulkan (pywhispercpp) 加载失败，尝试回退 CTranslate2: {vulkan_err}')
+        ct2_device = "cpu" if str(device).startswith("vulkan") else device
         try:
-            logger.debug(f'[faster_whisper]加载模型{model_name}: running on {device},{_compute_type=}')
+            logger.debug(f'[faster_whisper]加载模型{model_name}: running on {ct2_device},{_compute_type=}')
             model = WhisperModel(
                 local_dir,
-                device=device,
+                device=ct2_device,
                 compute_type=_compute_type
             )
             return model

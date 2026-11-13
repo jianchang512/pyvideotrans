@@ -68,6 +68,8 @@ def is_allow_lang(langcode: str = None, tts_type: int = None):
     elif tts_type == CONFUCIUS_TTS and _lang2 not in ["zh", "en", "ja", "ko", "de", "fr", "th",
                                                     "id", "vi", "es", "pt", "it", "ru", "ms"]:
         is_support=False
+    elif tts_type == DEEPSEEK_TTS and _lang2 not in ['zh','yue','en','ja','ko','ms','ar','id','th','vi']:
+        is_support=False
     if not is_support:
         return f"{name} {tr('Dubbing channel')} {tr('may not support')} {tr(langcode)}"
     return True
@@ -79,8 +81,6 @@ def is_input_api(tts_type: int = None, return_str=False):
     _cls = ID_NAME_DICT.get(tts_type)
     if not _cls:
         return True
-    if tts_type==AUDIOCPP_TTS and platform.system()=='Linux' and not Path(f'{ROOT_DIR}/audio_cpp/audiocpp_cli').exists():
-        return tr("The audio.cpp binary file does not exist",f'{ROOT_DIR}/audio_cpp','audiocpp_cli','https://github.com/0xShug0/audio.cpp/releases')
 
     if _cls.key_name and not params.get(_cls.key_name):
         if return_str:
@@ -116,6 +116,21 @@ def run(*, queue_tts=None, language="", uuid=None, play=False, tts_type=0, is_cu
     """
     # 需要并行的数量3
     if len(queue_tts) < 1 or app_cfg.exit_soft or (uuid and uuid in app_cfg.stoped_uuid_set): return
+
+    from videotrans.util.gpus import should_use_vulkan
+    _VULKAN_AUDIOCPP_TTS_MAP = {
+        OMNIVOICE_TTS: "omnivoice",
+        QWEN3LOCAL_TTS: "qwen3_tts",
+        CONFUCIUS_TTS: "confucius4_tts",
+        MOSS_TTS: "moss_tts_nano",
+        CHATTERBOX_TTS: "chatterbox",
+        HIGGS_AUDIO_TTS: "higgs_audio_tts",
+        FIRERED3_TTS: "firered_audio",
+    }
+    if tts_type in _VULKAN_AUDIOCPP_TTS_MAP and should_use_vulkan(is_cuda=bool(is_cuda)):
+        model_name = _VULKAN_AUDIOCPP_TTS_MAP[tts_type]
+        logger.debug(f'[TTS/Vulkan] Routing TTS channel {tts_type} -> Audio.cpp ({model_name}) on Vulkan')
+        tts_type = AUDIOCPP_TTS
 
     kwargs = {
         "queue_tts": queue_tts,

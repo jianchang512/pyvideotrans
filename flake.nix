@@ -14,7 +14,7 @@
           config.allowUnfree = true;
         };
 
-        # Shared libraries required by Python wheels (PyTorch, PySide6, OpenCV, CTranslate2, etc.)
+        # Shared libraries required by Python wheels (PyTorch, PySide6, OpenCV, CTranslate2, ggml-vulkan, etc.)
         runtimeLibs = with pkgs; [
           stdenv.cc.cc.lib
           zlib
@@ -22,6 +22,7 @@
           libGL
           libGLU
           libglvnd
+          vulkan-loader
           libx11
           libxext
           libxrender
@@ -101,6 +102,14 @@
             uv pip install torch==2.7.1+cpu torchaudio==2.7.1+cpu --index-url https://download.pytorch.org/whl/cpu
           fi
           uv pip install -r pyproject.toml --all-extras
+          # Ensure pywhispercpp is compiled with GGML_VULKAN=1 if not already linked to libggml-vulkan
+          if ! python -c "import _pywhispercpp as w; assert 'Vulkan' in w.whisper_print_system_info()" >/dev/null 2>&1; then
+            echo ">>> Building pywhispercpp with Vulkan compute backend (GGML_VULKAN=1)..."
+            GGML_VULKAN=1 CMAKE_ARGS="-DGGML_VULKAN=1" uv pip install --reinstall --no-binary pywhispercpp pywhispercpp
+            for so in .venv/lib/python*/site-packages/_pywhispercpp*.so .venv/lib/python*/site-packages/libwhisper.so* .venv/lib/python*/site-packages/libggml*.so*; do
+              [ -f "$so" ] && patchelf --set-rpath '$ORIGIN' "$so" || true
+            done
+          fi
         '';
 
         syncDepsBin = pkgs.writeShellScriptBin "sync-deps" ''
@@ -122,7 +131,15 @@
 
       in {
         devShells.default = pkgs.mkShell {
-          packages = [ pkgs.pkg-config syncDepsBin ] ++ runtimeLibs;
+          packages = (with pkgs; [
+            pkg-config
+            cmake
+            ninja
+            patchelf
+            shaderc
+            vulkan-headers
+            vulkan-tools
+          ]) ++ [ syncDepsBin ] ++ runtimeLibs;
 
           shellHook = ''
             ${envVars}

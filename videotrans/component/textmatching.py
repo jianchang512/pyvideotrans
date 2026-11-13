@@ -57,17 +57,28 @@ class AlignmentWorker(QThread):
     def run(self):
         try:
             self.log_signal.emit(tr("status_loading_model", self.model_name, self.device))
-            check_and_down_hf(self.model_name,FASTER_MODELS_DICT[self.model_name],self.local_dir,callback=self._progress_callback)
-            from faster_whisper import WhisperModel
+            from videotrans.util.whisper_vulkan import should_use_whisper_vulkan, ensure_ggml_whisper_model, PyWhisperCppModel
+            if should_use_whisper_vulkan(self.model_name, device_name=self.device):
+                ensure_ggml_whisper_model(self.model_name, callback=self._progress_callback)
+                model = PyWhisperCppModel(
+                    self.model_name,
+                    device=self.device,
+                    compute_type=self.compute_type,
+                    model_name=self.model_name,
+                    is_cuda=(self.device != "cpu"),
+                )
+            else:
+                check_and_down_hf(self.model_name,FASTER_MODELS_DICT[self.model_name],self.local_dir,callback=self._progress_callback)
+                from faster_whisper import WhisperModel
 
-            try:
-                model = WhisperModel(self.local_dir, device=self.device, compute_type=self.compute_type)
-            except Exception as e:
-                if self.device == "cuda":
-                    self.log_signal.emit(tr("status_cuda_fail"))
-                    model = WhisperModel(self.local_dir, device="cpu", compute_type="float32")
-                else:
-                    raise e
+                try:
+                    model = WhisperModel(self.local_dir, device=self.device, compute_type=self.compute_type)
+                except Exception as e:
+                    if self.device == "cuda":
+                        self.log_signal.emit(tr("status_cuda_fail"))
+                        model = WhisperModel(self.local_dir, device="cpu", compute_type="float32")
+                    else:
+                        raise e
 
             self.log_signal.emit(tr("status_transcribing"))
             tempfile=f'{config.TEMP_DIR}/textmatching-{time.time()}.wav'

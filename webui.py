@@ -43,7 +43,7 @@ from videotrans.configure.constants import FASTER_MODELS_DICT, DEEPGRAM_ASR_MODE
     FUN_ASR_MODELS, DEFAULT_STYLE
 from videotrans import recognition, translator, tts
 from videotrans.util import tools
-from videotrans.util.gpus import getset_gpu
+from videotrans.util.gpus import getset_gpu, get_device_choices, is_vulkan_available
 from videotrans.util.help_role import role_menu
 
 # ---------------------------------------------------------------------------
@@ -1172,9 +1172,22 @@ def build_ui():
                                     label=tr("Background Audio Volume"),
                                 )
 
-                        cuda_accel = gr.Checkbox(
-                            label=tr("Enable CUDA Acceleration"), value=False
-                        )
+                        _dev_choices = get_device_choices()
+                        _saved_dev = str(_user_settings.get("device_name", settings.get("device_name", "auto")) or "auto")
+                        _valid_dev_vals = [val for _, val in _dev_choices]
+                        if _saved_dev not in _valid_dev_vals:
+                            _dev_choices.append((_saved_dev, _saved_dev))
+                        with gr.Row():
+                            cuda_accel = gr.Checkbox(
+                                label=tr("Enable accelerator"),
+                                value=bool(_user_params.get("is_cuda", is_vulkan_available() or getset_gpu() > 0)) and _saved_dev != "cpu",
+                            )
+                            device_choice = gr.Dropdown(
+                                choices=_dev_choices,
+                                value=_saved_dev,
+                                label=tr("Compute Device"),
+                                interactive=True,
+                            )
                         channel_warning = gr.Markdown("", visible=False)
 
                         start_btn = gr.Button(
@@ -1205,24 +1218,8 @@ def build_ui():
                     # 根据渠道更新模型下拉框
                     models = []
                     disabled = False
-                    print(f'{idx=}')
-                    print(f'{recognition.Whisper_CPP=}')
-                    if idx in [recognition.FASTER_WHISPER, recognition.Faster_Whisper_XXL, recognition.WHISPERX_API]:
-                        models = constants.WHISPER_MODELS.split(',')
-                    elif idx == recognition.OPENAI_WHISPER:
-                        models = OPENAI_WHISPER_MODELS.split(',')
-                    elif idx == recognition.Deepgram:
-                        models = DEEPGRAM_ASR_MODELS
-                    elif idx == recognition.Whisper_CPP:
-                        models = constants.WHISPER_CPP_MODELS.split(',')
-                    elif idx == recognition.WHISPER_NET:
-                        models = constants.WHISPER_NET_MODELS.split(',')
-                    elif idx == recognition.QWENASR:
-                        models = ["1.7B", "0.6B"]
-                    elif idx == recognition.HUGGINGFACE_ASR:
-                        models = list(recognition.HUGGINGFACE_ASR_MODELS.keys())
-                    elif idx == recognition.FUNASR_CN:
-                        models = FUN_ASR_MODELS
+                    if idx in recognition.ALLOW_CHANGE_MODEL:
+                        models = recognition.get_model_by_type(idx)
                     else:
                         models = FASTER_MODEL_NAMES
                         disabled = True
@@ -1307,6 +1304,21 @@ def build_ui():
                     outputs=[voice_role],
                 )
 
+                def on_device_change(dev_val, cuda_val):
+                    _user_settings["device_name"] = dev_val
+                    _save_settings(_user_settings)
+                    if dev_val == "cpu":
+                        return gr.update(value=False)
+                    if str(dev_val).startswith(("vulkan", "cuda")):
+                        return gr.update(value=True)
+                    return gr.update(value=cuda_val)
+
+                device_choice.change(
+                    fn=on_device_change,
+                    inputs=[device_choice, cuda_accel],
+                    outputs=[cuda_accel],
+                )
+
                 # 执行翻译
                 _BTN_RUNNING = gr.update(value=tr("Processing..."), interactive=False)
                 _BTN_IDLE = gr.update(value=tr("Start"), interactive=True)
@@ -1333,11 +1345,19 @@ def build_ui():
                         loop_bgm_name,
                         backaudio_volume_val,
                         cuda_val,
+                        device_val,
                 ):
                     print(f"{file_path=}")
                     if not file_path:
                         yield tr("Please select a video or audio file first"), None, [], _BTN_IDLE
                         return
+                    if device_val:
+                        _user_settings["device_name"] = device_val
+                        _save_settings(_user_settings)
+                        if device_val == "cpu":
+                            cuda_val = False
+                        elif str(device_val).startswith(("vulkan", "cuda")):
+                            cuda_val = True
                     app_cfg.current_status = "ing"
                     # 清空上次的日志、预览和输出，显示执行中状态
                     yield "", None, [], _BTN_RUNNING
@@ -1408,6 +1428,7 @@ def build_ui():
                             "rephrase": 0,
                             "fix_punc": fix_punc_val,
                             "tts_type": tts_idx,
+                            "tts_model_name": params.get("audiocpp_model", "omnivoice") if tts_idx == tts.AUDIOCPP_TTS else None,
                             "voice_role": voice_role_name,
                             "voice_rate": _format_rate(int(voice_rate_val)),
                             "volume": _format_rate(int(volume_rate_val)),
@@ -1576,6 +1597,7 @@ def build_ui():
                         loop_bgm,
                         backaudio_volume,
                         cuda_accel,
+                        device_choice,
                     ],
                     outputs=[log_output, video_preview, result_files, start_btn],
                 )

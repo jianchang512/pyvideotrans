@@ -252,15 +252,25 @@ class BaseCon:
         try:
             Path(logs_file).touch()
             threading.Thread(target=self._signal_of_process, args=(logs_file,status_dict), daemon=True).start()
-            # 再次判断cuda是否有效，防止预先获取失败
+            # 再次判断cuda/vulkan是否有效，防止预先获取失败
             if is_cuda:
                 import torch
-                if not torch.cuda.is_available():
+                from videotrans.util.gpus import is_vulkan_available
+                if not torch.cuda.is_available() and not is_vulkan_available():
                     is_cuda = False
 
             # gpu， device_index 固定使用第0号
             kwargs['device_index'] = 0
-            kwargs['device_name']=settings.get('device_name','auto')
+            raw_dev = str(settings.get('device_name', 'auto') or 'auto')
+            kwargs['raw_device_name'] = raw_dev
+            if raw_dev.lower().startswith('vulkan'):
+                # Never allow PyTorch/CTranslate2 subprocesses to allocate on CUDA when user selected Vulkan
+                kwargs['device_name'] = 'cpu'
+                cb_name = getattr(callback, '__name__', '')
+                if cb_name not in ('faster_whisper', 'remove_noise', 'vocal_bgm'):
+                    kwargs['is_cuda'] = False
+            else:
+                kwargs['device_name'] = raw_dev
             logger.debug(f'新进程任务 参数:{kwargs=}')
             future = GlobalProcessManager.submit_task_cpu(
                 callback,

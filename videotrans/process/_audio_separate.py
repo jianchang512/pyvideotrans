@@ -15,11 +15,9 @@ from videotrans.util.help_misc import exec_audiocpp
 OS_TYPE=platform.system()
 AUDIO_CPP=f'{ROOT_DIR}/audio_cpp/audiocpp_cli{".exe" if OS_TYPE=="Windows" else ""}'
 def vocal_bgm(*, input_file, vocal_file, instr_file, logs_file=None, uvr_models="UVR-MDX-NET-Inst_HQ_4",**kw):
-    if uvr_models=='mel_band_roformer' and (Path(AUDIO_CPP).exists() or OS_TYPE !='Linux'):
+    if uvr_models=='mel_band_roformer':
         return _use_audiocpp(input_file=input_file, vocal_file=vocal_file, instr_file=instr_file,logs_file=logs_file
                                   )
-    elif uvr_models=='mel_band_roformer':
-        uvr_models='spleeter'
     _write_log(logs_file, "downloading models...")
     if uvr_models.startswith('spleeter'):
         down_file_from_hf(f'{ROOT_DIR}/models/onnx', [

@@ -366,12 +366,32 @@ def down_zip(local_dir, zip_url, callback=None) -> bool:
             # 指数退避
             time.sleep(min(2 ** retries, 30))
 
-    # === 校验并解压 Zip 文件 ===
+    # === 校验并解压 Zip / Tar.gz 文件 ===
     try:
         if callback:
-            callback('Extracting zip...')
-        with zipfile.ZipFile(temp_zip_path, 'r') as zf:
-            zf.extractall(path=local_dir)
+            callback('Extracting archive...')
+        if filename.endswith(('.tar.gz', '.tgz')):
+            import tarfile
+            with tarfile.open(temp_zip_path, 'r:gz') as tf:
+                members = tf.getmembers()
+                top_dirs = {m.name.split('/')[0] for m in members if m.name and not m.name.startswith('.')}
+                tf.extractall(path=local_dir)
+                # 若归档内有单一顶层目录（如 audio-v0.9.4-bin-ubuntu-x64-vulkan-portable），将其内容平铺到 local_dir
+                if len(top_dirs) == 1:
+                    top_dir = Path(local_dir) / next(iter(top_dirs))
+                    if top_dir.is_dir() and top_dir != Path(local_dir):
+                        for item in top_dir.iterdir():
+                            dest = Path(local_dir) / item.name
+                            if dest.exists():
+                                if dest.is_dir():
+                                    shutil.rmtree(dest)
+                                else:
+                                    dest.unlink()
+                            shutil.move(str(item), str(dest))
+                        shutil.rmtree(top_dir, ignore_errors=True)
+        else:
+            with zipfile.ZipFile(temp_zip_path, 'r') as zf:
+                zf.extractall(path=local_dir)
         if callback:
             callback('Downloaded end')
         logger.debug(f'下载并解压完毕:{filename}')
@@ -473,23 +493,110 @@ def check_and_down_ms(model_id, callback=None, local_dir=None, allow_patterns=No
 
 
 # 下载 audio_cpp
+def _patch_linux_audiocpp_glibc(audio_cpp_dir: Path):
+    """Patch Linux audio.cpp portable binaries that reference GLIBC_2.43 math symbols to work on older glibc."""
+    import struct
+    import subprocess
+
+    def _elf_hash(name: bytes) -> int:
+        h = 0
+        for b in name:
+            h = ((h << 4) + b) & 0xFFFFFFFF
+            g = h & 0xF0000000
+            if g:
+                h ^= g >> 24
+            h &= ~g & 0xFFFFFFFF
+        return h
+
+    old_ver = b"GLIBC_2.43\x00"
+    new_ver = b"GLIBC_2.27\x00"
+    old_hash = struct.pack("<I", _elf_hash(b"GLIBC_2.43"))
+    new_hash = struct.pack("<I", _elf_hash(b"GLIBC_2.27"))
+
+    for f in audio_cpp_dir.iterdir():
+        if not f.is_file() or f.is_symlink():
+            continue
+        if f.name in ("audiocpp_cli", "audiocpp_server"):
+            try:
+                f.chmod(f.stat().st_mode | 0o755)
+            except OSError:
+                pass
+        try:
+            data = f.read_bytes()
+        except OSError:
+            continue
+        if not data.startswith(b"\x7fELF"):
+            continue
+        if shutil.which("patchelf"):
+            for sym in ("log10f", "atan2f", "acosf", "sqrtf"):
+                subprocess.run(["patchelf", "--clear-symbol-version", sym, str(f)], check=False, capture_output=True)
+            data = f.read_bytes()
+        if old_ver in data:
+            data = data.replace(old_ver, new_ver).replace(old_hash, new_hash)
+            f.write_bytes(data)
+
 
 def down_audiocpp_bin(process_callback=None):
-    _os=platform.system()
-    cli_name="audiocpp_cli.exe" if _os=='Windows' else 'audiocpp_cli'
-    p=Path(f'{ROOT_DIR}/audio_cpp/{cli_name}')
-    if p.exists():return True
-    if _os=='Linux' and not p.exists():
-        raise RuntimeError(tr("The audio.cpp binary file does not exist",f'{ROOT_DIR}/audio_cpp','audiocpp_cli','https://github.com/0xShug0/audio.cpp/releases'))
+    _os = platform.system()
+    cli_name = "audiocpp_cli.exe" if _os == 'Windows' else 'audiocpp_cli'
+    p = Path(f'{ROOT_DIR}/audio_cpp/{cli_name}')
+    if p.exists():
+        return True
 
-    from videotrans.configure.constants import AUDIO_CPP_MAC_MS,AUDIO_CPP_WIN_MS,AUDIO_CPP_WIN_HF,AUDIO_CPP_MAC_HF
+    from videotrans.configure.constants import (
+        AUDIO_CPP_MAC_MS,
+        AUDIO_CPP_WIN_MS,
+        AUDIO_CPP_WIN_HF,
+        AUDIO_CPP_MAC_HF,
+        AUDIO_CPP_WIN_VULKAN_HF,
+        AUDIO_CPP_LINUX_VULKAN_HF,
+    )
+    from videotrans.configure.config import settings
+    from videotrans.util.gpus import is_vulkan_available
 
-    urls={
-        "Darwin":{"ms":AUDIO_CPP_MAC_MS,"hf":AUDIO_CPP_MAC_HF},
-        "Windows":{"ms":AUDIO_CPP_WIN_MS,"hf":AUDIO_CPP_WIN_HF}
+    dev_pref = str(settings.get('device_name', 'auto')).strip().lower()
+    prefer_vulkan = dev_pref.startswith('vulkan') or is_vulkan_available()
+
+    urls = {
+        "Darwin": {"ms": AUDIO_CPP_MAC_MS, "hf": AUDIO_CPP_MAC_HF},
+        "Windows": {
+            "ms": AUDIO_CPP_WIN_VULKAN_HF if prefer_vulkan else AUDIO_CPP_WIN_MS,
+            "hf": AUDIO_CPP_WIN_VULKAN_HF if prefer_vulkan else AUDIO_CPP_WIN_HF,
+        },
+        "Linux": {"ms": AUDIO_CPP_LINUX_VULKAN_HF, "hf": AUDIO_CPP_LINUX_VULKAN_HF},
     }
     from .help_misc import is_connect_hf
-    is_con=is_connect_hf()
+    is_con = is_connect_hf()
     if not p.exists():
-        down_zip(f'{ROOT_DIR}/audio_cpp', urls[_os]['hf']  if is_con else urls[_os]['ms'], callback=process_callback)
+        down_zip(f'{ROOT_DIR}/audio_cpp', urls[_os]['hf'] if is_con else urls[_os]['ms'], callback=process_callback)
+        if _os == 'Linux':
+            _patch_linux_audiocpp_glibc(Path(f'{ROOT_DIR}/audio_cpp'))
     return True
+
+
+def down_llamacpp_bin(process_callback=None):
+    _os = platform.system()
+    srv_name = "llama-server.exe" if _os == 'Windows' else 'llama-server'
+    p = Path(f'{ROOT_DIR}/llama_cpp/{srv_name}')
+    if p.exists():
+        return True
+
+    from videotrans.configure.constants import (
+        LLAMA_CPP_LINUX_VULKAN_HF,
+        LLAMA_CPP_WIN_VULKAN_HF,
+    )
+    urls = {
+        "Windows": LLAMA_CPP_WIN_VULKAN_HF,
+        "Linux": LLAMA_CPP_LINUX_VULKAN_HF,
+    }
+    if _os not in urls:
+        return False
+    down_zip(f'{ROOT_DIR}/llama_cpp', urls[_os], callback=process_callback)
+    if _os == 'Linux':
+        for f in Path(f'{ROOT_DIR}/llama_cpp').iterdir():
+            if f.is_file() and not f.is_symlink() and f.name.startswith(('llama', 'ggml')):
+                try:
+                    f.chmod(f.stat().st_mode | 0o755)
+                except OSError:
+                    pass
+    return p.exists()

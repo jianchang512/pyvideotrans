@@ -32,9 +32,7 @@ class CPPRecogn(BaseRecogn):
         if sys.platform=='win32':
             cpp_path+='.exe'
         Path_cpp=Path(cpp_path)
-        if not Path_cpp.is_file():
-            if sys.platform!='win32':
-                raise SpeechToTextError(tr('download whisper.cpp or make binary',f'{ROOT_DIR}/whisper-cpp'))
+        if not Path_cpp.is_file() and sys.platform=='win32':
             self._win_download_cli()
 
         if not Path(f'{ROOT_DIR}/models/{self.model_name}').is_file():
@@ -47,19 +45,60 @@ class CPPRecogn(BaseRecogn):
                 f"{ROOT_DIR}/models",
                 [url],
                 self._process_callback)
+
+        from videotrans.util.gpus import get_vulkan_device_index, is_vulkan_available
+        dev_pref = str(settings.get('device_name', 'auto')).strip().lower()
+        use_gpu = (dev_pref != 'cpu') and (bool(self.is_cuda) or dev_pref.startswith('vulkan') or is_vulkan_available())
+        vk_idx = get_vulkan_device_index(dev_pref) if use_gpu else 0
+
+        if not Path_cpp.is_file():
+            from videotrans.util.whisper_vulkan import is_pywhispercpp_available, PyWhisperCppModel
+            if is_pywhispercpp_available():
+                self.signal(text=tr("Transcription in progress, please wait"))
+                _lang = self.detect_language.split('-')[0]
+                prompt = settings.get(f'initial_prompt_{self.detect_language.replace("-","_")}')
+                model = PyWhisperCppModel(
+                    f'{ROOT_DIR}/models/{self.model_name}',
+                    device="vulkan" if use_gpu else "cpu",
+                    device_index=vk_idx,
+                )
+                segments, _ = model.transcribe(
+                    self.audio_file,
+                    language=None if _lang.lower() == 'auto' else _lang,
+                    initial_prompt=prompt or None,
+                    no_speech_threshold=float(settings.get('no_speech_threshold', 0.6)),
+                )
+                srt_lines = []
+                from videotrans.util.help_misc import ms_to_time_string
+                for idx, seg in enumerate(segments, 1):
+                    start_ms = int(seg.start * 1000)
+                    end_ms = int(seg.end * 1000)
+                    text = seg.text.strip()
+                    if not text:
+                        continue
+                    srt_lines.append(f"{idx}\n{ms_to_time_string(ms=start_ms)} --> {ms_to_time_string(ms=end_ms)}\n{text}\n")
+                _sub_srt = f"{self.cache_folder}/cpp_srt.srt"
+                Path(_sub_srt).write_text("\n".join(srt_lines), encoding="utf-8")
+                return get_subtitle_from_srt(_sub_srt, is_file=True)
+            raise SpeechToTextError(tr('download whisper.cpp or make binary',f'{ROOT_DIR}/whisper-cpp'))
+
         txt_file = ROOT_DIR + '/pyvideotrans_cpp.txt'
 
+        n_threads = str(max(min(4, int(os.cpu_count() or 4) - 1), 1))
         cmd = [
             cpp_path,
-            "-p",str(max(min(4,int(os.cpu_count())-1),1)),
+            "-t" if use_gpu else "-p", n_threads,
             "-f",
             self.audio_file,
             "-osrt",
             "-nth",str(float(settings.get('no_speech_threshold', 0.6))),
             "-pp",
             "-np"
-
         ]
+        if use_gpu:
+            cmd.extend(["-dev", str(vk_idx)])
+        else:
+            cmd.append("-ng")
         _lang=self.detect_language.split('-')[0]
         cmd += ["-l", _lang]
         prompt = settings.get(f'initial_prompt_{self.detect_language.replace("-","_")}')

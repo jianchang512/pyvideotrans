@@ -200,6 +200,11 @@ class Ui_MainWindow(object):
         self.enable_cuda.setObjectName("enable_cuda")
         self.enable_cuda.setToolTip(tr('cudatips'))
 
+        self.device_combo = QtWidgets.QComboBox(self.layoutWidget)
+        self.device_combo.setMinimumSize(QtCore.QSize(180, 30))
+        self.device_combo.setObjectName("device_combo")
+        self.device_combo.setToolTip(tr('device_name_notice'))
+
         self.startbtn = QtWidgets.QPushButton(self.layoutWidget)
         self.startbtn.setMinimumSize(QtCore.QSize(160, 40))
         self.startbtn.setObjectName("startbtn")
@@ -211,6 +216,7 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_3.addStretch(1)
         self.horizontalLayout_3.addWidget(self.enable_cuda)
+        self.horizontalLayout_3.addWidget(self.device_combo)
         self.horizontalLayout_3.addWidget(self.startbtn)
         self.horizontalLayout_3.addWidget(self.retrybtn)
         self.horizontalLayout_3.addStretch(1)

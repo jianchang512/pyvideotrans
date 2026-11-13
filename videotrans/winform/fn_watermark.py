@@ -38,6 +38,8 @@ def openwin():
 
         def hebing_pro(self, protxt, video_time=0):
             percent = 0
+            # 此前已处理完的视频所占的进度，本视频的进度加在它上面
+            done = self.percent
             while 1:
                 if app_cfg.exit_soft:return
                 if self.end or percent >= 100:
@@ -48,7 +50,8 @@ def openwin():
                     continue
                 
                 
-                if content[-1] == 'progress=end':
+                # read_last_n_lines 返回的行末尾带换行符：不去掉时视频处理完后仍会继续发送进度，直到所有视频都处理完
+                if content[-1].strip() == 'progress=end':
                     return
                 idx = len(content) - 1
                 end_time = "00:00:00"
@@ -65,17 +68,15 @@ def openwin():
                     h, m, s = end_time.split(':')
                 except ValueError:
                     continue
-                tmp1 = round((int(h) * 3600000 + int(m) * 60000 + int(s[:2]) * 1000) / video_time, 2)
-                if percent + tmp1 < 99.9:
-                    percent += tmp1
-                self.percent += percent * self.every_percent / 100
-                self.post(type='jd', text=f'{self.percent * 100}%')
+                # 本视频已处理的百分比，每次按 out_time 重新计算，不累加；self.percent 只在每个视频处理完后增加
+                percent = min((int(h) * 3600000 + int(m) * 60000 + int(s[:2]) * 1000) * 100 / video_time, 99.9)
+                self.post(type='jd', text=f'{(done + percent * self.every_percent / 100) * 100}%')
                 time.sleep(1)
 
 
         def run(self) -> None:
+            # 不切换工作目录：所用路径都是绝对路径。os.chdir 会改变整个软件的工作目录，输出目录不存在时还会在发出任何消息前出错，按钮一直显示“执行中”
             target=winobj.output_data.text()
-            os.chdir(target)
             # 确保临时目录存在
 
             for video in winobj.videourls:
@@ -83,12 +84,13 @@ def openwin():
 
                 # 计算水印位置
                 duration = get_video_duration(video)
+                # overlay 滤镜中 main_w/main_h 是视频的宽高，w/h 与 overlay_w/overlay_h 相同，是水印的宽高：用 w/h 计算时，右侧、底部和居中的水印都会落在左上角
                 positions = [
                     f"{self.x}:{self.y}",  # 左上角
-                    f"(w-overlay_w-{self.x}):{self.y}",  # 右上角
-                    f"(w-overlay_w-{self.x}):(h-overlay_h-{self.y})",  # 右下角
-                    f"{self.x}:(h-overlay_h-{self.y})",  # 左下角
-                    f"(w-overlay_w)/2:(h-overlay_h)/2"  # 中心
+                    f"(main_w-overlay_w-{self.x}):{self.y}",  # 右上角
+                    f"(main_w-overlay_w-{self.x}):(main_h-overlay_h-{self.y})",  # 右下角
+                    f"{self.x}:(main_h-overlay_h-{self.y})",  # 左下角
+                    "(main_w-overlay_w)/2:(main_h-overlay_h)/2"  # 中心
                 ]
 
                 position = positions[self.pos]

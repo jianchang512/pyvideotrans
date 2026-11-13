@@ -33,39 +33,40 @@ VOXCPM_TTS = 16
 FIRERED3_TTS = 17
 
 # 云 API
-DOUBAO2_TTS = 18
-BAILIAN_TTS = 19
-XIAOMI_TTS = 20
-GLM_TTS = 21
-MINIMAXI_TTS = 22
+DEEPSEEK_TTS = 18
+DOUBAO2_TTS = 19
+BAILIAN_TTS = 20
+XIAOMI_TTS = 21
+GLM_TTS = 22
+MINIMAXI_TTS = 23
 
 # 海外 API
-OPENAI_TTS = 23
-GEMINI_TTS = 24
-ELEVENLABS_TTS = 25
+OPENAI_TTS = 24
+GEMINI_TTS = 25
+ELEVENLABS_TTS = 26
 
 # 本地 API
-CHATTTS = 26
-SPARK_TTS = 27
-KOKORO_TTS = 28
-FISHTTS = 29
+CHATTTS = 27
+SPARK_TTS = 28
+KOKORO_TTS = 29
+FISHTTS = 30
 
 # 不推荐
 # 在线API
-XAI_TTS = 30
-G_TTS = 31
-AZURE_TTS = 32
-AI302_TTS = 33
-CAMB_TTS = 34
+XAI_TTS = 31
+G_TTS = 32
+AZURE_TTS = 33
+AI302_TTS = 34
+CAMB_TTS = 35
 
 # 自定义API
-TTS_API = 35
+TTS_API = 36
 # 在线API
-SILICONFLOW_API = 36
-OPENROUTER_API = 37
-DEEPGRAM_TTS = 38
-FISHAUDIOAPI_TTS=39
-CLONE_VOICE_TTS = 40
+SILICONFLOW_API = 37
+OPENROUTER_API = 38
+DEEPGRAM_TTS = 39
+FISHAUDIOAPI_TTS=40
+CLONE_VOICE_TTS = 41
 
 # 支持克隆的渠道，即存在 clone 配音角色
 SUPPORT_CLONE = [
@@ -81,6 +82,7 @@ SUPPORT_CLONE = [
     QWEN3LOCAL_TTS,
     CAMB_TTS,
     OMNIVOICE_TTS,
+    AUDIOCPP_TTS,
     MOSS_TTS,
     CONFUCIUS_TTS,
     FIRERED3_TTS,
@@ -162,6 +164,10 @@ ID_NAME_DICT = {
                                   key_name="firered3tts_url",
                                   win="gradiowin"),
 
+    DEEPSEEK_TTS: ChannelProvider('DeepSeek',
+                                 imp="._deepseek",
+                                 key_name="deepseek_key",
+                                 win="deepseek"),
     DOUBAO2_TTS: ChannelProvider(tr("DouBao2"),
                                  imp="._doubao2",
                                  key_name="doubao2_access",

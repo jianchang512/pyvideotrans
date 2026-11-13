@@ -24,6 +24,16 @@ class WinActionBaseMiscMixin:
             res = False
         self.cfg['is_cuda'] = res
 
+    def device_change(self, index):
+        from videotrans.configure.config import settings
+        val = self.main.device_combo.itemData(index) or self.main.device_combo.currentText().split()[0]
+        settings['device_name'] = val
+        settings.save()
+        if val == 'cpu':
+            self.main.enable_cuda.setChecked(False)
+        elif str(val).startswith(('vulkan', 'cuda')):
+            self.main.enable_cuda.setChecked(True)
+
     def check_voice_autorate(self, state):
         if state:
             self.main.remove_silent_mid.setVisible(False)

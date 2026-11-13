@@ -43,7 +43,7 @@ ComboBox_Data = {
         'UVR-MDX-NET-Inst_3'
     ],
     "out_video_ext": ['.mp4', '.mkv'],
-    "device_name": ['auto', 'cuda', 'cpu', 'mps', 'xpu', 'cuda:0', 'cuda:1', 'cuda:2', 'cuda:3'],
+    "device_name": ['auto', 'vulkan', 'cuda', 'cpu', 'mps', 'xpu', 'vulkan:0', 'vulkan:1', 'vulkan:2', 'vulkan:3', 'cuda:0', 'cuda:1', 'cuda:2', 'cuda:3'],
     "model_for_recogn2": WHISPER_MODELS.split(','),
     "remove_dubb_silence_level": ["low", "default", "max"],
     "noise_model":["dpdfnet2.onnx","dpdfnet4.onnx","dpdfnet8.onnx","zipenhancer"]

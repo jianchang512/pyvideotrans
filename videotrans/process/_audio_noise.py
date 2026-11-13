@@ -55,8 +55,7 @@ def _remove_noise_audiocpp(*, input_file, output_file,logs_file=None):
 
 
 def remove_noise(*, input_file, output_file,logs_file=None,model_name='dpdfnet2.onnx', **kw):
-    # (存在audiocpp_cli 或非Linux系统)
-    if  model_name=='zipenhancer' and (Path(AUDIO_CPP).exists() or OS_TYPE !='Linux'):
+    if model_name=='zipenhancer':
         return _remove_noise_audiocpp(input_file=input_file, output_file=output_file,logs_file=logs_file)
 
     from videotrans.util._ffmpeg_runner import runffmpeg
