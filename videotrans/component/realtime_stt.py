@@ -386,7 +386,8 @@ class REALTIME_STT(QWidget):
     @staticmethod
     def open_dir():
         if not Path(f'{HOME_DIR}/realtime_stt').exists():
-            Path(f'{HOME_DIR}/realtime_stt').mkdir(exist_ok=True)
+            # output 目录可能还不存在（例如首次运行，还没有录音），和录音时一样连同上级目录一起创建
+            Path(f'{HOME_DIR}/realtime_stt').mkdir(parents=True, exist_ok=True)
         QDesktopServices.openUrl(QUrl.fromLocalFile(f'{HOME_DIR}/realtime_stt'))
         
         
