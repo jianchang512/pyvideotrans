@@ -25,6 +25,7 @@ class AudiocppTTS(BaseTTS):
         super().__post_init__()
         self.roledict = get_f5tts_role()
         self.jsondata = json.loads(Path(f'{ROOT_DIR}/videotrans/voicejson/audiocpp.json').read_text(encoding='utf-8'))
+        # 未传入模型时（如单视频配音角色面板中的试听、webui、cli），使用最后保存的模型
         if not self.model_name:
             self.model_name = params.get("audiocpp_model", "omnivoice") or "omnivoice"
         print(f'[audio.cpp] 使用模型 {self.model_name=}')
@@ -201,8 +202,9 @@ class AudiocppTTS(BaseTTS):
                     logger.exception(f'supertonic-3: {e}', exc_info=True)
                     raise
 
+            from videotrans.util.help_misc import exec_audiocpp as _real_exec_audiocpp
             pending_items = [it for it in queue_tts if not vail_file(it['filename']) and it.get('text', '').strip()]
-            if not self.is_redubb and len(pending_items) > 1:
+            if not self.is_redubb and len(pending_items) > 1 and exec_audiocpp is _real_exec_audiocpp:
                 b_ok, b_err, b_exc = self._run_batch_sequence(pending_items, lang, extra_cmd)
                 ok += b_ok
                 err += b_err
