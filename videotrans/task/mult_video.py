@@ -39,7 +39,7 @@ class MultVideo(QThread):
             trk_list = []
             for it in _it_split:
                 app_cfg.rm_uuid(it['uuid'])
-                trk = TransCreate(cfg=TaskCfgVTT(**self.cfg | it,batch=True,batch_size=self.batch_nums))
+                trk = TransCreate(cfg=TaskCfgVTT(**self.cfg | it,batch=True))
                 app_cfg.prepare_queue.put_nowait(trk)
                 trk_list.append(trk)
 

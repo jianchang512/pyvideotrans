@@ -363,6 +363,7 @@ def build_parser() -> argparse.ArgumentParser:
     tts_group.add_argument('--pitch', type=str, default='+0Hz', help=tr("help_pitch"))
     tts_group.add_argument('--voice_autorate', action='store_true', help=tr("help_voice_autorate"))
     tts_group.add_argument('--align_sub_audio', action='store_true', help=tr("help_align_sub_audio"))
+    stt_group.add_argument('--tts_model_name', type=str, default=None, help="TTS model")
 
     # --- Translation ---
     trans_group = parser.add_argument_group(tr("group_trans"))
@@ -463,6 +464,7 @@ def build_tts_params(args: argparse.Namespace) -> dict:
         "is_cuda": args.cuda if args.cuda and torch.cuda.is_available() else False,
         "voice_autorate": args.voice_autorate,
         "align_sub_audio": args.align_sub_audio,
+        "tts_model_name": args.tts_model_name,
         "target_language_code": args.target_language_code,
     }
 
