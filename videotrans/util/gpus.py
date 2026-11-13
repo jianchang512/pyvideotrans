@@ -95,6 +95,38 @@ def is_vulkan_available() -> bool:
     return len(get_vulkan_devices()) > 0
 
 
+def should_use_vulkan(device_name: Optional[str] = None, is_cuda: bool = True) -> bool:
+    """Return True if inference should use the Vulkan compute backend."""
+    if device_name is None:
+        device_name = str(settings.get("device_name", "auto") or "auto")
+    dev = str(device_name).strip().lower().split()[0]
+    if dev in ("cpu", "mps") or dev.startswith("cuda"):
+        return False
+    if dev.startswith("vulkan"):
+        return is_vulkan_available()
+    if dev == "auto":
+        return bool(is_cuda) and is_vulkan_available()
+    return False
+
+
+def resolve_torch_device(device_name: Optional[str] = None, is_cuda: bool = True) -> str:
+    """Resolve a PyTorch/CTranslate2 device string without ever mapping 'vulkan*' to 'cuda'."""
+    if device_name is None:
+        device_name = str(settings.get("device_name", "auto") or "auto")
+    dev = str(device_name).strip().lower().split()[0]
+    if not is_cuda or dev == "cpu" or dev.startswith("vulkan"):
+        return "cpu"
+    if dev == "auto":
+        try:
+            import torch
+            if torch.cuda.is_available():
+                return "cuda"
+        except Exception:
+            pass
+        return mps_or_cpu()
+    return dev
+
+
 def get_vulkan_device_index(device_name: Optional[str] = None) -> int:
     """Resolve the ggml_vulkan GPU index from device_name ('vulkan:1', 'auto', etc.)."""
     if device_name is None:

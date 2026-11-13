@@ -41,6 +41,7 @@ models
 dev
 chatterbox
 audio_cpp
+llama_cpp
 
 .venv
 venv

@@ -261,9 +261,16 @@ class BaseCon:
 
             # gpu， device_index 固定使用第0号
             kwargs['device_index'] = 0
-            raw_dev = settings.get('device_name', 'auto')
+            raw_dev = str(settings.get('device_name', 'auto') or 'auto')
             kwargs['raw_device_name'] = raw_dev
-            kwargs['device_name'] = 'auto' if str(raw_dev).startswith('vulkan') else raw_dev
+            if raw_dev.lower().startswith('vulkan'):
+                # Never allow PyTorch/CTranslate2 subprocesses to allocate on CUDA when user selected Vulkan
+                kwargs['device_name'] = 'cpu'
+                cb_name = getattr(callback, '__name__', '')
+                if cb_name not in ('faster_whisper', 'remove_noise', 'vocal_bgm'):
+                    kwargs['is_cuda'] = False
+            else:
+                kwargs['device_name'] = raw_dev
             logger.debug(f'新进程任务 参数:{kwargs=}')
             future = GlobalProcessManager.submit_task_cpu(
                 callback,

@@ -572,3 +572,31 @@ def down_audiocpp_bin(process_callback=None):
         if _os == 'Linux':
             _patch_linux_audiocpp_glibc(Path(f'{ROOT_DIR}/audio_cpp'))
     return True
+
+
+def down_llamacpp_bin(process_callback=None):
+    _os = platform.system()
+    srv_name = "llama-server.exe" if _os == 'Windows' else 'llama-server'
+    p = Path(f'{ROOT_DIR}/llama_cpp/{srv_name}')
+    if p.exists():
+        return True
+
+    from videotrans.configure.constants import (
+        LLAMA_CPP_LINUX_VULKAN_HF,
+        LLAMA_CPP_WIN_VULKAN_HF,
+    )
+    urls = {
+        "Windows": LLAMA_CPP_WIN_VULKAN_HF,
+        "Linux": LLAMA_CPP_LINUX_VULKAN_HF,
+    }
+    if _os not in urls:
+        return False
+    down_zip(f'{ROOT_DIR}/llama_cpp', urls[_os], callback=process_callback)
+    if _os == 'Linux':
+        for f in Path(f'{ROOT_DIR}/llama_cpp').iterdir():
+            if f.is_file() and not f.is_symlink() and f.name.startswith(('llama', 'ggml')):
+                try:
+                    f.chmod(f.stat().st_mode | 0o755)
+                except OSError:
+                    pass
+    return p.exists()

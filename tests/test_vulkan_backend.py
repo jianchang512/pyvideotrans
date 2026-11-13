@@ -8,6 +8,8 @@ from videotrans.util.gpus import (
     get_vulkan_devices,
     getset_gpu,
     is_vulkan_available,
+    resolve_torch_device,
+    should_use_vulkan,
 )
 from videotrans.util.whisper_vulkan import (
     PyWhisperCppModel,
@@ -123,3 +125,68 @@ def test_cpp_recogn_vulkan():
             assert any("calcium" in item["text"].lower() or "blood" in item["text"].lower() for item in srts)
     finally:
         settings["device_name"] = orig_dev
+
+
+def test_resolve_torch_device_never_maps_vulkan_to_cuda():
+    assert should_use_vulkan("vulkan:1", is_cuda=True) is True
+    assert should_use_vulkan("cpu", is_cuda=True) is False
+    assert should_use_vulkan("cuda", is_cuda=True) is False
+    assert resolve_torch_device("vulkan", is_cuda=True) == "cpu"
+    assert resolve_torch_device("vulkan:1", is_cuda=True) == "cpu"
+    assert resolve_torch_device("cpu", is_cuda=True) == "cpu"
+
+
+def test_hymt2_vulkan_translation_zero_cuda():
+    import torch
+    from videotrans.translator._hymt2 import HYMT2
+
+    orig_dev = settings.get("device_name", "auto")
+    try:
+        settings["device_name"] = "vulkan:1"
+        tr_inst = HYMT2(
+            text_list=[{"text": "Hello, welcome to the video translation tool.", "line": 1}],
+            target_code="zh-cn",
+            source_code="en",
+            is_cuda=True,
+        )
+        tr_inst._download()
+        assert tr_inst.hy.use_vulkan is True
+        if torch.cuda.is_available():
+            assert torch.cuda.memory_allocated() == 0
+        out = tr_inst._item_task("Hello, welcome to the video translation tool.")
+        assert out and len(out.strip()) > 0
+        tr_inst._unload()
+    finally:
+        settings["device_name"] = orig_dev
+
+
+def test_omnivoice_builtin_routes_to_audiocpp_vulkan():
+    import torch
+    from videotrans import tts
+
+    orig_dev = settings.get("device_name", "auto")
+    try:
+        settings["device_name"] = "vulkan:1"
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_wav = Path(tmpdir) / "line1.wav"
+            queue_tts = [
+                {
+                    "text": "Hello world, testing OmniVoice on Vulkan.",
+                    "role": "clone",
+                    "filename": str(out_wav),
+                    "ref_wav": f"{ROOT_DIR}/f5-tts/en_female_1.wav",
+                    "ref_text": "Yesterday, a friend told me that a newly opened restaurant nearby has great food, and we agreed to try it together this weekend.",
+                }
+            ]
+            tts.run(
+                queue_tts=queue_tts,
+                language="en",
+                tts_type=tts.OMNIVOICE_TTS,
+                is_cuda=True,
+            )
+            assert out_wav.exists() and out_wav.stat().st_size > 1000
+            if torch.cuda.is_available():
+                assert torch.cuda.memory_allocated() == 0
+    finally:
+        settings["device_name"] = orig_dev
+

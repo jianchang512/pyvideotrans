@@ -115,6 +115,21 @@ def run(*, queue_tts=None, language="", uuid=None, play=False, tts_type=0, is_cu
     # 需要并行的数量3
     if len(queue_tts) < 1 or app_cfg.exit_soft or (uuid and uuid in app_cfg.stoped_uuid_set): return
 
+    from videotrans.util.gpus import should_use_vulkan
+    _VULKAN_AUDIOCPP_TTS_MAP = {
+        OMNIVOICE_TTS: "omnivoice",
+        QWEN3LOCAL_TTS: "qwen3_tts",
+        CONFUCIUS_TTS: "confucius4_tts",
+        MOSS_TTS: "moss_tts_nano",
+        CHATTERBOX_TTS: "chatterbox",
+        HIGGS_AUDIO_TTS: "higgs_audio_tts",
+        FIRERED3_TTS: "firered_audio",
+    }
+    if tts_type in _VULKAN_AUDIOCPP_TTS_MAP and should_use_vulkan(is_cuda=bool(is_cuda)):
+        model_name = _VULKAN_AUDIOCPP_TTS_MAP[tts_type]
+        logger.debug(f'[TTS/Vulkan] Routing TTS channel {tts_type} -> Audio.cpp ({model_name}) on Vulkan')
+        tts_type = AUDIOCPP_TTS
+
     kwargs = {
         "queue_tts": queue_tts,
         "language": language.lower() if language else "",
