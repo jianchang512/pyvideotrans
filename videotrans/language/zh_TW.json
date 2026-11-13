@@ -472,7 +472,7 @@
   "must select audio or video file": "必須選擇影音檔案",
   "mustberole": "必須選擇一個配音角色",
   "nextstep": "儲存修改並繼續下一步",
-  "nocuda": "你的裝置不滿足CUDA加速要求，請確認是NVIDIA顯示卡，並已設定好CUDA環境，點選選單欄-說明支援-CUDA help",
+  "nocuda": "你的裝置不滿足硬体加速要求，點選選單欄-說明支援-CUDA help",
   "nocudnn": "你的裝置沒有安裝設定cuDNN，請安裝然後重新啟動軟體，或者取消CUDA加速",
   "nosubtitle": "不嵌入字幕",
   "parakeet url": "HTTP 網址",

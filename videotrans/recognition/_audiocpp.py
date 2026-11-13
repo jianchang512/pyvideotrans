@@ -88,6 +88,7 @@ class AudiocppRecogn(BaseRecogn):
                 err=f'error:{i} {cmd=}'
                 continue
             raws[i]['text'] =text
+            self.signal(text=f"{text}\n", type='subtitle')
             ok_nums+=1
         if ok_nums<1:
             raise SpeechToTextError(err)

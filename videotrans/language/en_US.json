@@ -472,7 +472,7 @@
   "must select audio or video file": "Audio/video file selection required",
   "mustberole": "Voice role selection required",
   "nextstep": "Save Changes & Proceed",
-  "nocuda": "CUDA GPU acceleration unavailable. Verify NVIDIA GPU & CUDA installation (Help -> CUDA Help).",
+  "nocuda": "Your device does not meet the hardware acceleration requirements. For details, please click on the menu bar - Help & Support - CUDA help.",
   "nocudnn": "cuDNN not detected. Please install cuDNN and restart software, or disable CUDA acceleration.",
   "nosubtitle": "No Subtitles",
   "parakeet url": "HTTP Address",
