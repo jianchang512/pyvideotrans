@@ -650,6 +650,12 @@ def _run_audiocpp_proc(cmd):
                 return 0, "", "", True
 
 
+def _ensure_audiocpp_threads(cmd: list) -> list:
+    if "--threads" not in cmd:
+        cmd.extend(["--threads", str(os.cpu_count() or 4)])
+    return cmd
+
+
 # 调用 audio.cpp
 def exec_audiocpp(cmd):
     from videotrans.util.gpus import get_audiocpp_backend_args
@@ -659,6 +665,7 @@ def exec_audiocpp(cmd):
             backend_args = get_audiocpp_backend_args()
             cmd[i : i + 2] = backend_args
             break
+    _ensure_audiocpp_threads(cmd)
     logger.debug(f'audio.cpp start: {cmd=}')
     rc, stdout, stderr, aborted = _run_audiocpp_proc(cmd)
     if aborted:

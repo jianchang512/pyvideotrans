@@ -115,6 +115,8 @@ class AudiocppTTS(BaseTTS):
                 "--model",
                 self.model_path or f"models/{self.gguf_obj['file']}",
                 *get_audiocpp_backend_args(),
+                "--threads",
+                str(os.cpu_count() or 4),
                 "--request-sequence",
                 str(seq_file),
                 "--out-dir",
