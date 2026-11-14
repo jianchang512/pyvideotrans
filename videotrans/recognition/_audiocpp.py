@@ -48,9 +48,6 @@ class AudiocppRecogn(BaseRecogn):
     def _exec(self) -> Union[List[SrtItem], None]:
         if self._exit(): return
         self.signal(text=f"start speech to srt")
-
-
-
         raws = self.cut_audio()
         langcode=None
         if self.detect_language !='auto' and self.gguf_obj.get('allow_language_tag'):

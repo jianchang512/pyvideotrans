@@ -629,8 +629,9 @@ def _audiocpp_cmd_to_cpu(cmd) -> list:
 
 def _run_audiocpp_proc(cmd):
     cwd=f"{ROOT_DIR}/audio_cpp"
-    if sys.platform()=='win32' and 'vulkan' in cmd:
-        cmd[0]=f"{ROOT_DIR}/audio_cpp_vulkan/audiocpp_cli"
+    # windows 上 vulkan 单独
+    if sys.platform=='win32' and 'vulkan' in cmd:
+        cmd[0]=f"{ROOT_DIR}/audio_cpp_vulkan/audiocpp_cli.exe"
     proc = subprocess.Popen(
         cmd,
         encoding="utf-8",
@@ -666,8 +667,6 @@ def exec_audiocpp(cmd):
     rc, stdout, stderr, aborted = _run_audiocpp_proc(cmd)
     if aborted:
         return True
-
-    
 
     if rc != 0:
         logger.error(f'audio.cpp 执行失败:{stdout=},{stderr=},{cmd=}')

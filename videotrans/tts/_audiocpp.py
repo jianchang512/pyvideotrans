@@ -39,8 +39,7 @@ class AudiocppTTS(BaseTTS):
         if not self.gguf_obj or not self.gguf_obj.get('file') or not self.gguf_obj.get('url'):
             raise RuntimeError(f'error:{self.model_name=},{self.gguf_obj=}')
 
-        gguf_file = f"{ROOT_DIR}/models/{self.gguf_obj.get('file')}"
-        self.model_path = f"{ROOT_DIR}/models/{self.gguf_obj['file']}"
+        self.model_path=gguf_file = f"{ROOT_DIR}/models/{self.gguf_obj.get('file')}"
 
         if Path(gguf_file).exists():
             return True
@@ -71,124 +70,6 @@ class AudiocppTTS(BaseTTS):
                 return str(fallback_path.resolve()), fallback_text
         return None, None
 
-    def _run_batch_sequence(self, pending_items: list, lang: str, extra_cmd: list) -> Tuple[int, int, Optional[Exception]]:
-        """Run all pending TTS requests in a single audio.cpp session so the model loads into VRAM only once."""
-        requests_list = []
-        id_to_item = {}
-        for idx, item in enumerate(pending_items):
-            req_id = f"seg_{idx}"
-            id_to_item[req_id] = (idx, item)
-            ref_wav, ref_text = self._resolve_ref(item, lang)
-            req: Dict[str, Any] = {
-                "id": req_id,
-                "text": str(item["text"]),
-            }
-            if ref_wav:
-                req["voice_ref"] = ref_wav
-            if self.gguf_obj.get("is_reference_text") and ref_text:
-                req["reference_text"] = ref_text
-            if self.gguf_obj.get("is_language"):
-                req["language"] = lang
-            options: Dict[str, Any] = {}
-            if self.gguf_obj.get("is_seed"):
-                options["seed"] = "24"
-            if self.model_name == "ming3_tts":
-                if ref_text:
-                    options["reference_text"] = ref_text
-                options["language"] = lang
-            if options:
-                req["options"] = options
-            requests_list.append(req)
-
-        with tempfile.TemporaryDirectory(prefix="audiocpp_batch_") as tmp_dir:
-            seq_file = Path(tmp_dir) / "requests.json"
-            out_dir = Path(tmp_dir) / "outputs"
-            out_dir.mkdir(parents=True, exist_ok=True)
-            seq_file.write_text(json.dumps({"requests": requests_list}, ensure_ascii=False, indent=2), encoding="utf-8")
-
-            cmd = [
-                f"{ROOT_DIR}/audio_cpp/audiocpp_cli",
-                "--task",
-                self.gguf_obj.get("type", "tts"),
-                "--family",
-                self.model_name,
-                "--model",
-                f"{ROOT_DIR}/{self.gguf_obj['file']}",
-                *get_audiocpp_backend_args(),
-                "--request-sequence",
-                str(seq_file),
-                "--out-dir",
-                str(out_dir),
-            ]
-            if extra_cmd:
-                cmd.extend([c for c in extra_cmd if c])
-
-            logger.debug(f"audio.cpp batch start ({len(requests_list)} items): {cmd=}")
-            self.signal(text=f'{tr("Dubbing")} 0/{self.len}')
-
-            def _exec_batch(run_cmd):
-                proc = subprocess.Popen(
-                    run_cmd,
-                    encoding="utf-8",
-                    errors="ignore",
-                    text=True,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    stdin=subprocess.DEVNULL,
-                    creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0,
-                    cwd=f"{ROOT_DIR}/audio_cpp",
-                )
-                current_req_id = ""
-                b_ok, b_err = 0, 0
-                logs = []
-                assert proc.stdout is not None
-                for line in proc.stdout:
-                    if app_cfg.exit_soft or Path(IPC_STATUS_FILE).exists():
-                        proc.kill()
-                        proc.wait()
-                        return b_ok, b_err, logs, 0, True
-                    s = line.strip()
-                    if s:
-                        logs.append(s)
-                    if s.startswith("request_id="):
-                        current_req_id = s[len("request_id="):]
-                        if current_req_id in id_to_item:
-                            idx, _ = id_to_item[current_req_id]
-                            self.signal(text=f'{tr("Dubbing")} {idx + 1}/{self.len}')
-                    elif s.startswith("audio_out=") and current_req_id in id_to_item:
-                        wav_path = s[len("audio_out="):]
-                        _, item = id_to_item[current_req_id]
-                        if vail_file(wav_path):
-                            self.convert_to_wav(wav_path, item["filename"])
-                            if vail_file(item["filename"]):
-                                b_ok += 1
-                proc.wait()
-                for req_id, (_, item) in id_to_item.items():
-                    if not vail_file(item["filename"]):
-                        cand = out_dir / f"{req_id}.wav"
-                        if vail_file(cand.as_posix()):
-                            self.convert_to_wav(cand.as_posix(), item["filename"])
-                        if vail_file(item["filename"]):
-                            b_ok += 1
-                        else:
-                            b_err += 1
-                return b_ok, b_err, logs, proc.returncode, False
-
-            ok, err, logs, rc, aborted = _exec_batch(cmd)
-            if aborted:
-                return ok, err, None
-
-            if rc != 0 and ok == 0 and _audiocpp_cmd_uses_gpu(cmd):
-                logger.warning(f"audio.cpp batch GPU backend failed (rc={rc}), falling back to CPU")
-                ok, err, logs, rc, aborted = _exec_batch(_audiocpp_cmd_to_cpu(cmd))
-                if aborted:
-                    return ok, err, None
-
-            if rc != 0 and ok == 0:
-                tail = "\n".join(logs[-20:])
-                return ok, err, RuntimeError(f"audio.cpp batch failed ({rc}): {tail}")
-            return ok, err, None
-
     def _exec(self):
         ok, err = 0, 0
         _except = None
@@ -207,10 +88,9 @@ class AudiocppTTS(BaseTTS):
                 try:
                     queue_tts = json.loads(Path(REDUBB_QUEUE_FILE).read_text(encoding='utf-8'))
                 except (OSError, json.JSONDecodeError) as e:
-                    logger.exception(f'supertonic-3: {e}', exc_info=True)
+                    logger.exception(f'audio.cpp: {e}', exc_info=True)
                     raise
 
-        
 
             for i, item in enumerate(queue_tts):
                 if app_cfg.exit_soft or (self.is_redubb and Path(REDUBB_STATUS_FILE).exists()):
@@ -229,7 +109,7 @@ class AudiocppTTS(BaseTTS):
                         "--family",
                         self.model_name,
                         "--model",
-                        f"{ROOT_DIR}/models/{self.gguf_obj['file']}",
+                        self.model_path,
                         "--backend",
                         "best",
                         "--text",
