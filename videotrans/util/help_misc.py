@@ -632,6 +632,7 @@ def _run_audiocpp_proc(cmd):
     # windows 上 vulkan 单独
     if sys.platform=='win32' and 'vulkan' in cmd:
         cmd[0]=f"{ROOT_DIR}/audio_cpp_vulkan/audiocpp_cli.exe"
+        cwd=f"{ROOT_DIR}/audio_cpp_vulkan"
     proc = subprocess.Popen(
         cmd,
         encoding="utf-8",
