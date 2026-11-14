@@ -13,6 +13,7 @@ from videotrans.configure.config import app_cfg, logger, ROOT_DIR, settings
 
 _VULKAN_DEVICES_CACHE: Optional[List[Dict[str, Any]]] = None
 
+_CUDA_ACTIVATE=False
 
 def get_vulkan_devices() -> List[Dict[str, Any]]:
     """Return list of available non-CPU Vulkan compute devices in ggml_vulkan order."""
@@ -156,17 +157,16 @@ def get_vulkan_device_index(device_name: Optional[str] = None) -> int:
 
 def get_device_choices() -> List[tuple[str, str]]:
     """Return (display_label, value) pairs for the UI Compute Device selector."""
-    vk_devs=None
-    if Path(f'{ROOT_DIR}/videotrans/devices.json').exists():
+    vk_devs = get_vulkan_devices()
+    if not vk_devs and Path(f'{ROOT_DIR}/videotrans/devices.json').exists():
         try:
             vk_devs=json.loads(Path(f'{ROOT_DIR}/videotrans/devices.json').read_text(encoding="utf-8"))
         except (json.JSONDecodeError,Exception) as e:
             logger.exception(f'获取加速器缓存失败:{e}',exc_info=True)
-    if not vk_devs:
-        vk_devs = get_vulkan_devices()
+    elif vk_devs:
+        Path(f'{ROOT_DIR}/videotrans/devices.json').write_text(json.dumps(vk_devs,ensure_ascii=False),encoding="utf-8")
     choices: List[tuple[str, str]] = []
     if vk_devs:
-        Path(f'{ROOT_DIR}/videotrans/devices.json').write_text(json.dumps(vk_devs,ensure_ascii=False),encoding="utf-8")
         best_idx = get_vulkan_device_index("auto")
         best_desc = next((d.get("description") for d in vk_devs if int(d.get("index", 0)) == best_idx), f"Vulkan{best_idx}")
         choices.append((f"auto (Vulkan{best_idx}: {best_desc})", "auto"))
@@ -180,10 +180,13 @@ def get_device_choices() -> List[tuple[str, str]]:
     else:
         choices.append(("auto", "auto"))
         choices.append(("vulkan", "vulkan"))
+    if _CUDA_ACTIVATE>0:#真实存在可用cuda
+        choices.extend([
+            ("cuda", "cuda"),
+            ("cuda:0", "cuda:0"),
+            ("cuda:1", "cuda:1")
+        ])
     choices.extend([
-        ("cuda", "cuda"),
-        ("cuda:0", "cuda:0"),
-        ("cuda:1", "cuda:1"),
         ("cpu", "cpu"),
         ("mps", "mps"),
     ])
@@ -217,6 +220,7 @@ def get_audiocpp_backend_args(device_name: Optional[str] = None) -> List[str]:
 # force_cpu: 未使用参数
 #   True 强制使用 cpu 即强制设定没有显卡
 def getset_gpu(force_cpu=False) -> int:
+    global _CUDA_ACTIVATE
     if force_cpu:
         return 0
     # 尚未获取过时是 -1
@@ -231,6 +235,7 @@ def getset_gpu(force_cpu=False) -> int:
     try:
         import torch
         if torch.cuda.is_available():
+            _CUDA_ACTIVATE=True
             gpu_nums = torch.cuda.device_count()
     except Exception:
         pass
