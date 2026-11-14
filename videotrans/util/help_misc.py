@@ -628,6 +628,9 @@ def _audiocpp_cmd_to_cpu(cmd) -> list:
 
 
 def _run_audiocpp_proc(cmd):
+    cwd=f"{ROOT_DIR}/audio_cpp"
+    if sys.platform()=='win32' and 'vulkan' in cmd:
+        cmd[0]=f"{ROOT_DIR}/audio_cpp_vulkan/audiocpp_cli"
     proc = subprocess.Popen(
         cmd,
         encoding="utf-8",
@@ -637,7 +640,7 @@ def _run_audiocpp_proc(cmd):
         stderr=subprocess.PIPE,
         stdin=subprocess.DEVNULL,
         creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0,
-        cwd=f"{ROOT_DIR}/audio_cpp",
+        cwd=cwd,
     )
     while True:
         try:
@@ -664,15 +667,7 @@ def exec_audiocpp(cmd):
     if aborted:
         return True
 
-    if rc != 0 and _audiocpp_cmd_uses_gpu(cmd):
-        combined = f"{stdout}{stderr}"
-        if "Access is denied" not in combined and "could not open" not in combined:
-            cpu_cmd = _audiocpp_cmd_to_cpu(cmd)
-            logger.warning(f'audio.cpp GPU backend failed (rc={rc}), falling back to CPU: {stderr or stdout}')
-            rc, stdout, stderr, aborted = _run_audiocpp_proc(cpu_cmd)
-            cmd = cpu_cmd
-            if aborted:
-                return True
+    
 
     if rc != 0:
         logger.error(f'audio.cpp 执行失败:{stdout=},{stderr=},{cmd=}')
