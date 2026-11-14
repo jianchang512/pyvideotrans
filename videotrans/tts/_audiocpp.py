@@ -39,8 +39,8 @@ class AudiocppTTS(BaseTTS):
         if not self.gguf_obj or not self.gguf_obj.get('file') or not self.gguf_obj.get('url'):
             raise RuntimeError(f'error:{self.model_name=},{self.gguf_obj=}')
 
-        gguf_file = f"{ROOT_DIR}/audio_cpp/models/{self.gguf_obj.get('file')}"
-        self.model_path = f"models/{self.gguf_obj['file']}"
+        gguf_file = f"{ROOT_DIR}/models/{self.gguf_obj.get('file')}"
+        self.model_path = f"{ROOT_DIR}/models/{self.gguf_obj['file']}"
 
         if Path(gguf_file).exists():
             return True
@@ -113,7 +113,7 @@ class AudiocppTTS(BaseTTS):
                 "--family",
                 self.model_name,
                 "--model",
-                self.model_path or f"models/{self.gguf_obj['file']}",
+                f"{ROOT_DIR}/{self.gguf_obj['file']}",
                 *get_audiocpp_backend_args(),
                 "--request-sequence",
                 str(seq_file),
@@ -194,10 +194,7 @@ class AudiocppTTS(BaseTTS):
         _except = None
         lang = self.language.split('-')[0]
         queue_tts = self.queue_tts
-        _path = f'{ROOT_DIR}/audio_cpp{os.pathsep}'
-        if _path not in os.environ.get("PATH", ""):
-            os.environ['PATH'] = _path + os.environ.get("PATH", "")
-
+        
         txt_file = ROOT_DIR + '/pyvideotrans_audiocpp.txt'
         extra_cmd = []
         if Path(txt_file).exists():
@@ -213,18 +210,7 @@ class AudiocppTTS(BaseTTS):
                     logger.exception(f'supertonic-3: {e}', exc_info=True)
                     raise
 
-            from videotrans.util.help_misc import exec_audiocpp as _real_exec_audiocpp
-            pending_items = [it for it in queue_tts if not vail_file(it['filename']) and it.get('text', '').strip()]
-            if not self.is_redubb and len(pending_items) > 1 and exec_audiocpp is _real_exec_audiocpp:
-                b_ok, b_err, b_exc = self._run_batch_sequence(pending_items, lang, extra_cmd)
-                ok += b_ok
-                err += b_err
-                if b_exc:
-                    _except = b_exc
-                if ok > 0 and err == 0:
-                    break
-                # Any items that didn't succeed in batch fall through to individual retry below
-                err = 0
+        
 
             for i, item in enumerate(queue_tts):
                 if app_cfg.exit_soft or (self.is_redubb and Path(REDUBB_STATUS_FILE).exists()):
@@ -243,7 +229,7 @@ class AudiocppTTS(BaseTTS):
                         "--family",
                         self.model_name,
                         "--model",
-                        self.model_path or f"models/{self.gguf_obj['file']}",
+                        f"{ROOT_DIR}/models/{self.gguf_obj['file']}",
                         "--backend",
                         "best",
                         "--text",
