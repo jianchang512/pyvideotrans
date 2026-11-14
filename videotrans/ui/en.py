@@ -195,10 +195,10 @@ class Ui_MainWindow(object):
         self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
 
-        self.enable_cuda = QtWidgets.QCheckBox(self.layoutWidget)
-        self.enable_cuda.setMinimumSize(QtCore.QSize(50, 20))
-        self.enable_cuda.setObjectName("enable_cuda")
-        self.enable_cuda.setToolTip(tr('cudatips'))
+        self.is_cuda = QtWidgets.QCheckBox(self.layoutWidget)
+        self.is_cuda.setMinimumSize(QtCore.QSize(50, 20))
+        self.is_cuda.setObjectName("is_cuda")
+        self.is_cuda.setToolTip(tr('cudatips'))
 
         self.device_combo = QtWidgets.QComboBox(self.layoutWidget)
         self.device_combo.setMinimumSize(QtCore.QSize(180, 30))
@@ -216,7 +216,7 @@ class Ui_MainWindow(object):
         self.retrybtn.setText(tr('Retry failed'))
 
         self.horizontalLayout_3.addStretch(1)
-        self.horizontalLayout_3.addWidget(self.enable_cuda)
+        self.horizontalLayout_3.addWidget(self.is_cuda)
         self.horizontalLayout_3.addWidget(self.device_combo)
         self.horizontalLayout_3.addWidget(self.startbtn)
         self.horizontalLayout_3.addWidget(self.retrybtn)
@@ -286,8 +286,8 @@ class Ui_MainWindow(object):
         _setup_actions_and_menus(self, MainWindow)
 
         if platform.system() == 'Darwin':
-            self.enable_cuda.setChecked(False)
-            self.enable_cuda.hide()
+            self.is_cuda.setChecked(False)
+            self.is_cuda.hide()
 
         self._set_Ui_Text()
 
@@ -356,7 +356,7 @@ class Ui_MainWindow(object):
         self.align_sub_audio.setToolTip(tr("If selected, it will force the subtitles and audio to align."))
         self.align_sub_audio.setChecked(True)
 
-        self.enable_cuda.setText(tr("Enable CUDA?"))
+        self.is_cuda.setText(tr("Enable CUDA?"))
         self.embed_bgm.setText(tr("embed_bgm"))
         self.is_separate.setText(tr("Retain original background sound"))
         self.is_separate.setToolTip(tr(

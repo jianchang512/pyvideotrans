@@ -19,8 +19,8 @@ class WinActionBaseMiscMixin:
             return
         if state and app_cfg.NVIDIA_GPU_NUMS == 0:
             show_error(tr('nocuda'))
-            self.main.enable_cuda.setChecked(False)
-            self.main.enable_cuda.setDisabled(True)
+            self.main.is_cuda.setChecked(False)
+            self.main.is_cuda.setDisabled(True)
             res = False
         self.cfg['is_cuda'] = res
 
@@ -31,9 +31,9 @@ class WinActionBaseMiscMixin:
         settings['device_name'] = val
         settings.save()
         if val == 'cpu':
-            self.main.enable_cuda.setChecked(False)
+            self.main.is_cuda.setChecked(False)
         elif str(val).startswith(('vulkan', 'cuda')):
-            self.main.enable_cuda.setChecked(True)
+            self.main.is_cuda.setChecked(True)
 
     def check_voice_autorate(self, state):
         if state:
@@ -52,7 +52,7 @@ class WinActionBaseMiscMixin:
             self.main.align_sub_audio.setVisible(True)
 
     def cuda_isok(self):
-        if not self.main.enable_cuda.isChecked() or platform.system() == 'Darwin':
+        if not self.main.is_cuda.isChecked() or platform.system() == 'Darwin':
             self.cfg['is_cuda'] = False
             return True
 

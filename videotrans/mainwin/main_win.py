@@ -190,19 +190,8 @@ class MainWindow(BindSignalsMixin, LifecycleMixin, QMainWindow, Ui_MainWindow):
 
     def _start_workers(self, status):
         if status == 'end':
-            if platform.system() != 'Darwin':
-                self.device_combo.clear()
-                print(f'{app_cfg.dev_choices=}')
-                from videotrans.util.gpus import is_vulkan_available
-                _saved_dev = str(settings.get('device_name', 'auto') or 'auto')
-                _sel_idx = 0
-                for _i, (_label, _val) in enumerate(app_cfg.dev_choices):
-                    self.device_combo.addItem(_label, _val)
-                    if _val == _saved_dev:
-                        _sel_idx = _i
-                self.device_combo.setCurrentIndex(_sel_idx)
-                self.device_combo.setVisible(True)
-                self.enable_cuda.setChecked(bool(params.get('is_cuda', is_vulkan_available())) and _saved_dev != 'cpu')
+            from videotrans.winform import set_device_list
+            set_device_list(self,'is_cuda')
             self.worker_threads = start_thread()
             self.startbtn.setDisabled(False)
             self.startbtn.setText(tr("Start"))
