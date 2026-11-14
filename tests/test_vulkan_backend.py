@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 import tempfile
 
@@ -212,7 +213,8 @@ def test_exec_audiocpp_falls_back_to_cpu_on_gpu_failure(monkeypatch):
         assert help_misc.exec_audiocpp(["audiocpp_cli", "--backend", "best", "--text", "hi"]) is True
         assert len(calls) == 2
         assert calls[0][:4] == ["audiocpp_cli", "--backend", "vulkan", "--device"]
-        assert calls[1] == ["audiocpp_cli", "--backend", "cpu", "--text", "hi"]
+        assert "--threads" in calls[0]
+        assert calls[1] == ["audiocpp_cli", "--backend", "cpu", "--text", "hi", "--threads", str(os.cpu_count() or 4)]
     finally:
         settings["device_name"] = orig_dev
 
