@@ -169,7 +169,7 @@ def get_device_choices() -> List[tuple[str, str]]:
     if vk_devs:
         best_idx = get_vulkan_device_index("auto")
         best_desc = next((d.get("description") for d in vk_devs if int(d.get("index", 0)) == best_idx), f"Vulkan{best_idx}")
-        choices.append((f"auto (Vulkan{best_idx}: {best_desc})", "auto"))
+        choices.append((f"auto", "auto"))
         choices.append((f"vulkan (Auto -> Vulkan{best_idx}: {best_desc})", "vulkan"))
         for d in vk_devs:
             idx = int(d.get("index", 0))
