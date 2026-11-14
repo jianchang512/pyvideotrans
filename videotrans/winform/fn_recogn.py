@@ -1,6 +1,7 @@
 
 
 def openwin():
+    from videotrans.winform import set_device_list
     from videotrans.translator import LANGNAME_DICT,LLM_CONCERT_DICT
     from videotrans.winform import get_cls
     from videotrans.util.help_misc import  show_error
@@ -128,6 +129,8 @@ def openwin():
         winobj.label_shibie10.setText('')
         winobj.shibie_text.clear()
         stt_rephrase = winobj.rephrase.isChecked()
+        if is_cuda:
+            settings['device_name'] = winobj.device_combo.itemData(winobj.device_combo.currentIndex())
         settings.save()
         from videotrans.util.help_ffmpeg import format_video
         try:
@@ -184,13 +187,10 @@ def openwin():
 
     def check_cuda(state):
         # 选中如果无效，则取消
-        if state:
-            import torch
-            if not torch.cuda.is_available():
-                show_error(tr('nocuda'))
-                winobj.is_cuda.setChecked(False)
-                winobj.is_cuda.setDisabled(True)
-                return False
+        if state and app_cfg.NVIDIA_GPU_NUMS == 0:
+            winobj.is_cuda.setChecked(False)
+            winobj.is_cuda.setDisabled(True)
+            show_error(tr('nocuda'))
         return True
 
     def show_xxl_select():
@@ -301,6 +301,7 @@ def openwin():
         winobj.shibie_model.setDisabled(default_type not in recognition.ALLOW_CHANGE_MODEL)
         winobj.loglabel.clicked.connect(show_detail_error)
         winobj.shibie_model.currentIndexChanged.connect(model_type_change)
+        set_device_list(winobj,'stt_is_cuda')
 
     _bind()
     return winobj

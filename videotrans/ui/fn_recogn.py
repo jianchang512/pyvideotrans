@@ -46,6 +46,10 @@ class Ui_fn_recogn(QtWidgets.QWidget,_Bottom_btn_layout):
 
         self.is_cuda = QtWidgets.QCheckBox()
         self.is_cuda.setObjectName("is_cuda")
+        self.device_combo = QtWidgets.QComboBox()
+        self.device_combo.setObjectName("device_combo")
+        self.device_combo.setToolTip(tr('device_name_notice'))
+        self.device_combo.setVisible(False)
         # 如果是 MAc系统则隐藏
         if platform.system() == 'Darwin':
             self.is_cuda.setVisible(False)
@@ -93,6 +97,7 @@ class Ui_fn_recogn(QtWidgets.QWidget,_Bottom_btn_layout):
 
         self.horizontalLayout.addStretch()
         self.horizontalLayout.addWidget(self.is_cuda)
+        self.horizontalLayout.addWidget(self.device_combo)
         self.horizontalLayout.addWidget(self.remove_noise)
         self.horizontalLayout.addWidget(self.label_3)
         self.horizontalLayout.addWidget(self.shibie_language)

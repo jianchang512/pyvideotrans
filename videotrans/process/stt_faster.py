@@ -51,6 +51,7 @@ def faster_whisper(
     if device == 'auto':
         device = "cuda" if is_cuda else 'cpu'
     def _create_model(_compute_type):
+        print(f'{model_name=},{raw_device=}')
         if should_use_whisper_vulkan(model_name, device_name=raw_device):
             try:
                 logger.debug(f'[faster_whisper/vulkan]加载GGML模型 {model_name}: running on {raw_device} ({is_cuda=})')

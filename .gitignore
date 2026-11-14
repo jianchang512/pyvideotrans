@@ -26,6 +26,7 @@ videotrans/cfg.json
 videotrans/params.json
 videotrans/languages.json
 videotrans/webui_state.json
+videotrans/devices.json
 videotrans/glossary.txt
 
 deps/

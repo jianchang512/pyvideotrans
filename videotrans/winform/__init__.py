@@ -9,7 +9,11 @@
 """
 
 import importlib
+import platform
+
+from videotrans.configure import  config
 from videotrans.configure.config import app_cfg
+from videotrans.util.gpus import get_device_choices
 
 _loaded_modules = {}  # 用于缓存已经加载过的模块
 
@@ -55,3 +59,22 @@ def get_cls(module_name):
     module = importlib.import_module(f'..ui.{module_name}', package=__package__)
     _loaded_modules[module_name] = module
     return getattr(module, f'Ui_{module_name}')
+
+
+def set_device_list(winobj,cache_key):
+    if platform.system() == 'Darwin':return
+
+    from videotrans.util.gpus import is_vulkan_available
+    winobj.device_combo.clear()
+    print(f'{app_cfg.dev_choices=}')
+    _saved_dev = str(config.settings.get('device_name', 'auto') or 'auto')
+    _sel_idx = 0
+    if not app_cfg.dev_choices:
+        app_cfg.dev_choices = get_device_choices()
+    for _i, (_label, _val) in enumerate(app_cfg.dev_choices):
+        winobj.device_combo.addItem(_label, _val)
+        if _val == _saved_dev:
+            _sel_idx = _i
+    winobj.device_combo.setCurrentIndex(_sel_idx)
+    winobj.device_combo.setVisible(True)
+    winobj.is_cuda.setChecked(bool(config.params.get(cache_key, is_vulkan_available())) and _saved_dev != 'cpu')

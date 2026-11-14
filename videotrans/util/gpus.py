@@ -30,7 +30,7 @@ def get_vulkan_devices() -> List[Dict[str, Any]]:
                 [str(audiocpp_bin), "--list-devices", "--json"],
                 capture_output=True,
                 text=True,
-                timeout=5,
+                timeout=10,
                 encoding="utf-8",
                 errors="ignore",
             )
@@ -62,7 +62,7 @@ def get_vulkan_devices() -> List[Dict[str, Any]]:
                     ["vulkaninfo", "--summary"],
                     capture_output=True,
                     text=True,
-                    timeout=5,
+                    timeout=10,
                     encoding="utf-8",
                     errors="ignore",
                 )
@@ -156,9 +156,17 @@ def get_vulkan_device_index(device_name: Optional[str] = None) -> int:
 
 def get_device_choices() -> List[tuple[str, str]]:
     """Return (display_label, value) pairs for the UI Compute Device selector."""
-    vk_devs = get_vulkan_devices()
+    vk_devs=None
+    if Path(f'{ROOT_DIR}/videotrans/devices.json').exists():
+        try:
+            vk_devs=json.loads(Path(f'{ROOT_DIR}/videotrans/devices.json').read_text(encoding="utf-8"))
+        except (json.JSONDecodeError,Exception):
+            vk_devs = get_vulkan_devices()
+    else:
+        vk_devs = get_vulkan_devices()
     choices: List[tuple[str, str]] = []
     if vk_devs:
+        Path(f'{ROOT_DIR}/videotrans/devices.json').write_text(json.dumps(vk_devs,ensure_ascii=False),encoding="utf-8")
         best_idx = get_vulkan_device_index("auto")
         best_desc = next((d.get("description") for d in vk_devs if int(d.get("index", 0)) == best_idx), f"Vulkan{best_idx}")
         choices.append((f"auto (Vulkan{best_idx}: {best_desc})", "auto"))

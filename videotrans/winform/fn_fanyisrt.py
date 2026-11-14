@@ -2,6 +2,7 @@
 
 
 def openwin():
+    from videotrans.winform import set_device_list
     from videotrans.translator import LANGNAME_DICT
     from videotrans.winform import get_cls
     from videotrans.util.help_misc import show_glossary_editor, show_error, set_proxy
@@ -125,6 +126,9 @@ def openwin():
         winobj.fanyi_sourcetext.clear()
         winobj.fanyi_targettext.clear()
         winobj.loglabel.setText('')
+        is_cuda=winobj.is_cuda.isChecked()
+        if is_cuda:
+            settings['device_name'] = winobj.device_combo.itemData(winobj.device_combo.currentIndex())
 
         settings['aisendsrt'] = winobj.aisendsrt.isChecked()
 
@@ -133,7 +137,6 @@ def openwin():
         video_list:List[InputFile] = [format_video(it, None) for it in winobj.files]
         uuid_list = [obj['uuid'] for obj in video_list]
 
-        _is_cuda=winobj.is_cuda.isChecked()
         target_dir=winobj.output_data.text() if not winobj.save_source.isChecked() else video_list[0].dirname
         for it in video_list:
             app_cfg.rm_uuid(it['uuid'])
@@ -143,7 +146,7 @@ def openwin():
                 "uuid": it['uuid'],
                 "source_language_code": source_code,
                 "target_language_code": target_code,
-                "is_cuda":_is_cuda
+                "is_cuda":is_cuda
             }
             from videotrans.task.translate_srt import TranslateSrt
             trk = TranslateSrt(cfg=TaskCfgSTS(**cfg|it),out_format=winobj.out_format.currentIndex())
@@ -282,6 +285,14 @@ def openwin():
         else:
             settings['aisendsrt'] = False
 
+    def check_cuda(state):
+        # 选中如果无效，则取消
+        if state and app_cfg.NVIDIA_GPU_NUMS == 0:
+            winobj.is_cuda.setChecked(False)
+            winobj.is_cuda.setDisabled(True)
+            show_error(tr('nocuda'))
+        return True
+
     winobj = get_cls(Path(__file__).stem)()
 
     def _bind():
@@ -324,6 +335,8 @@ def openwin():
         winobj.aisendsrt.toggled.connect(checkbox_state_changed)
         winobj.save_source.setChecked(params.get("trans_save_source",False))
         winobj.is_cuda.setChecked(params.get("trans_is_cuda",False))
+        winobj.is_cuda.toggled.connect(check_cuda)
+        set_device_list(winobj,'trans_is_cuda')
 
     _bind()
     return winobj

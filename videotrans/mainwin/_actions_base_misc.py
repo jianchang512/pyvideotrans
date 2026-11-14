@@ -25,10 +25,9 @@ class WinActionBaseMiscMixin:
         self.cfg['is_cuda'] = res
 
     def device_change(self, index):
+        if index<0:return
         from videotrans.configure.config import settings
-        print(f'{index=}')
-        print(f'{self.main.device_combo.itemData(index)=}')
-        val = self.main.device_combo.itemData(index) or self.main.device_combo.currentText().split()[0]
+        val = self.main.device_combo.itemData(index)
         settings['device_name'] = val
         settings.save()
         if val == 'cpu':

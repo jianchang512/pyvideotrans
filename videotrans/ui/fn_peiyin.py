@@ -57,12 +57,18 @@ class Ui_fn_peiyin(QtWidgets.QWidget,_Bottom_btn_layout):
         self.is_cuda = QtWidgets.QCheckBox()
         self.is_cuda.setObjectName("is_cuda")
         self.is_cuda.setText(tr("Enable CUDA?"))
+
+        self.device_combo = QtWidgets.QComboBox()
+        self.device_combo.setObjectName("device_combo")
+        self.device_combo.setToolTip(tr('device_name_notice'))
+        self.device_combo.setVisible(False)
         # 如果是 MAc系统则隐藏
         if platform.system() == 'Darwin':
             self.is_cuda.setVisible(False)
             self.is_cuda.setChecked(False)
         self.horizontalLayout_10.addWidget(self.is_cuda)
-        
+        self.horizontalLayout_10.addWidget(self.device_combo)
+
         self.horizontalLayout_10_1 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_10_1.setObjectName("horizontalLayout_10_1")
         self.formLayout_3 = QtWidgets.QFormLayout()
