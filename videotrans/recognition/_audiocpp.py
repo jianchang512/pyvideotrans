@@ -35,7 +35,7 @@ class AudiocppRecogn(BaseRecogn):
             raise RuntimeError(f'No {self.model_name} in Audio.cpp\n{self.gguf_obj}')
 
 
-        gguf_file = f"{ROOT_DIR}/audio_cpp/models/{self.gguf_obj.get('file')}"
+        gguf_file = f"{ROOT_DIR}/models/{self.gguf_obj.get('file')}"
 
         if Path(gguf_file).exists(): return True
         model_url = self.gguf_obj.get('url', '').replace('https://huggingface.co', '')
@@ -68,7 +68,7 @@ class AudiocppRecogn(BaseRecogn):
                         "--family",
                         self.model_name,
                         "--model",
-                        f"models/{self.gguf_obj['file']}",
+                        f"{ROOT_DIR}/models/{self.gguf_obj['file']}",
                         "--backend",
                         "best",
                         "--audio",
