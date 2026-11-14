@@ -160,9 +160,9 @@ def get_device_choices() -> List[tuple[str, str]]:
     if Path(f'{ROOT_DIR}/videotrans/devices.json').exists():
         try:
             vk_devs=json.loads(Path(f'{ROOT_DIR}/videotrans/devices.json').read_text(encoding="utf-8"))
-        except (json.JSONDecodeError,Exception):
-            vk_devs = get_vulkan_devices()
-    else:
+        except (json.JSONDecodeError,Exception) as e:
+            logger.exception(f'获取加速器缓存失败:{e}',exc_info=True)
+    if not vk_devs:
         vk_devs = get_vulkan_devices()
     choices: List[tuple[str, str]] = []
     if vk_devs:

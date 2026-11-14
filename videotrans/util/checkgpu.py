@@ -15,8 +15,9 @@ class AiLoaderThread(QThread):
             _st = time.time()
             from . import gpus
             _count = gpus.getset_gpu()
-            logger.debug(f"找到 {_count} 个 GPUs, 耗时: {int(time.time() - _st)}s")
             app_cfg.dev_choices = get_device_choices()
+            logger.debug(f"找到 {_count} 个 GPUs, 耗时: {int(time.time() - _st)}s")
+            logger.debug(f"可用加速器信息:{app_cfg.dev_choices=}")
             self.gpu_io.emit("end")
         except Exception as e:
             err = traceback.format_exc()

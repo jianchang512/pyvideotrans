@@ -42,11 +42,6 @@ def _remove_noise_audiocpp(*, input_file, output_file,logs_file=None):
     try:
         _write_log(logs_file,"starting dense ...")
         exec_audiocpp(cmd)
-        # subprocess.run(
-        #     cmd, check=True, capture_output=True, text=True,
-        #     encoding='utf-8', errors='ignore', creationflags=creationflags,
-        #     cwd=Path(AUDIO_CPP).parent
-        # )
         logger.debug(f'降噪成功完成，使用 audio.cpp 耗时:{int(time.time() - _st)}s，{cmd=}')
         return output_file, None
     except Exception as e:

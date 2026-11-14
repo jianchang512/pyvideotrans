@@ -66,7 +66,6 @@ def set_device_list(winobj,cache_key):
 
     from videotrans.util.gpus import is_vulkan_available
     winobj.device_combo.clear()
-    print(f'{app_cfg.dev_choices=}')
     _saved_dev = str(config.settings.get('device_name', 'auto') or 'auto')
     _sel_idx = 0
     if not app_cfg.dev_choices:

@@ -128,12 +128,7 @@ def _use_audiocpp(*, input_file, vocal_file, instr_file,logs_file=None):
         "--out-dir",
         _parent
     ]
-    # creationflags = subprocess.CREATE_NO_WINDOW if OS_TYPE == 'Windows' else 0
     try:
-        # subprocess.run(
-        #     cmd, check=True, capture_output=True, text=True,
-        #     encoding='utf-8', errors='ignore', creationflags=creationflags
-        # )
         exec_audiocpp(cmd)
         logger.debug(f"[分离人声和背景声完成] audio.cpp :{cmd=}，耗时 {time.time() - start}s")
         shutil.move(f'{_parent}/vocals.wav',os.path.normpath(vocal_file))
