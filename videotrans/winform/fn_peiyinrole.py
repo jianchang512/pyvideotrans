@@ -1,3 +1,4 @@
+from PySide6.QtCore import QTimer
 
 
 def openwin():
@@ -392,9 +393,7 @@ def openwin():
         tts_type_change(last_tts_type)
 
         winobj.hecheng_role.setCurrentIndex(int(params.get("dubb_role", 0)))
-        set_device_list(winobj,'dubb_is_cuda')
-
-
+        QTimer.singleShot(5,lambda :set_device_list(winobj,'dubb_is_cuda'))
 
     _bind()
     return winobj

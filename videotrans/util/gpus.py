@@ -6,6 +6,7 @@ import os
 import platform
 import shutil
 import subprocess
+import time
 from pathlib import Path
 from typing import Dict, List, Any, Optional
 
@@ -14,6 +15,7 @@ from videotrans.configure.config import app_cfg, logger, ROOT_DIR, settings
 _VULKAN_DEVICES_CACHE: Optional[List[Dict[str, Any]]] = None
 
 _CUDA_ACTIVATE=False
+_HAD_GET_DEVICE=False
 
 def get_vulkan_devices() -> List[Dict[str, Any]]:
     """Return list of available non-CPU Vulkan compute devices in ggml_vulkan order."""
@@ -24,27 +26,32 @@ def get_vulkan_devices() -> List[Dict[str, Any]]:
     devices: List[Dict[str, Any]] = []
 
     # 1. Try audio.cpp --list-devices --json if available (exact ggml_vulkan indices + VRAM)
-    audiocpp_bin = Path(ROOT_DIR) / "audio_cpp" / ("audiocpp_cli.exe" if platform.system() == "Windows" else "audiocpp_cli")
-    if audiocpp_bin.is_file():
-        try:
-            proc = subprocess.run(
-                [str(audiocpp_bin), "--list-devices", "--json"],
-                capture_output=True,
-                text=True,
-                timeout=10,
-                encoding="utf-8",
-                errors="ignore",
-            )
-            for line in (proc.stdout or "").splitlines():
-                line = line.strip()
-                if line.startswith("{") and '"devices"' in line:
-                    data = json.loads(line)
-                    for d in data.get("devices", []):
-                        if d.get("backend") == "vulkan":
-                            devices.append(d)
-                    break
-        except Exception as e:
-            logger.debug(f"audiocpp_cli --list-devices failed: {e}")
+    # Windows audio.cpp cuda12.4 & audio.cpp-vulkan
+    audiocpp_bin_list = [
+        Path(ROOT_DIR) / "audio_cpp" / "audiocpp_cli.exe",
+        Path(ROOT_DIR) / "audio_cpp_vulkan" / "audiocpp_cli.exe"
+    ] if platform.system() == "Windows" else [ Path(ROOT_DIR) / "audio_cpp" / "audiocpp_cli" ]
+    for audiocpp_bin in audiocpp_bin_list:
+        if audiocpp_bin.is_file():
+            try:
+                proc = subprocess.run(
+                    [str(audiocpp_bin), "--list-devices", "--json"],
+                    capture_output=True,
+                    text=True,
+                    timeout=10,
+                    encoding="utf-8",
+                    errors="ignore",
+                )
+                for line in (proc.stdout or "").splitlines():
+                    line = line.strip()
+                    if line.startswith("{") and '"devices"' in line:
+                        data = json.loads(line)
+                        for d in data.get("devices", []):
+                            if d.get("backend") == "vulkan":
+                                devices.append(d)
+                        break
+            except Exception as e:
+                logger.debug(f"audiocpp_cli --list-devices failed: {e}")
 
     # 2. Fallback: check _pywhispercpp system_info or vulkaninfo
     if not devices:
@@ -69,6 +76,7 @@ def get_vulkan_devices() -> List[Dict[str, Any]]:
                 )
                 out = proc.stdout or ""
                 idx = 0
+
                 for block in out.split("GPU"):
                     if "deviceType" in block and "PHYSICAL_DEVICE_TYPE_CPU" not in block:
                         name = f"Vulkan{idx}"
@@ -86,8 +94,7 @@ def get_vulkan_devices() -> List[Dict[str, Any]]:
                         idx += 1
             except Exception as e:
                 logger.debug(f"vulkaninfo check failed: {e}")
-
-    _VULKAN_DEVICES_CACHE = devices
+    _VULKAN_DEVICES_CACHE =devices
     return devices
 
 
@@ -157,15 +164,8 @@ def get_vulkan_device_index(device_name: Optional[str] = None) -> int:
 
 def get_device_choices() -> List[tuple[str, str]]:
     """Return (display_label, value) pairs for the UI Compute Device selector."""
-    vk_devs = get_vulkan_devices()
-    if not vk_devs and Path(f'{ROOT_DIR}/videotrans/devices.json').exists():
-        try:
-            vk_devs=json.loads(Path(f'{ROOT_DIR}/videotrans/devices.json').read_text(encoding="utf-8"))
-        except (json.JSONDecodeError,Exception) as e:
-            logger.exception(f'获取加速器缓存失败:{e}',exc_info=True)
-    elif vk_devs:
-        Path(f'{ROOT_DIR}/videotrans/devices.json').write_text(json.dumps(vk_devs,ensure_ascii=False),encoding="utf-8")
     choices: List[tuple[str, str]] = []
+    vk_devs = get_vulkan_devices()
     if vk_devs:
         best_idx = get_vulkan_device_index("auto")
         best_desc = next((d.get("description") for d in vk_devs if int(d.get("index", 0)) == best_idx), f"Vulkan{best_idx}")
@@ -242,6 +242,7 @@ def getset_gpu(force_cpu=False) -> int:
 
     if gpu_nums == 0:
         vk_devs = get_vulkan_devices()
+        print(f'{vk_devs=}')
         gpu_nums = len(vk_devs)
         if gpu_nums > 0:
             logger.debug(f'可用 Vulkan 显卡数: {gpu_nums} ({[d.get("description") for d in vk_devs]})')

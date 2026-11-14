@@ -1,4 +1,5 @@
 # 合成配音
+from PySide6.QtCore import QTimer
 
 
 def openwin():
@@ -355,7 +356,6 @@ def openwin():
         if state and app_cfg.NVIDIA_GPU_NUMS == 0:
             winobj.is_cuda.setChecked(False)
             winobj.is_cuda.setDisabled(True)
-            show_error(tr('nocuda'))
         return True
 
     def set_tts_language_tips(model_name):
@@ -409,7 +409,8 @@ def openwin():
         tts_type_change(last_tts_type)
         winobj.hecheng_role.setCurrentIndex(int(params.get("dubb_role", 0)))
 
-        set_device_list(winobj,'dubb_is_cuda')
+        QTimer.singleShot(5,lambda :set_device_list(winobj,'dubb_is_cuda'))
+
 
     _bind()
     return winobj

@@ -13,7 +13,7 @@ OS_TYPE=platform.system()
 AUDIO_CPP=f'{ROOT_DIR}/audio_cpp/audiocpp_cli{".exe" if OS_TYPE=="Windows" else ""}'
 MODEL_FILE=f'{ROOT_DIR}/models/zipenhancer.safetensors'
 
-def _remove_noise_audiocpp(*, input_file, output_file,logs_file=None):
+def _remove_noise_audiocpp(*, input_file, output_file,logs_file=None,is_cuda=False):
     # 如果 audio_cpp
     from videotrans.util.help_down import down_audiocpp_bin,down_file_from_hf
     _write_log(logs_file,"downloading audiocpp_cli...")
@@ -32,7 +32,7 @@ def _remove_noise_audiocpp(*, input_file, output_file,logs_file=None):
         "--load-option",
         "utility=zipenhancer",
         "--backend",
-        "best",
+        "best" if is_cuda else "cpu",
         "--audio",
         input_file,
         "--out",
@@ -51,7 +51,7 @@ def _remove_noise_audiocpp(*, input_file, output_file,logs_file=None):
 
 def remove_noise(*, input_file, output_file,logs_file=None,model_name='dpdfnet2.onnx', **kw):
     if model_name=='zipenhancer':
-        return _remove_noise_audiocpp(input_file=input_file, output_file=output_file,logs_file=logs_file)
+        return _remove_noise_audiocpp(input_file=input_file, output_file=output_file,logs_file=logs_file,is_cuda=kw.get('is_cuda',False))
 
     from videotrans.util._ffmpeg_runner import runffmpeg
     from videotrans.util.help_down import down_file_from_hf

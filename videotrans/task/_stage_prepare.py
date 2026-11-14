@@ -232,7 +232,7 @@ class PrepareMixin:
         uvr_models = settings.get('uvr_models')
         from videotrans.process.prepare_audio import vocal_bgm
         kw = {"input_file": tmpfile, "vocal_file": self.cfg.vocal, "instr_file": self.cfg.instrument,
-              "uvr_models": uvr_models}
+              "uvr_models": uvr_models,"is_cuda":self.cfg.is_cuda}
         try:
             rs = self._new_process(callback=vocal_bgm, title=title, is_cuda=False, kwargs=kw)
             if rs and vail_file(self.cfg.vocal) and vail_file(self.cfg.instrument):

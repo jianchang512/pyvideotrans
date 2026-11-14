@@ -46,7 +46,7 @@ class BaseTTS(BaseCon):
     error: Union[str, Exception, None] = None
     # 配音api地址
     api_url: str = field(default='')
-    # 启用CUDA，仅 qwen3-tts-local 游戏哦啊
+    # 启用CUDA，
     is_cuda: bool = False
     # 本地模型目录
     local_dir: str = None

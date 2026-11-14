@@ -1,4 +1,5 @@
 # 字幕批量翻译
+from PySide6.QtCore import QTimer
 
 
 def openwin():
@@ -336,7 +337,7 @@ def openwin():
         winobj.save_source.setChecked(params.get("trans_save_source",False))
         winobj.is_cuda.setChecked(params.get("trans_is_cuda",False))
         winobj.is_cuda.toggled.connect(check_cuda)
-        set_device_list(winobj,'trans_is_cuda')
+        QTimer.singleShot(5,lambda :set_device_list(winobj,'trans_is_cuda'))
 
     _bind()
     return winobj

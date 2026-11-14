@@ -67,7 +67,7 @@ class AudiocppRecogn(BaseRecogn):
                         "--model",
                         f"{ROOT_DIR}/models/{self.gguf_obj['file']}",
                         "--backend",
-                        "best",
+                        "best" if self.is_cuda else "cpu",
                         "--audio",
                         it['filename'],
             ]

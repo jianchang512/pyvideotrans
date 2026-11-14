@@ -113,7 +113,7 @@ class AudiocppTTS(BaseTTS):
                         "--model",
                         self.model_path,
                         "--backend",
-                        "best",
+                        "best" if self.is_cuda else "cpu",
                         "--text",
                         f"{item['text']}",
                     ]

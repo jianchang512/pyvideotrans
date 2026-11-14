@@ -258,7 +258,9 @@ class BaseCon:
                 from videotrans.util.gpus import is_vulkan_available
                 if not torch.cuda.is_available() and not is_vulkan_available():
                     is_cuda = False
-
+            # 更新 is_cuda
+            if "is_cuda" in kwargs:
+                kwargs['is_cuda']=is_cuda
             # gpu， device_index 固定使用第0号
             kwargs['device_index'] = 0
             raw_dev = str(settings.get('device_name', 'auto') or 'auto')

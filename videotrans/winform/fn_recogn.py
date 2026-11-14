@@ -1,3 +1,4 @@
+from PySide6.QtCore import QTimer
 
 
 def openwin():
@@ -301,7 +302,8 @@ def openwin():
         winobj.shibie_model.setDisabled(default_type not in recognition.ALLOW_CHANGE_MODEL)
         winobj.loglabel.clicked.connect(show_detail_error)
         winobj.shibie_model.currentIndexChanged.connect(model_type_change)
-        set_device_list(winobj,'stt_is_cuda')
+        # Postpone the execution to ensure the accelerator has completed its acquisition
+        QTimer.singleShot(5,lambda :set_device_list(winobj,'stt_is_cuda'))
 
     _bind()
     return winobj

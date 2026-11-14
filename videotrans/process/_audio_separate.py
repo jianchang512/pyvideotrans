@@ -16,8 +16,7 @@ OS_TYPE=platform.system()
 AUDIO_CPP=f'{ROOT_DIR}/audio_cpp/audiocpp_cli{".exe" if OS_TYPE=="Windows" else ""}'
 def vocal_bgm(*, input_file, vocal_file, instr_file, logs_file=None, uvr_models="UVR-MDX-NET-Inst_HQ_4",**kw):
     if uvr_models=='mel_band_roformer':
-        return _use_audiocpp(input_file=input_file, vocal_file=vocal_file, instr_file=instr_file,logs_file=logs_file
-                                  )
+        return _use_audiocpp(input_file=input_file, vocal_file=vocal_file, instr_file=instr_file,logs_file=logs_file,is_cuda=kw.get('is_cuda',False))
     _write_log(logs_file, "downloading models...")
     if uvr_models.startswith('spleeter'):
         down_file_from_hf(f'{ROOT_DIR}/models/onnx', [
@@ -97,7 +96,7 @@ def vocal_bgm(*, input_file, vocal_file, instr_file, logs_file=None, uvr_models=
         return False, f'{e}{msg}'
 
 
-def _use_audiocpp(*, input_file, vocal_file, instr_file,logs_file=None):
+def _use_audiocpp(*, input_file, vocal_file, instr_file,logs_file=None,is_cuda=False):
     # 如果 audio_cpp
     from videotrans.util.help_down import down_audiocpp_bin,down_file_from_hf
     _write_log(logs_file,"downloading audiocpp_cli...")
@@ -122,7 +121,7 @@ def _use_audiocpp(*, input_file, vocal_file, instr_file,logs_file=None):
         "--model",
         model_file,
         "--backend",
-        "best",
+        "best" if is_cuda else "cpu",
         "--audio",
         input_file,
         "--out-dir",
