@@ -1,3 +1,4 @@
+import platform
 from pathlib import Path
 import asyncio
 import sys
@@ -142,17 +143,7 @@ class MainWindow(BindSignalsMixin, LifecycleMixin, QMainWindow, Ui_MainWindow):
         self.remove_silent_mid.setChecked(bool(params.get('remove_silent_mid', False)))
         self.align_sub_audio.setChecked(bool(params.get('align_sub_audio', True)))
         self.clear_cache.setChecked(bool(params.get('clear_cache', False)))
-        from videotrans.util.gpus import get_device_choices, is_vulkan_available
-        self.device_combo.clear()
-        _dev_choices = get_device_choices()
-        _saved_dev = str(settings.get('device_name', 'auto') or 'auto')
-        _sel_idx = 0
-        for _i, (_label, _val) in enumerate(_dev_choices):
-            self.device_combo.addItem(_label, _val)
-            if _val == _saved_dev:
-                _sel_idx = _i
-        self.device_combo.setCurrentIndex(_sel_idx)
-        self.enable_cuda.setChecked(bool(params.get('is_cuda', is_vulkan_available())) and _saved_dev != 'cpu')
+
         self.enable_diariz.setChecked(bool(params.get('enable_diariz', False)))
         self.nums_diariz.setCurrentIndex(int(params.get('nums_diariz', 0)))
         self.is_separate.setChecked(bool(params.get('is_separate', False)))
@@ -190,6 +181,7 @@ class MainWindow(BindSignalsMixin, LifecycleMixin, QMainWindow, Ui_MainWindow):
 
     @staticmethod
     def _daemon():
+
         from videotrans.util.help_ffmpeg import check_hw_on_start
         from videotrans.util.help_misc import check_new_version, is_connect_hf
         check_new_version()
@@ -198,6 +190,19 @@ class MainWindow(BindSignalsMixin, LifecycleMixin, QMainWindow, Ui_MainWindow):
 
     def _start_workers(self, status):
         if status == 'end':
+            if platform.system() != 'Darwin':
+                self.device_combo.clear()
+                print(f'{app_cfg.dev_choices=}')
+                from videotrans.util.gpus import is_vulkan_available
+                _saved_dev = str(settings.get('device_name', 'auto') or 'auto')
+                _sel_idx = 0
+                for _i, (_label, _val) in enumerate(app_cfg.dev_choices):
+                    self.device_combo.addItem(_label, _val)
+                    if _val == _saved_dev:
+                        _sel_idx = _i
+                self.device_combo.setCurrentIndex(_sel_idx)
+                self.device_combo.setVisible(True)
+                self.enable_cuda.setChecked(bool(params.get('is_cuda', is_vulkan_available())) and _saved_dev != 'cpu')
             self.worker_threads = start_thread()
             self.startbtn.setDisabled(False)
             self.startbtn.setText(tr("Start"))

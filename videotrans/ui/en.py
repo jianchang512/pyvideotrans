@@ -204,6 +204,7 @@ class Ui_MainWindow(object):
         self.device_combo.setMinimumSize(QtCore.QSize(180, 30))
         self.device_combo.setObjectName("device_combo")
         self.device_combo.setToolTip(tr('device_name_notice'))
+        self.device_combo.setVisible(False)
 
         self.startbtn = QtWidgets.QPushButton(self.layoutWidget)
         self.startbtn.setMinimumSize(QtCore.QSize(160, 40))
