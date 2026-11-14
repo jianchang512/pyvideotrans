@@ -127,12 +127,15 @@ def test_cpp_recogn_vulkan():
         settings["device_name"] = orig_dev
 
 
-def test_resolve_torch_device_never_maps_vulkan_to_cuda():
+def test_resolve_torch_device_falls_back_to_cuda_when_available():
+    import torch
     assert should_use_vulkan("vulkan:1", is_cuda=True) is True
     assert should_use_vulkan("cpu", is_cuda=True) is False
     assert should_use_vulkan("cuda", is_cuda=True) is False
-    assert resolve_torch_device("vulkan", is_cuda=True) == "cpu"
-    assert resolve_torch_device("vulkan:1", is_cuda=True) == "cpu"
+    expected = "cuda" if torch.cuda.is_available() else "cpu"
+    assert resolve_torch_device("vulkan", is_cuda=True) == expected
+    assert resolve_torch_device("vulkan:1", is_cuda=True) == expected
+    assert resolve_torch_device("vulkan:1", is_cuda=False) == "cpu"
     assert resolve_torch_device("cpu", is_cuda=True) == "cpu"
 
 

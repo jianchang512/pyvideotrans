@@ -111,13 +111,13 @@ def should_use_vulkan(device_name: Optional[str] = None, is_cuda: bool = True) -
 
 
 def resolve_torch_device(device_name: Optional[str] = None, is_cuda: bool = True) -> str:
-    """Resolve a PyTorch/CTranslate2 device string without ever mapping 'vulkan*' to 'cuda'."""
+    """Resolve a PyTorch/CTranslate2 device string, falling back to CUDA when Vulkan is unsupported."""
     if device_name is None:
         device_name = str(settings.get("device_name", "auto") or "auto")
     dev = str(device_name).strip().lower().split()[0]
-    if not is_cuda or dev == "cpu" or dev.startswith("vulkan"):
+    if not is_cuda or dev == "cpu":
         return "cpu"
-    if dev == "auto":
+    if dev == "auto" or dev.startswith("vulkan"):
         try:
             import torch
             if torch.cuda.is_available():
