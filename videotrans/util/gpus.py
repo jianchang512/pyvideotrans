@@ -186,10 +186,10 @@ def get_device_choices() -> List[tuple[str, str]]:
             ("cuda:0", "cuda:0"),
             ("cuda:1", "cuda:1")
         ])
-    choices.extend([
-        ("cpu", "cpu"),
-        ("mps", "mps"),
-    ])
+    if platform.system() == 'Darwin':
+        choices.extend([
+            ("mps", "mps"),
+        ])
     return choices
 
 
