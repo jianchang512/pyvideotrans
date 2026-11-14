@@ -28,7 +28,7 @@ class AudiocppTTS(BaseTTS):
         # 未传入模型时（如单视频配音角色面板中的试听、webui、cli），使用最后保存的模型
         if not self.model_name:
             self.model_name = params.get("audiocpp_model", "omnivoice") or "omnivoice"
-        print(f'[audio.cpp] 使用模型 {self.model_name=}')
+
 
     def _download(self):
         self.signal(text=f'Checking audio.cpp cli exists ')
@@ -70,6 +70,8 @@ class AudiocppTTS(BaseTTS):
                 return str(fallback_path.resolve()), fallback_text
         return None, None
 
+
+    # The batch mode has been removed, making management inconvenient. We will uniformly use exec_audiocpp to execute audio.cpp
     def _exec(self):
         ok, err = 0, 0
         _except = None

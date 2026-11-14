@@ -627,9 +627,9 @@ def _audiocpp_cmd_to_cpu(cmd) -> list:
     return out
 
 
+ # When using AMD/Intel on Windows with Vulkan acceleration, download the Vulkan version of audio.cpp separately to the `audio_cpp_vulkan` folder. For CPU and CUDA acceleration, use version 12.4 of CUDA. Actual testing has revealed that if users encounter issues with Vulkan, there's a high probability that switching back to CPU will still fail
 def _run_audiocpp_proc(cmd):
     cwd=f"{ROOT_DIR}/audio_cpp"
-    # windows 上 vulkan 单独
     if sys.platform=='win32' and 'vulkan' in cmd:
         cmd[0]=f"{ROOT_DIR}/audio_cpp_vulkan/audiocpp_cli.exe"
         cwd=f"{ROOT_DIR}/audio_cpp_vulkan"
@@ -661,7 +661,7 @@ def _ensure_audiocpp_threads(cmd: list) -> list:
     return cmd
 
 
-# 调用 audio.cpp
+# No retry for failures. When the acceleration fails due to the audio.cpp and Vulkan versions on Windows, fallback to CPU still has a high probability of failure
 def exec_audiocpp(cmd):
     from videotrans.util.gpus import get_audiocpp_backend_args
     cmd = list(cmd)
