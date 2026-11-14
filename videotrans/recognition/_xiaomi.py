@@ -67,6 +67,7 @@ class XiaomiASRRecogn(BaseRecogn):
                 
                 raws[i]['text'] = completion.choices[0].message.content
                 ok+=1
+                self.signal(text=f"{raws[i]['text']}\n", type='subtitle')
                 self.signal(text=f'{i+1}/{len(raws)}')
             except APIConnectionError as e:
                 raise StopTask(f'{tr("Unable to connect to API",self.api_url)}\n{e.message}') from e

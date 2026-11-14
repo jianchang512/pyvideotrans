@@ -35,7 +35,7 @@ class AudiocppRecogn(BaseRecogn):
             raise RuntimeError(f'No {self.model_name} in Audio.cpp\n{self.gguf_obj}')
 
 
-        gguf_file = f"{ROOT_DIR}/audio_cpp/models/{self.gguf_obj.get('file')}"
+        gguf_file = f"{ROOT_DIR}/models/{self.gguf_obj.get('file')}"
 
         if Path(gguf_file).exists(): return True
         model_url = self.gguf_obj.get('url', '').replace('https://huggingface.co', '')
@@ -48,9 +48,6 @@ class AudiocppRecogn(BaseRecogn):
     def _exec(self) -> Union[List[SrtItem], None]:
         if self._exit(): return
         self.signal(text=f"start speech to srt")
-
-
-
         raws = self.cut_audio()
         langcode=None
         if self.detect_language !='auto' and self.gguf_obj.get('allow_language_tag'):
@@ -68,7 +65,7 @@ class AudiocppRecogn(BaseRecogn):
                         "--family",
                         self.model_name,
                         "--model",
-                        f"models/{self.gguf_obj['file']}",
+                        f"{ROOT_DIR}/models/{self.gguf_obj['file']}",
                         "--backend",
                         "best",
                         "--audio",
@@ -88,6 +85,7 @@ class AudiocppRecogn(BaseRecogn):
                 err=f'error:{i} {cmd=}'
                 continue
             raws[i]['text'] =text
+            self.signal(text=f"{text}\n", type='subtitle')
             ok_nums+=1
         if ok_nums<1:
             raise SpeechToTextError(err)

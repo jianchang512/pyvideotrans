@@ -212,7 +212,7 @@ class WinActionCheckMixin:
             return
 
         self.cfg['rephrase'] = self.main.rephrase.isChecked()
-        self.cfg['is_cuda'] = self.main.enable_cuda.isChecked()
+        self.cfg['is_cuda'] = self.main.is_cuda.isChecked()
 
         self.cfg['remove_silent_mid'] = False
         self.cfg['align_sub_audio'] = True

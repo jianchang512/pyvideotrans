@@ -1,4 +1,5 @@
 import platform
+import sys
 import time
 from pathlib import Path
 import shutil, os
@@ -540,7 +541,8 @@ def down_audiocpp_bin(process_callback=None):
     _os = platform.system()
     cli_name = "audiocpp_cli.exe" if _os == 'Windows' else 'audiocpp_cli'
     p = Path(f'{ROOT_DIR}/audio_cpp/{cli_name}')
-    if p.exists():
+
+    if p.exists() and (_os != 'Windows'  or Path(f'{ROOT_DIR}/audio_cpp_vulkan/{cli_name}').exists()):
         return True
 
     from videotrans.configure.constants import (
@@ -549,19 +551,16 @@ def down_audiocpp_bin(process_callback=None):
         AUDIO_CPP_WIN_HF,
         AUDIO_CPP_MAC_HF,
         AUDIO_CPP_WIN_VULKAN_HF,
+        AUDIO_CPP_WIN_VULKAN_MS,
         AUDIO_CPP_LINUX_VULKAN_HF,
     )
-    from videotrans.configure.config import settings
-    from videotrans.util.gpus import is_vulkan_available
 
-    dev_pref = str(settings.get('device_name', 'auto')).strip().lower()
-    prefer_vulkan = dev_pref.startswith('vulkan') or is_vulkan_available()
 
     urls = {
         "Darwin": {"ms": AUDIO_CPP_MAC_MS, "hf": AUDIO_CPP_MAC_HF},
         "Windows": {
-            "ms": AUDIO_CPP_WIN_VULKAN_HF if prefer_vulkan else AUDIO_CPP_WIN_MS,
-            "hf": AUDIO_CPP_WIN_VULKAN_HF if prefer_vulkan else AUDIO_CPP_WIN_HF,
+            "ms":  AUDIO_CPP_WIN_MS,
+            "hf": AUDIO_CPP_WIN_HF,
         },
         "Linux": {"ms": AUDIO_CPP_LINUX_VULKAN_HF, "hf": AUDIO_CPP_LINUX_VULKAN_HF},
     }
@@ -571,6 +570,9 @@ def down_audiocpp_bin(process_callback=None):
         down_zip(f'{ROOT_DIR}/audio_cpp', urls[_os]['hf'] if is_con else urls[_os]['ms'], callback=process_callback)
         if _os == 'Linux':
             _patch_linux_audiocpp_glibc(Path(f'{ROOT_DIR}/audio_cpp'))
+    # win上额外下载vulkan 仅仅用于vulkan，cpu运行仍然使用cuda版
+    if _os=='Windows' and not Path(f'{ROOT_DIR}/audio_cpp_vulkan/{cli_name}').exists():
+         down_zip(f'{ROOT_DIR}/audio_cpp_vulkan', AUDIO_CPP_WIN_VULKAN_HF if is_con else AUDIO_CPP_WIN_VULKAN_MS, callback=process_callback)
     return True
 
 

@@ -264,11 +264,8 @@ class BaseCon:
             raw_dev = str(settings.get('device_name', 'auto') or 'auto')
             kwargs['raw_device_name'] = raw_dev
             if raw_dev.lower().startswith('vulkan'):
-                # Never allow PyTorch/CTranslate2 subprocesses to allocate on CUDA when user selected Vulkan
-                kwargs['device_name'] = 'cpu'
-                cb_name = getattr(callback, '__name__', '')
-                if cb_name not in ('faster_whisper', 'remove_noise', 'vocal_bgm'):
-                    kwargs['is_cuda'] = False
+                from videotrans.util.gpus import resolve_torch_device
+                kwargs['device_name'] = resolve_torch_device(raw_dev, is_cuda=bool(is_cuda))
             else:
                 kwargs['device_name'] = raw_dev
             logger.debug(f'新进程任务 参数:{kwargs=}')

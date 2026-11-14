@@ -60,7 +60,7 @@ class WinActionBaseModeMixin:
         self.main.output_srt_label.hide()
         self.main.output_srt.hide()
         if platform.system() != 'Darwin':
-            self.main.enable_cuda.show()
+            self.main.is_cuda.show()
 
         if not self.main.voice_autorate.isChecked() and not self.main.video_autorate.isChecked():
             self.main.remove_silent_mid.setVisible(True)
@@ -124,7 +124,7 @@ class WinActionBaseModeMixin:
         self.main.remove_silent_mid.hide()
         self.main.align_sub_audio.hide()
         if platform.system() != 'Darwin':
-            self.main.enable_cuda.show()
+            self.main.is_cuda.show()
 
         self.show_adv_status = True
         self.toggle_adv()
@@ -188,7 +188,7 @@ class WinActionBaseModeMixin:
         _recogn_type=self.main.recogn_type.currentIndex()
         self.main.model_name.setDisabled(True if type or _recogn_type not in ALLOW_CHANGE_MODEL else False)
         self.main.subtitle_type.setDisabled(type)
-        self.main.enable_cuda.setDisabled(type)
+        self.main.is_cuda.setDisabled(type)
         self.main.recogn_type.setDisabled(type)
         self.main.voice_autorate.setDisabled(type)
         self.main.video_autorate.setDisabled(type)

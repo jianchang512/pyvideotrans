@@ -32,6 +32,7 @@ class MinimaxiASR(BaseRecogn):
                 err=res_json['error']['message']
                 continue
             raws[i]['text'] = res_json['text']
+            self.signal(text=f"{res_json['text']}\n", type='subtitle')
             ok_nums+=1
             if self.asr_wait>0:
                 time.sleep(self.asr_wait)

@@ -13,6 +13,7 @@ from videotrans.configure.config import app_cfg, logger, ROOT_DIR, settings
 
 _VULKAN_DEVICES_CACHE: Optional[List[Dict[str, Any]]] = None
 
+_CUDA_ACTIVATE=False
 
 def get_vulkan_devices() -> List[Dict[str, Any]]:
     """Return list of available non-CPU Vulkan compute devices in ggml_vulkan order."""
@@ -30,7 +31,7 @@ def get_vulkan_devices() -> List[Dict[str, Any]]:
                 [str(audiocpp_bin), "--list-devices", "--json"],
                 capture_output=True,
                 text=True,
-                timeout=5,
+                timeout=10,
                 encoding="utf-8",
                 errors="ignore",
             )
@@ -62,7 +63,7 @@ def get_vulkan_devices() -> List[Dict[str, Any]]:
                     ["vulkaninfo", "--summary"],
                     capture_output=True,
                     text=True,
-                    timeout=5,
+                    timeout=10,
                     encoding="utf-8",
                     errors="ignore",
                 )
@@ -110,13 +111,13 @@ def should_use_vulkan(device_name: Optional[str] = None, is_cuda: bool = True) -
 
 
 def resolve_torch_device(device_name: Optional[str] = None, is_cuda: bool = True) -> str:
-    """Resolve a PyTorch/CTranslate2 device string without ever mapping 'vulkan*' to 'cuda'."""
+    """Resolve a PyTorch/CTranslate2 device string, falling back to CUDA when Vulkan is unsupported."""
     if device_name is None:
         device_name = str(settings.get("device_name", "auto") or "auto")
     dev = str(device_name).strip().lower().split()[0]
-    if not is_cuda or dev == "cpu" or dev.startswith("vulkan"):
+    if not is_cuda or dev == "cpu":
         return "cpu"
-    if dev == "auto":
+    if dev == "auto" or dev.startswith("vulkan"):
         try:
             import torch
             if torch.cuda.is_available():
@@ -157,11 +158,18 @@ def get_vulkan_device_index(device_name: Optional[str] = None) -> int:
 def get_device_choices() -> List[tuple[str, str]]:
     """Return (display_label, value) pairs for the UI Compute Device selector."""
     vk_devs = get_vulkan_devices()
+    if not vk_devs and Path(f'{ROOT_DIR}/videotrans/devices.json').exists():
+        try:
+            vk_devs=json.loads(Path(f'{ROOT_DIR}/videotrans/devices.json').read_text(encoding="utf-8"))
+        except (json.JSONDecodeError,Exception) as e:
+            logger.exception(f'获取加速器缓存失败:{e}',exc_info=True)
+    elif vk_devs:
+        Path(f'{ROOT_DIR}/videotrans/devices.json').write_text(json.dumps(vk_devs,ensure_ascii=False),encoding="utf-8")
     choices: List[tuple[str, str]] = []
     if vk_devs:
         best_idx = get_vulkan_device_index("auto")
         best_desc = next((d.get("description") for d in vk_devs if int(d.get("index", 0)) == best_idx), f"Vulkan{best_idx}")
-        choices.append((f"auto (Vulkan{best_idx}: {best_desc})", "auto"))
+        choices.append((f"auto", "auto"))
         choices.append((f"vulkan (Auto -> Vulkan{best_idx}: {best_desc})", "vulkan"))
         for d in vk_devs:
             idx = int(d.get("index", 0))
@@ -172,13 +180,16 @@ def get_device_choices() -> List[tuple[str, str]]:
     else:
         choices.append(("auto", "auto"))
         choices.append(("vulkan", "vulkan"))
-    choices.extend([
-        ("cuda", "cuda"),
-        ("cuda:0", "cuda:0"),
-        ("cuda:1", "cuda:1"),
-        ("cpu", "cpu"),
-        ("mps", "mps"),
-    ])
+    if _CUDA_ACTIVATE>0:#真实存在可用cuda
+        choices.extend([
+            ("cuda", "cuda"),
+            ("cuda:0", "cuda:0"),
+            ("cuda:1", "cuda:1")
+        ])
+    if platform.system() == 'Darwin':
+        choices.extend([
+            ("mps", "mps"),
+        ])
     return choices
 
 
@@ -209,6 +220,7 @@ def get_audiocpp_backend_args(device_name: Optional[str] = None) -> List[str]:
 # force_cpu: 未使用参数
 #   True 强制使用 cpu 即强制设定没有显卡
 def getset_gpu(force_cpu=False) -> int:
+    global _CUDA_ACTIVATE
     if force_cpu:
         return 0
     # 尚未获取过时是 -1
@@ -223,6 +235,7 @@ def getset_gpu(force_cpu=False) -> int:
     try:
         import torch
         if torch.cuda.is_available():
+            _CUDA_ACTIVATE=True
             gpu_nums = torch.cuda.device_count()
     except Exception:
         pass
