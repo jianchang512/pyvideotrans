@@ -101,17 +101,24 @@ def is_vulkan_available() -> bool:
     return len(get_vulkan_devices()) > 0
 
 
+# Only consider using Vulkan when is_cuda is enabled and CUDA is unavailable
+# If hardware acceleration is not explicitly enabled, Vulkan will not be used, or if CUDA is available, Vulkan will also not be used
+# Vulkan is only used as a fallback for hardware acceleration, with CUDA being the preferred choice
+
 def should_use_vulkan(device_name: Optional[str] = None, is_cuda: bool = True) -> bool:
     """Return True if inference should use the Vulkan compute backend."""
+    if not is_cuda or platform.system() == 'Darwin':return False
     if device_name is None:
         device_name = str(settings.get("device_name", "auto") or "auto")
     dev = str(device_name).strip().lower().split()[0]
-    if dev in ("cpu", "mps") or dev.startswith("cuda"):
+    if dev in ("cpu", "mps","metal") or dev.startswith("cuda"):
         return False
-    if dev.startswith("vulkan"):
-        return is_vulkan_available()
+
     if dev == "auto":
-        return bool(is_cuda) and is_vulkan_available()
+        import torch
+        if torch.cuda.is_available():return False
+
+    if dev=='auto' or dev.startswith("vulkan"): return is_vulkan_available()
     return False
 
 
@@ -184,7 +191,9 @@ def get_device_choices() -> List[tuple[str, str]]:
             ("cuda:1", "cuda:1")
         ])
     if platform.system() == 'Darwin':
+        # Macos M Metal or mps
         choices.extend([
+            ("metal", "metal"),
             ("mps", "mps"),
         ])
     return choices

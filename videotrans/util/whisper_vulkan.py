@@ -3,7 +3,9 @@
 Drop-in Vulkan (ggml / pywhispercpp) Whisper inference engine compatible with faster_whisper.WhisperModel.
 """
 import os
+import platform
 import shutil
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
@@ -123,8 +125,9 @@ def should_use_whisper_vulkan(model_name: str, device_name: Optional[str] = None
     Determine whether to use the pywhispercpp (Vulkan / GGML) drop-in engine
     instead of CTranslate2 faster-whisper.
     """
+    if not is_cuda or platform.system() == 'Darwin': return False
     import torch
-    if not is_cuda or torch.cuda.is_available():
+    if torch.cuda.is_available():
         return False
 
     if not is_pywhispercpp_available():
