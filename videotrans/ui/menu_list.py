@@ -37,6 +37,7 @@ MENU_CFG_TRANS = [
     ("cloudgpu", 'CloudGPU', None),
     ("standardcompute", 'Standard Compute', None),
     ("uberllm", 'UberLLM', None),
+    ("requesty", 'Requesty', None),
 
     ("deepl", "DeepL API", None),
     ("deeplx", "DeepLX API", None),

@@ -345,6 +345,15 @@ _default["uberllm"] = {
     "uberllm_max_token": 16384,
 }
 
+from videotrans.configure.constants import REQUESTY_MODELS
+
+_default["requesty"] = {
+    # requesty.ai
+    "requesty_key": "",
+    "requesty_model": REQUESTY_MODELS.split(',')[0],
+    "requesty_max_token": 16384,
+}
+
 
 # todo: 根据 name 返回配置dict???
 # 返回默认值
