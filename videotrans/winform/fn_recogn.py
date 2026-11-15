@@ -84,6 +84,7 @@ def openwin():
         winobj.nums_diariz.setDisabled(state)
         winobj.spk_insert.setDisabled(state)
         winobj.shibie_stop.setDisabled(not state)
+        winobj.device_combo.setDisabled(state)
 
     def shibie_start_fun():
         nonlocal  uuid_list

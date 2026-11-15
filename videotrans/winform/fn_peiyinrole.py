@@ -49,6 +49,7 @@ def openwin():
         winobj.tmp_rolelist.setDisabled(state)
         winobj.assign_role_button.setDisabled(state)
         winobj.hecheng_stop.setDisabled(not state)
+        winobj.device_combo.setDisabled(state)
 
     def feed(d):
         if winobj.has_done:

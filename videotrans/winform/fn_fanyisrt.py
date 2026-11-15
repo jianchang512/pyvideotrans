@@ -41,6 +41,7 @@ def openwin():
         winobj.fanyi_start.setDisabled(state)
         winobj.fanyi_stop.setDisabled(not state)
         winobj.fanyi_targettext.setDisabled(state)
+        winobj.device_combo.setDisabled(state)
 
     def feed(d):
         nonlocal percent

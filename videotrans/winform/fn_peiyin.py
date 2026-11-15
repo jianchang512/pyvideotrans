@@ -50,6 +50,7 @@ def openwin():
         winobj.save_to_srt.setDisabled(state)
         winobj.hecheng_startbtn.setDisabled(state)
         winobj.hecheng_stop.setDisabled(not state)
+        winobj.device_combo.setDisabled(state)
 
     def feed(d):
         nonlocal percent

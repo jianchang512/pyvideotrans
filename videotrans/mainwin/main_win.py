@@ -216,6 +216,4 @@ class MainWindow(BindSignalsMixin, LifecycleMixin, QMainWindow, Ui_MainWindow):
         super().changeEvent(event)
         if event.type() == QEvent.Type.ActivationChange and self.isActiveWindow():
             self.aisendsrt.setChecked(settings.get('aisendsrt'))
-            # if self.tts_type.currentIndex()==tts.AUDIOCPP_TTS:
-            #     self.show_tips.setText(tr('toggle audiocpp model',params.get("audiocpp_model")))
 

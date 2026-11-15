@@ -184,7 +184,8 @@ class WinActionBaseModeMixin:
         self.main.source_language.setDisabled(type)
         self.main.target_language.setDisabled(type)
         self.main.tts_type.setDisabled(type)
-        
+        self.main.device_combo.setDisabled(type)
+
         _recogn_type=self.main.recogn_type.currentIndex()
         self.main.model_name.setDisabled(True if type or _recogn_type not in ALLOW_CHANGE_MODEL else False)
         self.main.subtitle_type.setDisabled(type)

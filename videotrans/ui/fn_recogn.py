@@ -60,11 +60,8 @@ class Ui_fn_recogn(QtWidgets.QWidget,_Bottom_btn_layout):
 
 
         self.shibie_model = QtWidgets.QComboBox()
-        self.shibie_model.setMinimumSize(QtCore.QSize(350, 30))
+        self.shibie_model.setMinimumSize(QtCore.QSize(300, 30))
         self.shibie_model.setObjectName("shibie_model")
-        
-            
-        
         
         self.enable_diariz = QtWidgets.QCheckBox()
         self.enable_diariz.setToolTip(tr("Speaker classification language"))
@@ -73,9 +70,6 @@ class Ui_fn_recogn(QtWidgets.QWidget,_Bottom_btn_layout):
         self.nums_diariz = QtWidgets.QComboBox()
         self.nums_diariz.setToolTip(tr("Specifying the number of speakers"))
         self.nums_diariz.addItems([tr("No limit"),"2","3","4","5","6","7","8","9","10"])
-
-
-
 
         self.out_format = QtWidgets.QComboBox()
         self.out_format.setMinimumSize(QtCore.QSize(100, 35))

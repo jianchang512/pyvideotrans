@@ -213,6 +213,8 @@ class WinActionCheckMixin:
 
         self.cfg['rephrase'] = self.main.rephrase.isChecked()
         self.cfg['is_cuda'] = self.main.is_cuda.isChecked()
+        if self.cfg['is_cuda']:
+            settings['device_name'] = self.main.device_combo.itemData(self.main.device_combo.currentIndex())
 
         self.cfg['remove_silent_mid'] = False
         self.cfg['align_sub_audio'] = True
