@@ -281,7 +281,8 @@ def down_file_from_hf(local_dir, urls=None, callback=None) -> bool:
             except Exception as e:
                 retries += 1
                 logger.warning(f'下载[{filename}]异常: {e}，正在进行重试 ({retries}/{max_retries})')
-                if retries >= max_retries:
+                status_code= getattr(e.response,"status_code",0) if hasattr(e,'response') else 0
+                if status_code==404 or retries >= max_retries:
                     raise DownloadModelsError(
                         tr("downloading all files", local_dir) + f'\n[{url}]\n\n多次重试后仍然失败: {e}')
 
@@ -358,7 +359,8 @@ def down_zip(local_dir, zip_url, callback=None) -> bool:
         except Exception as e:
             retries += 1
             logger.warning(f'Zip下载[{filename}]发生异常: {e}，正在进行第 ({retries}/{max_retries}) 次重试...')
-            if retries >= max_retries:
+            status_code= getattr(e.response,"status_code",0) if hasattr(e,'response') else 0
+            if status_code==404 or retries >= max_retries:
                 msg = tr('model is missing. Please download it', local_dir)
                 if callback:
                     callback(f'Error:{msg}')

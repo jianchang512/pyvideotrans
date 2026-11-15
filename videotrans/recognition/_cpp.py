@@ -13,7 +13,7 @@ from videotrans.configure.constants import WHISPER_CPP_URL_MS, WHISPER_CPP_URL_H
     WHISPERCPP_MODEL_URL_HF
 from videotrans.configure.excepts import SpeechToTextError
 from videotrans.recognition._base import BaseRecogn
-from videotrans.util._srt_parse import get_subtitle_from_srt
+from videotrans.util._srt_parse import get_subtitle_from_srt, ms_to_time_string
 from videotrans.util.help_down import down_zip
 from videotrans.util.help_misc import is_connect_hf
 
@@ -69,7 +69,6 @@ class CPPRecogn(BaseRecogn):
                     no_speech_threshold=float(settings.get('no_speech_threshold', 0.6)),
                 )
                 srt_lines = []
-                from videotrans.util.help_misc import ms_to_time_string
                 for idx, seg in enumerate(segments, 1):
                     start_ms = int(seg.start * 1000)
                     end_ms = int(seg.end * 1000)
