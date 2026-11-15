@@ -45,11 +45,11 @@ class AudiocppTTS(BaseTTS):
             return True
 
         # Reuse already-downloaded OmniVoice safetensors directory if present
-        if self.model_name == "omnivoice":
-            safetensors_dir = Path(f"{ROOT_DIR}/models/models--k2-fsa--OmniVoice")
-            if (safetensors_dir / "model.safetensors").exists():
-                self.model_path = safetensors_dir.as_posix()
-                return True
+        # if self.model_name == "omnivoice":
+        #     safetensors_dir = Path(f"{ROOT_DIR}/models/models--k2-fsa--OmniVoice")
+        #     if (safetensors_dir / "model.safetensors").exists():
+        #         self.model_path = safetensors_dir.as_posix()
+        #         return True
 
         model_url = self.gguf_obj.get('url', '').replace('https://huggingface.co', '')
         down_file_from_hf(
