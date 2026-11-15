@@ -51,8 +51,9 @@ def faster_whisper(
     if device == 'auto':
         device = "cuda" if is_cuda else 'cpu'
     def _create_model(_compute_type):
-        print(f'{model_name=},{raw_device=}')
-        if should_use_whisper_vulkan(model_name, device_name=raw_device):
+        logger.debug(f'[faster_whisper] 加载模型{model_name}: {is_cuda=},{raw_device=}, running on {device},{_compute_type=}')
+        # Only switch to Vulkan when hardware acceleration is explicitly specified
+        if is_cuda and should_use_whisper_vulkan(model_name, device_name=raw_device):
             try:
                 logger.debug(f'[faster_whisper/vulkan]加载GGML模型 {model_name}: running on {raw_device} ({is_cuda=})')
                 return PyWhisperCppModel(
@@ -68,7 +69,7 @@ def faster_whisper(
                 logger.warning(f'faster-whisper Vulkan (pywhispercpp) 加载失败，尝试回退 CTranslate2: {vulkan_err}')
         ct2_device = "cuda" if (is_cuda and str(device).startswith("vulkan")) else device
         try:
-            logger.debug(f'[faster_whisper]加载模型{model_name}: running on {ct2_device},{_compute_type=}')
+
             model = WhisperModel(
                 local_dir,
                 device=ct2_device,
