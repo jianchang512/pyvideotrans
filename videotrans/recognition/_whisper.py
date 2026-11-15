@@ -42,7 +42,7 @@ class FasterAll(BaseRecogn):
     def _download(self):
         if self.recogn_type == 0:
             from videotrans.util.whisper_vulkan import should_use_whisper_vulkan, ensure_ggml_whisper_model
-            if should_use_whisper_vulkan(self.model_name):
+            if should_use_whisper_vulkan(self.model_name,is_cuda=self.is_cuda):
                 ensure_ggml_whisper_model(self.model_name, callback=self._process_callback)
                 return
             if not Path(f'{self.local_dir}/model.bin').exists():

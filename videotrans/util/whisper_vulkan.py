@@ -115,11 +115,18 @@ def get_ggml_model_info(model_name: str) -> Optional[Tuple[str, str, Optional[st
     return None
 
 
-def should_use_whisper_vulkan(model_name: str, device_name: Optional[str] = None) -> bool:
+# Only consider using Vulkan when is_cuda is enabled and CUDA is unavailable
+# If hardware acceleration is not explicitly enabled, Vulkan will not be used, or if CUDA is available, Vulkan will also not be used
+# Vulkan is only used as a fallback for hardware acceleration, with CUDA being the preferred choice
+def should_use_whisper_vulkan(model_name: str, device_name: Optional[str] = None, is_cuda=False) -> bool:
     """
     Determine whether to use the pywhispercpp (Vulkan / GGML) drop-in engine
     instead of CTranslate2 faster-whisper.
     """
+    import torch
+    if not is_cuda or torch.cuda.is_available():
+        return False
+
     if not is_pywhispercpp_available():
         return False
     if get_ggml_model_info(model_name) is None:

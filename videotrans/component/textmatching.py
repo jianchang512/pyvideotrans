@@ -58,7 +58,7 @@ class AlignmentWorker(QThread):
         try:
             self.log_signal.emit(tr("status_loading_model", self.model_name, self.device))
             from videotrans.util.whisper_vulkan import should_use_whisper_vulkan, ensure_ggml_whisper_model, PyWhisperCppModel
-            if should_use_whisper_vulkan(self.model_name, device_name=self.device):
+            if should_use_whisper_vulkan(self.model_name, device_name=self.device,is_cuda=self.device=='cuda'):
                 ensure_ggml_whisper_model(self.model_name, callback=self._progress_callback)
                 model = PyWhisperCppModel(
                     self.model_name,
