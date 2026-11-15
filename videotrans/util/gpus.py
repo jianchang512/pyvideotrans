@@ -6,7 +6,6 @@ import os
 import platform
 import shutil
 import subprocess
-import time
 from pathlib import Path
 from typing import Dict, List, Any, Optional
 
@@ -15,7 +14,6 @@ from videotrans.configure.config import app_cfg, logger, ROOT_DIR, settings
 _VULKAN_DEVICES_CACHE: Optional[List[Dict[str, Any]]] = None
 
 _CUDA_ACTIVATE=False
-_HAD_GET_DEVICE=False
 
 def get_vulkan_devices() -> List[Dict[str, Any]]:
     """Return list of available non-CPU Vulkan compute devices in ggml_vulkan order."""
@@ -124,7 +122,7 @@ def resolve_torch_device(device_name: Optional[str] = None, is_cuda: bool = True
     dev = str(device_name).strip().lower().split()[0]
     if not is_cuda or dev == "cpu":
         return "cpu"
-    if dev == "auto" or dev.startswith("vulkan"):
+    if dev.startswith("vulkan"):
         try:
             import torch
             if torch.cuda.is_available():
@@ -179,7 +177,6 @@ def get_device_choices() -> List[tuple[str, str]]:
             choices.append((f"vulkan:{idx} ({desc}{mem_str})", f"vulkan:{idx}"))
     else:
         choices.append(("auto", "auto"))
-        choices.append(("vulkan", "vulkan"))
     if _CUDA_ACTIVATE>0:#真实存在可用cuda
         choices.extend([
             ("cuda", "cuda"),

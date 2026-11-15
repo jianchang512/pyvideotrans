@@ -1270,5 +1270,6 @@
   "祖魯文": "zu",
   "葡萄牙文 (巴西)": "pt-br",
   "西班牙文 (拉丁美洲)": "es-419",
-  "維吾爾文": "ug"
+  "維吾爾文": "ug",
+  "The native Vulkan may be disabled or unavailable. Please disable hardware acceleration and try again": "本機vulkan可能被停用或無法使用，請取消硬體加速後重試"
 }

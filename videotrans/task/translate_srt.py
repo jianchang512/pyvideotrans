@@ -72,6 +72,7 @@ class TranslateSrt(BaseTask):
             uuid=self.uuid,
             source_code=self.cfg.source_language_code,
             target_code=self.cfg.target_language_code,
+            is_cuda=self.cfg.is_cuda,
         )
         if not raw_subtitles or len(raw_subtitles) < 1:
             from videotrans.configure.excepts import TranslateSrtError

@@ -682,6 +682,9 @@ def exec_audiocpp(cmd):
             raise RuntimeError('audio.cpp '+tr('Insufficient permissions'))
         if "mem_buffer" in f"{stdout}{stderr}":
             raise RuntimeError(tr('OOMerror'))
+
+        if sys.platform=='win32' and "vulkan" in cmd and not stderr:
+            raise RuntimeError(tr("The native Vulkan may be disabled or unavailable. Please disable hardware acceleration and try again"))
         raise RuntimeError(
             f'proc.returncode={rc},{stderr=}\n{stdout=}\n{cmd=}'
         )

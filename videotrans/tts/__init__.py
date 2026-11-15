@@ -116,7 +116,8 @@ def run(*, queue_tts=None, language="", uuid=None, play=False, tts_type=0, is_cu
     """
     # 需要并行的数量3
     if len(queue_tts) < 1 or app_cfg.exit_soft or (uuid and uuid in app_cfg.stoped_uuid_set): return
-
+    # No longer automatically routing to audio.cpp, we need to consider Windows compatibility and MacOS
+    """
     from videotrans.util.gpus import should_use_vulkan
     _VULKAN_AUDIOCPP_TTS_MAP = {
         OMNIVOICE_TTS: "omnivoice",
@@ -131,7 +132,7 @@ def run(*, queue_tts=None, language="", uuid=None, play=False, tts_type=0, is_cu
         model_name = _VULKAN_AUDIOCPP_TTS_MAP[tts_type]
         logger.debug(f'[TTS/Vulkan] Routing TTS channel {tts_type} -> Audio.cpp ({model_name}) on Vulkan')
         tts_type = AUDIOCPP_TTS
-
+    """
     kwargs = {
         "queue_tts": queue_tts,
         "language": language.lower() if language else "",

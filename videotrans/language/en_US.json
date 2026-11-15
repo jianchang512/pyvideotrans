@@ -1202,6 +1202,7 @@
   "Continue dubbing with this TTS channel anyway?": "Continue dubbing with this TTS channel anyway?",
   "Selected": "Selected",
   "Not-Selected": "Not-Selected",
-  "Text alignment failed": "Text alignment failed. Please try setting the pronunciation language to [Auto Detect] and try again"
+  "Text alignment failed": "Text alignment failed. Please try setting the pronunciation language to [Auto Detect] and try again",
+  "The native Vulkan may be disabled or unavailable. Please disable hardware acceleration and try again": "The native Vulkan may be disabled or unavailable. Please disable hardware acceleration and try again"
 
 }

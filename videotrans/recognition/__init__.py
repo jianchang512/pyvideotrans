@@ -130,7 +130,8 @@ def run(*,
 
     """
     if app_cfg.exit_soft or (uuid and uuid in app_cfg.stoped_uuid_set): return
-
+    # No longer automatically routing to audio.cpp, we need to consider Windows compatibility and MacOS
+    """
     from videotrans.util.gpus import should_use_vulkan
     if should_use_vulkan(is_cuda=bool(is_cuda)):
         if recogn_type == OPENAI_WHISPER:
@@ -157,7 +158,7 @@ def run(*,
             logger.debug('[ASR/Vulkan] Routing VIBEVOICE_ASR -> AUDIOCPP_API (vibevoice_asr) on Vulkan')
             recogn_type = AUDIOCPP_API
             model_name = "vibevoice_asr"
-
+    """
     kwargs = {
         "detect_language": detect_language.lower() if detect_language else "",
         "audio_file": audio_file,
