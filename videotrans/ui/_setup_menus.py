@@ -2,7 +2,6 @@ from PySide6 import QtCore, QtGui, QtWidgets
 from videotrans.ui.menu_list import MENU_CFG_TRANS, MENU_CFG_TTS, MENU_CFG_STT, MENU_CFG_TOOLS, MENU_CFG_HELP, \
     MENU_CFG_PANEL
 from videotrans.util.help_misc import open_url, show_popup
-from videotrans.winform import get_win
 
 
 def _make_action(ui, obj=None,menu=None,add_hr=True):
@@ -13,6 +12,7 @@ def _make_action(ui, obj=None,menu=None,add_hr=True):
     setattr(ui, k, action)
     if _inst is not False:
         if _inst is None:
+            from videotrans.winform import get_win
             action.triggered.connect(lambda :get_win(k))
         elif isinstance(_inst,str) and _inst.startswith('http'):
             action.triggered.connect(lambda :open_url(_inst))
@@ -91,26 +91,8 @@ def _setup_actions_and_menus(ui, MainWindow):
     for obj in MENU_CFG_PANEL:
         _make_action(ui, obj,ui.toolBar,False)
 
-
-
-
-
-
-
-
-
-
-
     ui.menuBar.addAction(ui.menu_Key.menuAction())
     ui.menuBar.addAction(ui.menu_TTS.menuAction())
     ui.menuBar.addAction(ui.menu_RECOGN.menuAction())
     ui.menuBar.addAction(ui.menu.menuAction())
     ui.menuBar.addAction(ui.menu_H.menuAction())
-
-    # ui.toolBar.addAction(ui.action_biaozhun)
-    # ui.toolBar.addAction(ui.action_tiquzimu)
-    # ui.toolBar.addAction(ui.fn_recogn)
-    # ui.toolBar.addAction(ui.fn_peiyin)
-    # ui.toolBar.addAction(ui.fn_fanyisrt)
-    # ui.toolBar.addAction(ui.fn_peiyinrole)
-    # ui.toolBar.addAction(ui.fn_vas)

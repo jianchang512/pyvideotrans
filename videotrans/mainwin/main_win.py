@@ -14,9 +14,7 @@ from videotrans import VERSION
 from videotrans.ui.en import Ui_MainWindow
 from videotrans.mainwin._bind_signals import BindSignalsMixin
 from videotrans.mainwin._lifecycle import LifecycleMixin
-
 class MainWindow(BindSignalsMixin, LifecycleMixin, QMainWindow, Ui_MainWindow):
-
 
     def __init__(self, parent=None, width=1400, height=700,callback=None,screen_size=None):
         super().__init__(parent)

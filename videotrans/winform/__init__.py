@@ -13,7 +13,7 @@ import platform
 
 from videotrans.configure import  config
 from videotrans.configure.config import app_cfg
-from videotrans.util.gpus import get_device_choices
+
 
 _loaded_modules = {}  # 用于缓存已经加载过的模块
 
@@ -69,6 +69,7 @@ def set_device_list(winobj,cache_key):
     _saved_dev = str(config.settings.get('device_name', 'auto') or 'auto')
     _sel_idx = 0
     if not app_cfg.dev_choices:
+        from videotrans.util.gpus import get_device_choices
         app_cfg.dev_choices = get_device_choices()
     for _i, (_label, _val) in enumerate(app_cfg.dev_choices):
         winobj.device_combo.addItem(_label, _val)

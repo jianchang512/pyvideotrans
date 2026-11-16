@@ -4,7 +4,7 @@ import traceback
 
 from PySide6.QtCore import QThread, Signal
 from videotrans.configure.config import logger, app_cfg
-from videotrans.util.gpus import get_device_choices
+
 
 
 class AiLoaderThread(QThread):
@@ -13,6 +13,7 @@ class AiLoaderThread(QThread):
     def run(self):
         try:
             _st = time.time()
+            from videotrans.util.gpus import get_device_choices
             from . import gpus
             _count = gpus.getset_gpu()
             app_cfg.dev_choices = get_device_choices()

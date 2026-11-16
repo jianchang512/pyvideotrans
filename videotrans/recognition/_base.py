@@ -1,12 +1,12 @@
 import re, time, os
-from dataclasses import dataclass, field, fields
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Optional, Union
 
 from videotrans.configure.config import tr, settings, logger
 from videotrans.configure import config
 from videotrans.configure.base import BaseCon
-from videotrans.configure.excepts import SpeechToTextError
+
 from videotrans.task.taskcfg import SrtItem
 from videotrans.configure import constants
 from videotrans.util.help_srt import ms_to_time_string
@@ -246,5 +246,6 @@ class BaseRecogn(BaseCon):
             msg=f'[{_vad_type}]:{kw=}\n{e}'
             logger.exception(msg, exc_info=True)
             if not self.recogn2pass:
+                from videotrans.configure.excepts import SpeechToTextError
                 raise SpeechToTextError(msg) from e
         self.signal(text=f'[VAD] ended {int(time.time() - _st)}s')

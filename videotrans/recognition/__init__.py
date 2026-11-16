@@ -1,9 +1,7 @@
-from pathlib import Path
 from typing import Union, List, Type
-
 from videotrans import winform, get_class
 from videotrans.configure import constants
-from videotrans.configure.config import tr, params, app_cfg, logger, ROOT_DIR
+from videotrans.configure.config import tr, params, app_cfg, logger
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
 from ._constants import *
