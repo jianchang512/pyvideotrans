@@ -168,6 +168,11 @@ class TestTranslatorIndexConstants:
         assert REQUESTY_INDEX == 36
         assert REQUESTY_INDEX in AI_TRANS_CHANNELS
 
+    def test_trustedrouter_index(self):
+        from videotrans.translator import TRUSTEDROUTER_INDEX, AI_TRANS_CHANNELS
+        assert TRUSTEDROUTER_INDEX == 37
+        assert TRUSTEDROUTER_INDEX in AI_TRANS_CHANNELS
+
     def test_infistar_index(self):
         from videotrans.translator import INFISTAR_INDEX, AI_TRANS_CHANNELS
         assert INFISTAR_INDEX == 28

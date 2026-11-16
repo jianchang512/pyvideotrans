@@ -1017,6 +1017,7 @@
   "GPU cloud with an OpenAI-compatible API, open models are free with your GitHub account": "GPU 雲，提供相容 OpenAI 的 API，用 GitHub 帳號即可免費使用開源模型",
   "a GPU cloud with an OpenAI-compatible model API (DeepSeek, Kimi, GLM, MiniMax)": "GPU 雲，提供相容 OpenAI 的模型 API（DeepSeek、Kimi、GLM、MiniMax）",
   "OpenAI-compatible API, the StandardCompute model routes each request to the cheapest enabled model that can handle it, with automatic fallback": "相容 OpenAI 的 API，選用 StandardCompute 模型時，每個請求會自動路由到能勝任且成本最低的已啟用模型，並支援自動回退",
+  "OpenAI-compatible gateway, one key for DeepSeek, Qwen, GPT, Claude and Gemini models": "相容 OpenAI 的閘道，一個金鑰即可呼叫 DeepSeek、Qwen、GPT、Claude 和 Gemini 模型",
   "Get API Key": "獲取 API Key",
   "common_head": "通用設定",
   "video_head": "影片輸出控制",
