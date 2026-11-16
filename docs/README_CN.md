@@ -4,9 +4,10 @@
 > | :--- | :--- |
 > | [Recall.ai Meeting Transcription API](https://www.recall.ai/product/meeting-transcription-api?utm_source=github&utm_medium=sponsorship&utm_campaign=jianchang512-pyvideotrans)   | If you’re looking for a transcription API for meetings, consider checking out **[Recall.ai](https://www.recall.ai/product/meeting-transcription-api?utm_source=github&utm_medium=sponsorship&utm_campaign=jianchang512-pyvideotrans)** , an API that works with Zoom, Google Meet, Microsoft Teams, and more |
 > | [OfoxAI：文本、语音、图像、视频，多模型 API 资源](https://ofox.ai/zh?utm_source=github&utm_medium=sponsorship&utm_content=pyvideotrans) | 一个 API Key 接入 GPT、Claude、Gemini、DeepSeek 等文本模型及 ElevenLabs 语音模型，同时提供图像与视频生成模型，按创作需求灵活选择。|
-> |<a  href="https://apixo.ai/?utm_source=github&amp;utm_medium=sponsorship&amp;utm_campaign=pyvideotrans&amp;utm_content=logo"><img width="200"  alt="apixo-card-mcp-en" src="https://github.com/user-attachments/assets/90a2497e-df17-48d2-a351-84355d861188" /></a> | <a href="https://apixo.ai/?utm_source=github&amp;utm_medium=sponsorship&amp;utm_campaign=pyvideotrans&amp;utm_content=brand_mention">APIXO AI</a>: 一站式 AI 视频制作与多模态创作平台 <br>支持在线生图与视频创作，并提供 API 和 MCP 接入。 为视频译制创作者补充封面、配图与视频素材。<br><a href="https://apixo.ai/mcp?utm_source=github&amp;utm_medium=sponsorship&amp;utm_campaign=pyvideotrans&amp;utm_content=mcp_page">查看 MCP 接入 →</a>|
+> |<a  href="https://apixo.ai/?utm_source=github&amp;utm_medium=sponsorship&amp;utm_campaign=pyvideotrans&amp;utm_content=logo"><img width="200"  alt="apixo-card-mcp-zh" src="https://github.com/user-attachments/assets/4ff099ec-6b49-472e-8f1d-2b486f684775" /></a> | **[APIXO AI](https://apixo.ai/zh?utm_source=github&utm_medium=sponsorship&utm_campaign=pyvideotrans&utm_content=brand_mention)：一站式 AI 视频制作与多模态创作平台** <br>用 Seedream 5.5 制作视频封面与配图，让译制内容更有吸引力。 **[Seedream 5.5 生图 API](https://apixo.ai/zh/models/seedream-5-5?utm_source=github&utm_medium=sponsorship&utm_campaign=pyvideotrans&utm_content=seedream_5_5) 限时七折，输出图像 $0.014/张起**（按输出规格计费，输入图像另计）。<br>支持在线创作、API 与 **[MCP 接入 →](https://apixo.ai/zh/mcp?utm_source=github&utm_medium=sponsorship&utm_campaign=pyvideotrans&utm_content=mcp_page)**，按你的工作流灵活使用。|
 
 ---
+
 
 <div align="center">
 
