@@ -66,7 +66,7 @@ _PROT = r"___PROT\d+___"
 _URL_RE = re.compile(r"https?://[^\s\u3000，。！？；、）】》〉」』]+")
 _EMAIL_RE = re.compile(r"(?<![\w.+-])[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}(?![\w.-])")
 _MENTION_RE = re.compile(r"(?<![A-Za-z0-9_])@[A-Za-z0-9_]{1,32}")
-_REDDIT_RE = re.compile(r"(?<![A-Za-z0-9_])(?:u|r)/[A-Za-z0-9_]+")
+_REDDIT_RE = re.compile(r"(?<![A-Za-z0-9_])[ur]/[A-Za-z0-9_]+")
 _HASHTAG_RE = re.compile(r"(?<![A-Za-z0-9_])#(?!\s)[^\s#]+")
 
 # `.map` / `.env` / `.gitignore`
@@ -131,7 +131,7 @@ def _base_cleanup(text: str) -> str:
 
 def _normalize_markdown_and_lines(text: str) -> str:
     # Markdown 链接：[text](url) -> text url
-    text = re.sub(r"\[([^\[\]]+?)\]\((https?://[^)\s]+)\)", r"\1 \2", text)
+    text = re.sub(r"\[([^\[\]]+?)]\((https?://[^)\s]+)\)", r"\1 \2", text)
 
     lines = []
     for raw in text.splitlines():
@@ -231,8 +231,8 @@ def _normalize_spaces(text: str) -> str:
 
 def _normalize_structural_punctuation(text: str) -> str:
     # 各类结构性括号：统一转成双引号包裹内容
-    text = re.sub(r"\[\s*([^\[\]]+?)\s*\]", r'"\1"', text)
-    text = re.sub(r"\{\s*([^{}]+?)\s*\}", r'"\1"', text)
+    text = re.sub(r"\[\s*([^\[\]]+?)\s*]", r'"\1"', text)
+    text = re.sub(r"{\s*([^{}]+?)\s*}", r'"\1"', text)
     text = re.sub(r"[【〖『「]\s*([^】〗』」]+?)\s*[】〗』」]", r'"\1"', text)
 
     # 《》只处理独立标题，不处理嵌入式标题
@@ -247,14 +247,14 @@ def _normalize_structural_punctuation(text: str) -> str:
     text = _normalize_flow_arrows(text)
 
     # 长破折号 / 多连字符：转句边界
-    text = re.sub(r"\s*(?:—|–|―|-){2,}\s*", "。", text)
+    text = re.sub(r"\s*[—–―\-]{2,}\s*", "。", text)
 
     return text
 
 
 def _normalize_repeated_punctuation(text: str) -> str:
     # 省略号 / 连续句点
-    text = re.sub(r"(?:\.{3,}|…{2,}|……+)", "。", text)
+    text = re.sub(r"\.{3,}|…{2,}|……+", "。", text)
 
     # 同类重复标点
     text = re.sub(r"[。．]{2,}", "。", text)

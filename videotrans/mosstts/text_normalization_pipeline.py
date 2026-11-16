@@ -153,7 +153,7 @@ def _rewrite_hyphens_before_zh_wetext(text: str) -> str:
 
     # Preserve negatives after common delimiters like `x=-2` or `(-2)`.
     rewritten = re.sub(
-        r"([=:+*/,(，:：；;（【\[{])\s*-\s*(?=\d)",
+        r"([=:+*/,(，：；;（【\[{])\s*-\s*(?=\d)",
         rf"\1{_ZH_WETEXT_KEEP_HYPHEN}",
         rewritten,
     )

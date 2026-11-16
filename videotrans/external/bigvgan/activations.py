@@ -7,7 +7,7 @@ from torch.nn import Parameter
 
 
 class Snake(nn.Module):
-    '''
+    """
     Implementation of a sine-based periodic activation function
     Shape:
         - Input: (B, C, T)
@@ -21,7 +21,7 @@ class Snake(nn.Module):
         >>> a1 = snake(256)
         >>> x = torch.randn(256)
         >>> x = a1(x)
-    '''
+    """
     def __init__(self, in_features, alpha=1.0, alpha_trainable=True, alpha_logscale=False):
         '''
         Initialization.

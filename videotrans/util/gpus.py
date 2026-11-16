@@ -170,8 +170,7 @@ def get_vulkan_device_index(device_name: Optional[str] = None) -> int:
 
 def get_device_choices() -> List[tuple[str, str]]:
     """Return (display_label, value) pairs for the UI Compute Device selector."""
-    choices: List[tuple[str, str]] = []
-    choices.append((f"auto", "auto"))
+    choices: List[tuple[str, str]] = [(f"auto", "auto")]
     if platform.system() == 'Darwin':
         # Macos M Metal or mps
         choices.extend([

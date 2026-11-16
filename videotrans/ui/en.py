@@ -1,10 +1,10 @@
 import platform
 
-from PySide6 import QtCore, QtGui, QtWidgets
-from PySide6.QtCore import Qt, Signal, QTimer
-from PySide6.QtWidgets import QSizePolicy, QApplication, QPlainTextEdit
+from PySide6 import QtCore, QtWidgets
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QSizePolicy, QPlainTextEdit
 
-from videotrans.configure.config import tr, settings
+from videotrans.configure.config import tr
 from videotrans.ui._setup_menus import _setup_actions_and_menus
 from videotrans.ui._setup_rows import (
     _create_file_row,

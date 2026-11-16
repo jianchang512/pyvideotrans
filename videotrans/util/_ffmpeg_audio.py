@@ -166,6 +166,7 @@ def remove_silence_wav(
     移除 WAV 音频文件中的静音。
 
     Args:
+        pcm_s16le_48k_ac2:
         audio_file: 待处理的音频文件路径
         rm_start:   是否移除开头的静音部分（当 rm_all=False 时生效）
         rm_all:     是否移除开头、末尾、中间等所有静音。若为 True 则忽略 rm_start

@@ -232,11 +232,11 @@ class EnglishNormalizer:
     # 此方法用于规范化文本中的数字，如将数字转换为单词，移除逗号等操作。
     def normalize_numbers(self, text: str) -> str:
         # 使用正则表达式替换匹配的数字和逗号，调用 self._remove_commas 方法
-        text = re.sub(re.compile(r"([0-9][0-9\,]+[0-9])"), self._remove_commas, text)
+        text = re.sub(re.compile(r"([0-9][0-9,]+[0-9])"), self._remove_commas, text)
         # 替换匹配的英镑金额为其单词表示形式
-        text = re.sub(re.compile(r"£([0-9\,]*[0-9]+)"), r"\1 pounds", text)
+        text = re.sub(re.compile(r"£([0-9,]*[0-9]+)"), r"\1 pounds", text)
         # 替换匹配的美元金额为其完整的金额表达形式，调用 self._expand_dollars 方法
-        text = re.sub(re.compile(r"\$([0-9\.\,]*[0-9]+)"), self._expand_dollars, text)
+        text = re.sub(re.compile(r"\$([0-9.,]*[0-9]+)"), self._expand_dollars, text)
         # 替换匹配的小数形式为其完整的数值表达形式，调用 self._expand_decimal_point 方法
         text = re.sub(re.compile(r"([0-9]+\.[0-9]+)"), self._expand_decimal_point, text)
         # 替换匹配的序数词（如1st、2nd）为其完整的序数词形式，调用 self._expand_ordinal 方法

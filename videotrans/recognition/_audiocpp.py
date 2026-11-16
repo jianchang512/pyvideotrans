@@ -80,7 +80,7 @@ class AudiocppRecogn(BaseRecogn):
             exec_audiocpp(cmd)
             text=Path(txt_file).read_text(encoding="utf-8").strip() if Path(txt_file).exists() else None
             if self.model_name=='moss_transcribe_diarize':
-                text=re.sub(r'\[[a-zA-Z0-9_.-]+?\]','',text,flags=re.I)
+                text=re.sub(r'\[[a-zA-Z0-9_.-]+?]','',text,flags=re.I)
             if not text:
                 err=f'error:{i} {cmd=}'
                 continue

@@ -53,7 +53,7 @@ class XXLRecogn(BaseRecogn):
         return ":".join(_hms)+f",{ms}"
         
     def _getsrt_from_stdout(self,content,srt_filename):
-        s=re.findall(r'^\[([\d:\.]+?) --> ([\d:\.]+?)\][ \t]*(.+?)[ \t]*\r?$',content,flags=re.M)
+        s=re.findall(r'^\[([\d:.]+?) --> ([\d:.]+?)][ \t]*(.+?)[ \t]*\r?$',content,flags=re.M)
 
         if not s or len(s)<1:
             return

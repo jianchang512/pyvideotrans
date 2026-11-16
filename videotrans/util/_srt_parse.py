@@ -84,8 +84,8 @@ def format_time(s_time="", separate=',') -> str:
         min, sec = tmp[0].strip(), tmp[1].strip()
     elif len(tmp) == 1:
         sec = tmp[0].strip()
-    if re.search(r',|\.', str(sec)):
-        t = re.split(r',|\.', str(sec))
+    if re.search(r'[,.]', str(sec)):
+        t = re.split(r'[,.]', str(sec))
         sec = t[0].strip()
         ms = t[1].strip()
     else:
@@ -327,7 +327,7 @@ def ass_to_srt(src_ass_file, dst_srt_file, get_speaker=False):
                     text = row.get("text", "")
 
                     # 去除 ASS 特效代码 (如 {\an8}, {\pos(100,200)} 等)
-                    text = re.sub(r"\{.*?\}", "", text)
+                    text = re.sub(r"{.*?}", "", text)
                     # 处理 ASS 换行符与硬空格
                     text = (
                         text.replace(r"\N", "\n")

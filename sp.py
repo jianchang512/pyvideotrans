@@ -100,7 +100,7 @@ class StartWindow(QWidget):
         super().closeEvent(event)
 
     def update_lable(self, t):
-        print(f'{t}')
+        print(f'{t} {int(time.time()-self.start_time)}s')
         if t == 'end':
             self.status_label.setText(f'Total time {int(time.time() - self.start_time)}s')
             QTimer.singleShot(1000, lambda: self.close())
@@ -145,12 +145,12 @@ def initialize_full_app(start_window, app_instance):
     start_window.update_lable('Loading main window...')
 
     from videotrans.mainwin.main_win import MainWindow
+    start_window.update_lable('Initializing UI...')
     try:
         screen = start_window.screen
         w, h = int(screen.width()), int(screen.height())
         sets = QSettings("pyvideotrans", "settings")
         size = sets.value("windowSize", QSize(min(int(w*0.9),1400), min(int(h*0.85),800)))
-        start_window.update_lable('Initializing UI...')
         start_window.main_window = MainWindow(width=size.width(), height=size.height(),callback=start_window.update_lable,screen_size=[w,h])
         center_point = screen.center()
         start_window.main_window.move(center_point.x() - size.width() // 2, center_point.y() - size.height() // 2)

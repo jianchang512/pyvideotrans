@@ -99,7 +99,7 @@ class PrepareMixin:
                         if no_speak_line>=edge_line:
                             spk_list=[]
                             break
-                        groups=re.search(r'^\[(.*?)\]',it['text'].strip(),flags=re.I)
+                        groups=re.search(r'^\[(.*?)]',it['text'].strip(),flags=re.I)
                         if not groups:
                             if i==0: break
                             no_speak_line+=1

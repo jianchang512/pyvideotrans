@@ -97,7 +97,7 @@ class UnicodeProcessor:
         text = re.sub(r"\s+", " ", text).strip()
 
         # If text doesn't end with punctuation, quotes, or closing brackets, add a period
-        if not re.search(r"[.!?;:,'\"')\]}…。」』】〉》›»]$", text):
+        if not re.search(r"[.!?;:,'\")\]}…。」』】〉》›»]$", text):
             text += "."
 
         if lang not in AVAILABLE_LANGS:

@@ -103,6 +103,7 @@ def run(*, queue_tts=None, language="", uuid=None, play=False, tts_type=0, is_cu
     """
 
     Args:
+        model_name:
         queue_tts: 需配音的字幕数据队列
         language:
         uuid:

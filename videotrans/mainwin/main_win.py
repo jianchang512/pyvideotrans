@@ -1,12 +1,7 @@
-import platform
 from pathlib import Path
 import asyncio
 import sys
 import os
-
-from videotrans.translator import LANGNAME_DICT
-from videotrans.util.help_role import get_audiocpp_rolelist
-
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 from PySide6.QtCore import QEvent, QTimer
@@ -15,14 +10,10 @@ from PySide6.QtWidgets import QMainWindow
 from videotrans.configure import config
 config.init_run()
 from videotrans.configure.config import tr, params, settings, app_cfg, logger, ROOT_DIR,REDUBB_STATUS_FILE, IPC_STATUS_FILE
-from videotrans import VERSION, tts
-from videotrans.util.checkgpu import AiLoaderThread
+from videotrans import VERSION
 from videotrans.ui.en import Ui_MainWindow
-from videotrans.task.simple_runnable_qt import run_in_threadpool
-
 from videotrans.mainwin._bind_signals import BindSignalsMixin
 from videotrans.mainwin._lifecycle import LifecycleMixin
-from videotrans.task.job import start_thread
 
 class MainWindow(BindSignalsMixin, LifecycleMixin, QMainWindow, Ui_MainWindow):
 
@@ -30,6 +21,7 @@ class MainWindow(BindSignalsMixin, LifecycleMixin, QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None, width=1400, height=700,callback=None,screen_size=None):
         super().__init__(parent)
         self.callback=callback
+        self.callback("SetupUI...")
         self.resize(width, height)
         self.screen_size=screen_size
         self.setupUi(self)
@@ -52,7 +44,7 @@ class MainWindow(BindSignalsMixin, LifecycleMixin, QMainWindow, Ui_MainWindow):
             "biaozhun": self.action_biaozhun,
             "tiqu": self.action_tiquzimu
         }
-
+        from videotrans.util.checkgpu import AiLoaderThread
         s = AiLoaderThread(self)
         s.gpu_io.connect(self._start_workers)
         self.startbtn.setDisabled(True)
@@ -68,7 +60,7 @@ class MainWindow(BindSignalsMixin, LifecycleMixin, QMainWindow, Ui_MainWindow):
         self.callback('import translate ...')
         from videotrans.translator import TRANSLASTE_NAME_LIST,get_code
         self.callback('Get cache  ...')
-
+        from videotrans.translator import LANGNAME_DICT
         self.languagename=list(LANGNAME_DICT.values())
         self.translate_type.addItems(TRANSLASTE_NAME_LIST)
         self.source_language.addItems(self.languagename)
@@ -176,6 +168,7 @@ class MainWindow(BindSignalsMixin, LifecycleMixin, QMainWindow, Ui_MainWindow):
         self.callback('show main window ...')
         self.show()
         QTimer.singleShot(10,self._bind_signal)
+        from videotrans.task.simple_runnable_qt import run_in_threadpool
         run_in_threadpool(self._daemon)
 
 
@@ -192,6 +185,7 @@ class MainWindow(BindSignalsMixin, LifecycleMixin, QMainWindow, Ui_MainWindow):
         if status == 'end':
             from videotrans.winform import set_device_list
             set_device_list(self,'is_cuda')
+            from videotrans.task.job import start_thread
             self.worker_threads = start_thread()
             self.startbtn.setDisabled(False)
             self.startbtn.setText(tr("Start"))

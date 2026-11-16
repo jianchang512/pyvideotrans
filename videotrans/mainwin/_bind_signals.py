@@ -1,10 +1,10 @@
-from videotrans.winform import get_win
 
 
 class BindSignalsMixin:
 
     def _bind_signal(self):
         self.callback('Bind signal...')
+        from videotrans.winform import get_win
         from PySide6.QtCore import QTimer
         from PySide6.QtCore import Qt
         from videotrans.mainwin._actions import WinAction

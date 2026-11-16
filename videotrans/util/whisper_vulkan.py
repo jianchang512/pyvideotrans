@@ -112,7 +112,7 @@ def get_ggml_model_info(model_name: str) -> Optional[Tuple[str, str, Optional[st
 
     if name in _DISTIL_GGML_URLS:
         ggml_file, hf_rel_url = _DISTIL_GGML_URLS[name]
-        return (ggml_file, hf_rel_url, None)
+        return ggml_file, hf_rel_url, None
 
     return None
 
