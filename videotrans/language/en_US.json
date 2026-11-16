@@ -1024,6 +1024,7 @@
   "OpenAI-compatible API, the StandardCompute model routes each request to the cheapest enabled model that can handle it, with automatic fallback": "OpenAI-compatible API, the StandardCompute model routes each request to the cheapest enabled model that can handle it, with automatic fallback",
   "OpenAI-compatible API, one key for DeepSeek, Qwen, GPT, Claude and Gemini models, prepaid with no monthly fee": "OpenAI-compatible API, one key for DeepSeek, Qwen, GPT, Claude and Gemini models, prepaid with no monthly fee",
   "OpenAI-compatible API, one key for OpenAI, Anthropic, Google and DeepSeek models, routed to the original providers": "OpenAI-compatible API, one key for OpenAI, Anthropic, Google and DeepSeek models, routed to the original providers",
+  "OpenAI-compatible gateway, one key for DeepSeek, Qwen, GPT, Claude and Gemini models": "OpenAI-compatible gateway, one key for DeepSeek, Qwen, GPT, Claude and Gemini models",
   "Get API Key": "Get API Key",
 
 

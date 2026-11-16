@@ -52,6 +52,7 @@ WORLDROUTER_INDEX = 33
 STANDARDCOMPUTE_INDEX = 34
 UBERLLM_INDEX = 35
 REQUESTY_INDEX = 36
+TRUSTEDROUTER_INDEX = 37
 
 # AI 翻译渠道
 AI_TRANS_CHANNELS = [
@@ -80,7 +81,8 @@ AI_TRANS_CHANNELS = [
     WORLDROUTER_INDEX,
     STANDARDCOMPUTE_INDEX,
     UBERLLM_INDEX,
-    REQUESTY_INDEX
+    REQUESTY_INDEX,
+    TRUSTEDROUTER_INDEX
 ]
 # 渠道id对应的设置窗口和sk键名,
 # key_name: 存储 SK 或 api url的键，通过 app_cfg.params 调用，如果不存在该值，在使用时报错未填写
@@ -233,6 +235,10 @@ ID_NAME_DICT = {
                                     key_name="requesty_key",
                                     win="requesty",
                                     imp="._requesty"),
+    TRUSTEDROUTER_INDEX: ChannelProvider("TrustedRouter",
+                                         key_name="trustedrouter_key",
+                                         win="trustedrouter",
+                                         imp="._trustedrouter"),
 }
 
 # 菜单--工具/选项--高级选项-通用设置--LLM纠错所用渠道的显示数据

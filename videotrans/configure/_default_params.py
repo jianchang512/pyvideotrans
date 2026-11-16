@@ -354,6 +354,15 @@ _default["requesty"] = {
     "requesty_max_token": 16384,
 }
 
+from videotrans.configure.constants import TRUSTEDROUTER_MODELS
+
+_default["trustedrouter"] = {
+    # trustedrouter.com
+    "trustedrouter_key": "",
+    "trustedrouter_model": TRUSTEDROUTER_MODELS.split(',')[0],
+    "trustedrouter_max_token": 16384,
+}
+
 
 # todo: 根据 name 返回配置dict???
 # 返回默认值
