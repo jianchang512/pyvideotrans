@@ -4,9 +4,10 @@
 > | :--- | :--- |
 > | [Recall.ai Meeting Transcription API](https://www.recall.ai/product/meeting-transcription-api?utm_source=github&utm_medium=sponsorship&utm_campaign=jianchang512-pyvideotrans)   | If you’re looking for a transcription API for meetings, consider checking out **[Recall.ai](https://www.recall.ai/product/meeting-transcription-api?utm_source=github&utm_medium=sponsorship&utm_campaign=jianchang512-pyvideotrans)** , an API that works with Zoom, Google Meet, Microsoft Teams, and more |
 > | [OfoxAI: Text, speech, image and video model APIs](https://ofox.ai/zh?utm_source=github&utm_medium=sponsorship&utm_content=pyvideotrans) | Access GPT, Claude, Gemini and DeepSeek text models, ElevenLabs speech models, and image and video generation models with one API key—choose the models that fit your creative needs. |
-
-
+> |<a  href="https://apixo.ai/?utm_source=github&amp;utm_medium=sponsorship&amp;utm_campaign=pyvideotrans&amp;utm_content=logo"><img width="200"  alt="apixo-card-mcp-en" src="https://github.com/user-attachments/assets/90a2497e-df17-48d2-a351-84355d861188" /></a> | <a href="https://apixo.ai/?utm_source=github&amp;utm_medium=sponsorship&amp;utm_campaign=pyvideotrans&amp;utm_content=brand_mention">APIXO AI</a>: All-in-One AI Video Maker &amp; Multimodal Creation Platform <br>Create images and videos online, with API and MCP access for your workflows.  <br>Create cover images, illustrations and video assets to complement your video localization projects.<br><a href="https://apixo.ai/mcp?utm_source=github&amp;utm_medium=sponsorship&amp;utm_campaign=pyvideotrans&amp;utm_content=mcp_page">Explore MCP access →</a>|
+> 
 ---
+
 
 <div align="center">
 
