@@ -3,7 +3,6 @@
 > | Sponsors ||
 > | :--- | :--- |
 > | [Recall.ai Meeting Transcription API](https://www.recall.ai/product/meeting-transcription-api?utm_source=github&utm_medium=sponsorship&utm_campaign=jianchang512-pyvideotrans)   | If you’re looking for a transcription API for meetings, consider checking out **[Recall.ai](https://www.recall.ai/product/meeting-transcription-api?utm_source=github&utm_medium=sponsorship&utm_campaign=jianchang512-pyvideotrans)** , an API that works with Zoom, Google Meet, Microsoft Teams, and more |
-> | [OfoxAI：文本、语音、图像、视频，多模型 API 资源](https://ofox.ai/zh?utm_source=github&utm_medium=sponsorship&utm_content=pyvideotrans) | 一个 API Key 接入 GPT、Claude、Gemini、DeepSeek 等文本模型及 ElevenLabs 语音模型，同时提供图像与视频生成模型，按创作需求灵活选择。|
 > |<a  href="https://apixo.ai/?utm_source=github&amp;utm_medium=sponsorship&amp;utm_campaign=pyvideotrans&amp;utm_content=logo"><img width="200"  alt="apixo-card-mcp-en" src="https://github.com/user-attachments/assets/90a2497e-df17-48d2-a351-84355d861188" /></a> | <a href="https://apixo.ai/?utm_source=github&amp;utm_medium=sponsorship&amp;utm_campaign=pyvideotrans&amp;utm_content=brand_mention">APIXO AI</a>: 一站式 AI 视频制作与多模态创作平台 <br>支持在线生图与视频创作，并提供 API 和 MCP 接入。 为视频译制创作者补充封面、配图与视频素材。<br><a href="https://apixo.ai/mcp?utm_source=github&amp;utm_medium=sponsorship&amp;utm_campaign=pyvideotrans&amp;utm_content=mcp_page">查看 MCP 接入 →</a>|
 
 ---
@@ -189,7 +188,7 @@ uv add nvidia-cublas-cu12 nvidia-cudnn-cu12
 
 * **官方文档**: [https://pyvideotrans.com](https://pyvideotrans.com) (包含详细教程、API配置指南、常见问题)
 * **在线问答社区**: [https://bbs.pyvideotrans.com](https://bbs.pyvideotrans.com) (提交报错日志，AI 自动分析回答)
-* **GitHub Wiki**: [架构说明](architecture.md) | [新增渠道](dev_extend.md) | [CLI 文档](cli.md) | [WebUI 说明](webui.md) | [音画对齐原理](Synchronize.md) | [常见问题](faq.md)
+* **GitHub Wiki**: [架构说明](architecture.md) | [WebUI 说明](webui.md) | [音画对齐原理](Synchronize.md) | [常见问题](faq.md)
 
 ## ️ 免责声明
 
