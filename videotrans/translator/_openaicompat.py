@@ -38,6 +38,15 @@ class OpenAICampat(BaseTrans):
         model = OpenAI(api_key=self.api_key, base_url=self.api_url)
         return model.chat.completions.create(**kwargs, extra_body=self.extra_body)
 
+    def _create_responses(self, kwargs):
+        """Issue the chat completion. Overridable so channels can swap the
+        transport (e.g. the LiteLLM channel routes through the litellm SDK)
+        while reusing the shared prompt building, parsing and error handling.
+        """
+        client = OpenAI(api_key=self.api_key, base_url=self.api_url[:-10])
+        logger.debug(f'使用响应式端点(responses):{self.api_url[:-10]}')
+        return client.responses.create(**kwargs)
+
     @retry(retry=retry_if_not_exception_type(NO_RETRY_EXCEPT), stop=(stop_after_attempt(settings.get('retry_nums'))), wait=wait_fixed(2), before=before_log(logger, logging.INFO),after=after_log(logger, logging.INFO))
     def _item_task(self, data: str) -> str:
         """
@@ -54,38 +63,41 @@ class OpenAICampat(BaseTrans):
         if len(self.api_url)<10:
             raise StopTask(f'API URL is error: {self.api_url}')
         
-        text = data
-        
-        message = [
-            {
-                'role': 'system',
-                'content': 'You are a top-tier Subtitle Translation Engine.'},
-            {
-                'role': 'user',
-                'content': self.prompt.replace('{batch_input}', f'{text}')
-            },
-        ]
-
-
         kwargs={
             "model":self.model_name,
             "timeout":300,
-            "temperature":float(self.temperature)            
+            "temperature":float(self.temperature)
         }
-        # 针对 openai 官方或 GPT模型，使用 max_completion_tokens 参数，其他第三方使用 max_tokens 参数            
-        if "api.openai.com" in self.api_url or (self.ainame=='chatgpt' and re.match(r'^(gpt|o\d)', self.model_name, flags=re.I)):
-            kwargs["max_completion_tokens"]=int(self.max_tokens)
-        else:
-            kwargs["max_tokens"]=int(self.max_tokens)
-        
-        if self.reasoning_effort:
-            kwargs["reasoning_effort"]=self.reasoning_effort
-            
-        kwargs["messages"]=message
-
         try:
-            response = self._create_completion(kwargs)
-            result = response.choices[0].message.content.strip()
+            message = [
+                {
+                    'role': 'system',
+                    'content': 'You are a top-tier Subtitle Translation Engine.'},
+                {
+                    'role': 'user',
+                    'content': self.prompt.replace('{batch_input}', f'{data}')
+                },
+            ]
+            if self.ainame =='chatgpt' and self.api_url.endswith('/responses'):
+                kwargs["instructions"]=message[0]['content']
+                kwargs["input"]=message[1]['content']
+                kwargs["max_output_tokens"]=int(self.max_tokens)
+                kwargs["reasoning"]={"effort":self.reasoning_effort or "none"}
+                response = self._create_responses(kwargs)
+                result = response.output_text
+            else:
+                # 针对 openai 官方或 GPT模型，使用 max_completion_tokens 参数，其他第三方使用 max_tokens 参数
+                if "api.openai.com" in self.api_url or (self.ainame=='chatgpt' and re.match(r'^(gpt|o\d)', self.model_name, flags=re.I)):
+                    kwargs["max_completion_tokens"]=int(self.max_tokens)
+                else:
+                    kwargs["max_tokens"]=int(self.max_tokens)
+
+                if self.reasoning_effort:
+                    kwargs["reasoning_effort"]=self.reasoning_effort
+
+                kwargs["messages"]=message
+                response = self._create_completion(kwargs)
+                result = response.choices[0].message.content.strip()
             result = re.sub(r'<think>(.*?)</think>', '', result, flags=re.I | re.S)
             match = re.search(r'<TRANSLATE_TEXT>(.*?)</TRANSLATE_TEXT>', result, flags=re.S | re.I)
             if match:
@@ -94,7 +106,8 @@ class OpenAICampat(BaseTrans):
         except APIConnectionError as e:
             raise StopTask(f'[{self.ainame}] {tr("Unable to connect to API",self.api_url)}\n{e.message}') from e
         except (NotFoundError,AuthenticationError,PermissionDeniedError,BadRequestError) as e:
-            del kwargs['messages']
+            if 'messages' in kwargs:
+                del kwargs['messages']
             _msg=(e.body.get('message') if e.body else e.message) or str(e)
             raise StopTask(f'{_msg}\n{self.api_url}\n{kwargs}\n{self.extra_body}') from e
         except APIError as e: 
@@ -102,8 +115,6 @@ class OpenAICampat(BaseTrans):
                 raise StopTask(tr('The server returned an error message: Insufficient balance',get_tanslate_type(self.translate_type),self.api_url))
             raise
             
-
-
 
     def llm_segment(self, srt_list,step='')->List[SrtItem]:
         _st=time.time()
@@ -142,10 +153,22 @@ class OpenAICampat(BaseTrans):
                     'content': f"""```srt\n{srt}\n```"""
                 }
             ]
-            kwargs["messages"]=message
-            response = self._create_completion(kwargs)
-            
-            result = response.choices[0].message.content or ""
+            if self.ainame =='chatgpt' and self.api_url.endswith('/responses'):
+                response = self._create_responses({
+                    "model":self.model_name,
+                    "temperature":self.temperature,
+                    "timeout":600,
+                    "instructions":message[0]['content'],
+                    "input":message[1]['content'],
+                    "max_output_tokens":int(self.max_tokens),
+                    "reasoning":{"effort":self.reasoning_effort or "none"}
+                })
+                result=response.output_text
+            else:
+                kwargs["messages"]=message
+                response = self._create_completion(kwargs)
+                result = response.choices[0].message.content or ""
+
             match = re.search(r'<SRT>(.*?)</SRT>', re.sub(r'<think>(.*?)</think>', '', result, flags=re.I | re.S), flags=re.S | re.I)
             if match:
                 return match.group(1)

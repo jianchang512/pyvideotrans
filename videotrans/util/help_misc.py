@@ -630,9 +630,24 @@ def _audiocpp_cmd_to_cpu(cmd) -> list:
  # When using AMD/Intel on Windows with Vulkan acceleration, download the Vulkan version of audio.cpp separately to the `audio_cpp_vulkan` folder. For CPU and CUDA acceleration, use version 12.4 of CUDA. Actual testing has revealed that if users encounter issues with Vulkan, there's a high probability that switching back to CPU will still fail
 def _run_audiocpp_proc(cmd):
     cwd=f"{ROOT_DIR}/audio_cpp"
+    # win 上 vulkan 版本可能下载失败
     if sys.platform=='win32' and 'vulkan' in cmd:
-        cmd[0]=f"{ROOT_DIR}/audio_cpp_vulkan/audiocpp_cli.exe"
-        cwd=f"{ROOT_DIR}/audio_cpp_vulkan"
+        if Path(f"{ROOT_DIR}/audio_cpp_vulkan/audiocpp_cli.exe").exists():
+            cmd[0]=f"{ROOT_DIR}/audio_cpp_vulkan/audiocpp_cli.exe"
+            cwd=f"{ROOT_DIR}/audio_cpp_vulkan"
+        else:
+            cmd[cmd.index("vulkan")]="cpu"
+            if "--device" in cmd:
+                cmd[cmd.index("--device")]="0"
+            logger.warning('windows上尝试使用 vulkan 加速，但vulkan版本audio.cpp不存在，可能下载失败，强制转用cpu运行')
+
+    # 可能用户自行编译或将 audiocpp_cli 加入了环境变量，可全局使用
+    if not Path(cmd[0]).exists():
+        if shutil.which("audiocpp_cli"):
+            cmd[0]="audiocpp_cli"
+        else:
+            raise FileNotFoundError(cmd[0])
+
     proc = subprocess.Popen(
         cmd,
         encoding="utf-8",

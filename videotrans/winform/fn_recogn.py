@@ -304,7 +304,7 @@ def openwin():
         winobj.loglabel.clicked.connect(show_detail_error)
         winobj.shibie_model.currentIndexChanged.connect(model_type_change)
         # Postpone the execution to ensure the accelerator has completed its acquisition
-        QTimer.singleShot(5,lambda :set_device_list(winobj,'stt_is_cuda'))
+        QTimer.singleShot(5,lambda :set_device_list(winobj,'stt_cuda'))
 
     _bind()
     return winobj

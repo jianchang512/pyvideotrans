@@ -6,6 +6,9 @@ from videotrans.configure.config import params
 from videotrans.translator._openaicompat import OpenAICampat
 
 
+"""
+该渠道中，如果 API 地址以 `/responses` 结尾，则自动使用 响应式接口
+"""
 @dataclass(repr=False)
 class ChatGPT(OpenAICampat):
     def __post_init__(self):

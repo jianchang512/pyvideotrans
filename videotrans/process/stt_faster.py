@@ -70,12 +70,11 @@ def faster_whisper(
         ct2_device = "cuda" if (is_cuda and str(device).startswith("vulkan")) else device
         try:
 
-            model = WhisperModel(
+            return WhisperModel(
                 local_dir,
                 device=ct2_device,
                 compute_type=_compute_type
-            )
-            return model
+            )            
         except Exception as e:
             if 'Unable to open file' in str(e) or _compute_type == 'float32':
                 raise

@@ -7,7 +7,7 @@ from videotrans.configure._i18n import tr
 from videotrans.configure._paths import REDUBB_STATUS_FILE, REDUBB_QUEUE_FILE, IPC_STATUS_FILE
 from videotrans.configure.config import params, logger, app_cfg, ROOT_DIR
 from videotrans.configure.excepts import DubbingSrtError
-from videotrans.configure.constants import AUDIO_CPP_MAC_MS, AUDIO_CPP_WIN_MS, AUDIO_CPP_WIN_HF, AUDIO_CPP_MAC_HF
+from videotrans.configure.constants import  AUDIO_CPP_WIN_MS, AUDIO_CPP_WIN_HF, AUDIO_CPP_MAC_HF
 from videotrans.tts._base import BaseTTS
 from videotrans.util.help_role import get_f5tts_role
 from videotrans.util.help_misc import vail_file, is_connect_hf, exec_audiocpp, _audiocpp_cmd_uses_gpu, _audiocpp_cmd_to_cpu
@@ -79,6 +79,7 @@ class AudiocppTTS(BaseTTS):
         queue_tts = self.queue_tts
         
         txt_file = ROOT_DIR + '/pyvideotrans_audiocpp.txt'
+        cli_name = "audiocpp_cli.exe" if platform.system() == 'Windows' else 'audiocpp_cli'
         extra_cmd = []
         if Path(txt_file).exists():
             extra_cmd = [c for c in Path(txt_file).read_text(encoding='utf-8').strip().split(' ') if c]
@@ -105,7 +106,7 @@ class AudiocppTTS(BaseTTS):
                 try:
                     self.signal(text=f'{tr("Dubbing")} {i}/{self.len}')
                     cmd = [
-                        f"{ROOT_DIR}/audio_cpp/audiocpp_cli",
+                        f"{ROOT_DIR}/audio_cpp/{cli_name}",
                         "--task",
                         self.gguf_obj.get('type', 'tts'),
                         "--family",

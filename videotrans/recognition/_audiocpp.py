@@ -1,5 +1,6 @@
 import json
 import logging,time
+import platform
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -56,10 +57,11 @@ class AudiocppRecogn(BaseRecogn):
 
         err=''
         ok_nums=0
+        cli_name = "audiocpp_cli.exe" if platform.system() == 'Windows' else 'audiocpp_cli'
         for i, it in enumerate(raws):
             txt_file=f'{self.cache_folder}/audio_asr_txt_{i}.txt'
             cmd = [
-                        f"{ROOT_DIR}/audio_cpp/audiocpp_cli",
+                        f"{ROOT_DIR}/audio_cpp/{cli_name}",
                         "--task",
                         "asr",
                         "--family",
