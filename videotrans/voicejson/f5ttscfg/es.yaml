@@ -28,10 +28,10 @@ model:
     heads: 16
     ff_mult: 2
     text_dim: 512
-    text_mask_padding: True
+    text_mask_padding: False
     qk_norm: null  # null | rms_norm
     conv_layers: 4
-    pe_attn_head: null
+    pe_attn_head: 1
     attn_backend: torch  # torch | flash_attn
     attn_mask_enabled: False
     checkpoint_activations: False  # recompute activations and save memory for extra compute
