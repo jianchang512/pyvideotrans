@@ -285,6 +285,7 @@ LLAMA_CPP_WIN_VULKAN_HF="https://github.com/ggml-org/llama.cpp/releases/download
 HYMT2_GGUF_HF="/tencent/Hy-MT2-1.8B-GGUF/resolve/main/Hy-MT2-1.8B-Q8_0.gguf?download=true"
 
 AUDIO_CPP_MELBAND="https://huggingface.co/audio-cpp/audio.cpp-gguf/resolve/main/Mel-Band-RoFormer-GGUF/mel-band-roformer-q8_0.gguf?download=true"
+AUDIO_CPP_BS="https://huggingface.co/audio-cpp/audio.cpp-gguf/resolve/main/BS-RoFormer-ep368-GGUF/bs-roformer-ep368-q8_0.gguf?download=true"
 ZIPENHANCER_HF="https://huggingface.co/mortimerme/repocollect/resolve/main/zipenhancer.safetensors?download=true"
 
 

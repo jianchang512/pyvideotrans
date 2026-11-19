@@ -6,7 +6,7 @@ import traceback, time,platform
 from videotrans.configure.config import ROOT_DIR, logger, settings
 from pathlib import Path
 
-from videotrans.configure.constants import AUDIO_CPP_MELBAND, UVR_URL_HF
+from videotrans.configure.constants import AUDIO_CPP_MELBAND, UVR_URL_HF, AUDIO_CPP_BS
 from videotrans.process._utils import _write_log
 # Darwin Windows Linux
 from videotrans.util.help_down import down_file_from_hf
@@ -15,8 +15,8 @@ from videotrans.util.help_misc import exec_audiocpp
 OS_TYPE=platform.system()
 AUDIO_CPP=f'{ROOT_DIR}/audio_cpp/audiocpp_cli{".exe" if OS_TYPE=="Windows" else ""}'
 def vocal_bgm(*, input_file, vocal_file, instr_file, logs_file=None, uvr_models="UVR-MDX-NET-Inst_HQ_4",**kw):
-    if uvr_models=='mel_band_roformer':
-        return _use_audiocpp(input_file=input_file, vocal_file=vocal_file, instr_file=instr_file,logs_file=logs_file,is_cuda=kw.get('is_cuda',False))
+    if uvr_models in ['mel_band_roformer','bs_roformer']:
+        return _use_audiocpp(uvr_models=uvr_models,input_file=input_file, vocal_file=vocal_file, instr_file=instr_file,logs_file=logs_file,is_cuda=kw.get('is_cuda',False))
     _write_log(logs_file, "downloading models...")
     if uvr_models.startswith('spleeter'):
         down_file_from_hf(f'{ROOT_DIR}/models/onnx', [
@@ -96,18 +96,22 @@ def vocal_bgm(*, input_file, vocal_file, instr_file, logs_file=None, uvr_models=
         return False, f'{e}{msg}'
 
 
-def _use_audiocpp(*, input_file, vocal_file, instr_file,logs_file=None,is_cuda=False):
+def _use_audiocpp(*,uvr_models, input_file, vocal_file, instr_file,logs_file=None,is_cuda=False):
     # 如果 audio_cpp
     from videotrans.util.help_down import down_audiocpp_bin,down_file_from_hf
     _write_log(logs_file,"downloading audiocpp_cli...")
     down_audiocpp_bin()
+    _URL=AUDIO_CPP_MELBAND
     model_file=f'{ROOT_DIR}/models/mel-band-roformer-q8_0.gguf'
+    if uvr_models=='bs_roformer':
+        model_file=f'{ROOT_DIR}/models/bs-roformer-ep368-q8_0.gguf'
+        _URL=AUDIO_CPP_BS
     # 下载 分离 模型
     if not Path(model_file).exists():
         _write_log(logs_file,"downloading models...")
         down_file_from_hf(
                 f'{ROOT_DIR}/models',
-                [AUDIO_CPP_MELBAND.replace('https://huggingface.co','')],
+                [_URL.replace('https://huggingface.co','')],
         )
     start = time.time()
     # 执行分离
@@ -117,7 +121,7 @@ def _use_audiocpp(*, input_file, vocal_file, instr_file,logs_file=None,is_cuda=F
         "--task",
         "sep",
         "--family",
-        "mel_band_roformer",
+        uvr_models,
         "--model",
         model_file,
         "--backend",

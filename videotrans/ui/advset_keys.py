@@ -31,6 +31,7 @@ ComboBox_Data = {
     "lang": list(app_cfg.SUPPORT_LANG.keys()),
     "uvr_models": [
         'mel_band_roformer',
+        'bs_roformer',
         'spleeter',
         'UVR-MDX-NET-Inst_HQ_4',
         'UVR-MDX-NET-Inst_HQ_1',
