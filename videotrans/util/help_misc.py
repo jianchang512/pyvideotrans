@@ -405,6 +405,9 @@ def process_openai_api(url=""):
     # 删除末尾 /
     url = url.rstrip('/').lower()
     if url.find(".openai.com") > -1:
+        # 以 /responses 结尾时 ChatGPT 渠道使用 Responses 接口(translator/_chatgpt.py)，需保留该结尾
+        if url.endswith('/responses'):
+            return "https://api.openai.com/v1/responses"
         return "https://api.openai.com/v1"
 
     if url.endswith('/v1'):
