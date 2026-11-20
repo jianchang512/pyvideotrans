@@ -14,6 +14,7 @@ from videotrans.configure.constants import WHISPER_CPP_URL_MS, WHISPER_CPP_URL_H
 from videotrans.configure.excepts import SpeechToTextError
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util._srt_parse import get_subtitle_from_srt, ms_to_time_string
+from videotrans.util.gpus import cpp_device
 from videotrans.util.help_down import down_zip
 from videotrans.util.help_misc import is_connect_hf
 
@@ -46,10 +47,7 @@ class CPPRecogn(BaseRecogn):
                 [url],
                 self._process_callback)
 
-        from videotrans.util.gpus import get_vulkan_device_index, is_vulkan_available
-        dev_pref = str(settings.get('device_name', 'auto')).strip().lower()
-        use_gpu = (dev_pref != 'cpu') and (bool(self.is_cuda) or dev_pref.startswith('vulkan') or is_vulkan_available())
-        vk_idx = get_vulkan_device_index(dev_pref) if use_gpu else 0
+        device = cpp_device(device=settings.get('device_name', 'auto'),is_cuda=self.is_cuda)
 
         if not Path_cpp.is_file():
             from videotrans.util.whisper_vulkan import is_pywhispercpp_available, PyWhisperCppModel
@@ -59,8 +57,7 @@ class CPPRecogn(BaseRecogn):
                 prompt = settings.get(f'initial_prompt_{self.detect_language.replace("-","_")}')
                 model = PyWhisperCppModel(
                     f'{ROOT_DIR}/models/{self.model_name}',
-                    device="vulkan" if use_gpu else "cpu",
-                    device_index=vk_idx,
+                    device=device,
                 )
                 segments, _ = model.transcribe(
                     self.audio_file,
@@ -86,7 +83,8 @@ class CPPRecogn(BaseRecogn):
         n_threads = str(max(min(4, int(os.cpu_count() or 4) - 1), 1))
         cmd = [
             cpp_path,
-            "-t" if use_gpu else "-p", n_threads,
+            "-t" if device.startswith("cuda") else "-p",
+            n_threads,
             "-f",
             self.audio_file,
             "-osrt",
@@ -94,8 +92,8 @@ class CPPRecogn(BaseRecogn):
             "-pp",
             "-np"
         ]
-        if use_gpu:
-            cmd.extend(["-dev", str(vk_idx)])
+        if device.startswith("cuda"):
+            cmd.extend(["-dev", str(device.split(":")[-1]) if ":" in device else "0"])
         else:
             cmd.append("-ng")
         _lang=self.detect_language.split('-')[0]

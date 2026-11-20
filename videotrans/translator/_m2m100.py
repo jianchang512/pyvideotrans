@@ -12,6 +12,7 @@ import torch
 # Adapted from:
 # https://gist.github.com/ymoslem/a414a0ead0d3e50f4d7ff7110b1d1c0d
 # https://github.com/ymoslem/DesktopTranslator
+from videotrans.util.gpus import whisper_device
 from videotrans.util.help_down import down_zip
 from videotrans.util.help_misc import is_connect_hf
 
@@ -24,10 +25,7 @@ class M2M100Trans(BaseTrans):
     def _download(self):
         if not Path(f'{ROOT_DIR}/models/m2m100_12b/model.bin').exists():
             down_zip(f"{ROOT_DIR}/models", M2M100_URL_MS if not is_connect_hf() else M2M100_URL_HF,self._process_callback)
-        from videotrans.util.gpus import resolve_torch_device
-        device = resolve_torch_device(settings.get('device_name', 'auto'), is_cuda=self.is_cuda)
-        if device not in ('cpu', 'cuda') and not device.startswith('cuda:'):
-            device = 'cpu'
+        device = whisper_device(settings.get('device_name', 'auto'), is_cuda=self.is_cuda)
         self.model = ctranslate2.Translator(
             model_path=f'{ROOT_DIR}/models/m2m100_12b',
             device=device

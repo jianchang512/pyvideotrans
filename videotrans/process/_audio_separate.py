@@ -9,6 +9,7 @@ from pathlib import Path
 from videotrans.configure.constants import AUDIO_CPP_MELBAND, UVR_URL_HF, AUDIO_CPP_BS
 from videotrans.process._utils import _write_log
 # Darwin Windows Linux
+from videotrans.util.gpus import cpp_device
 from videotrans.util.help_down import down_file_from_hf
 from videotrans.util.help_misc import exec_audiocpp
 
@@ -16,7 +17,7 @@ OS_TYPE=platform.system()
 AUDIO_CPP=f'{ROOT_DIR}/audio_cpp/audiocpp_cli{".exe" if OS_TYPE=="Windows" else ""}'
 def vocal_bgm(*, input_file, vocal_file, instr_file, logs_file=None, uvr_models="UVR-MDX-NET-Inst_HQ_4",**kw):
     if uvr_models in ['mel_band_roformer','bs_roformer']:
-        return _use_audiocpp(uvr_models=uvr_models,input_file=input_file, vocal_file=vocal_file, instr_file=instr_file,logs_file=logs_file,is_cuda=kw.get('is_cuda',False))
+        return _use_audiocpp(uvr_models=uvr_models,input_file=input_file, vocal_file=vocal_file, instr_file=instr_file,logs_file=logs_file,is_cuda=kw.get('is_cuda',False),device_name=kw.get('device_name','cpu'))
     _write_log(logs_file, "downloading models...")
     if uvr_models.startswith('spleeter'):
         down_file_from_hf(f'{ROOT_DIR}/models/onnx', [
@@ -96,7 +97,7 @@ def vocal_bgm(*, input_file, vocal_file, instr_file, logs_file=None, uvr_models=
         return False, f'{e}{msg}'
 
 
-def _use_audiocpp(*,uvr_models, input_file, vocal_file, instr_file,logs_file=None,is_cuda=False):
+def _use_audiocpp(*,uvr_models, input_file, vocal_file, instr_file,logs_file=None,is_cuda=False,device_name="cpu"):
     # 如果 audio_cpp
     from videotrans.util.help_down import down_audiocpp_bin,down_file_from_hf
     _write_log(logs_file,"downloading audiocpp_cli...")
@@ -116,6 +117,13 @@ def _use_audiocpp(*,uvr_models, input_file, vocal_file, instr_file,logs_file=Non
     start = time.time()
     # 执行分离
     _parent=Path(vocal_file).parent.as_posix()
+    device_name=cpp_device(device=device_name,is_cuda=is_cuda)
+
+    if ":" in device_name:
+        name,dev_index=device_name.split(":",1)
+        device_list=["--backend",name,"--device",str(dev_index)]
+    else:
+        device_list=["--backend",device_name]
     cmd=[
         AUDIO_CPP,
         "--task",
@@ -123,14 +131,14 @@ def _use_audiocpp(*,uvr_models, input_file, vocal_file, instr_file,logs_file=Non
         "--family",
         uvr_models,
         "--model",
-        model_file,
-        "--backend",
-        "best" if is_cuda else "cpu",
-        "--audio",
+        model_file]
+    cmd.extend(device_list)
+
+    cmd.extend(["--audio",
         input_file,
         "--out-dir",
         _parent
-    ]
+    ])
     try:
         exec_audiocpp(cmd)
         logger.debug(f"[分离人声和背景声完成] audio.cpp :{cmd=}，耗时 {time.time() - start}s")

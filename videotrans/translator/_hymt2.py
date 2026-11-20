@@ -7,10 +7,10 @@ import time
 from dataclasses import dataclass
 from typing import Any, Optional
 from pathlib import Path
-from videotrans.configure.config import logger, settings, ROOT_DIR
+from videotrans.configure.config import logger, ROOT_DIR
 from videotrans.configure.constants import HYMT2_GGUF_HF
 from videotrans.translator._base import BaseTrans
-from videotrans.util.gpus import should_use_vulkan, get_vulkan_device_index, resolve_torch_device
+from videotrans.util.gpus import cpp_device
 import torch
 
 
@@ -46,8 +46,8 @@ class HYMT2(BaseTrans):
             down_llamacpp_bin,
         )
         from videotrans.util.help_misc import is_connect_hf
-
-        if should_use_vulkan(is_cuda=self.is_cuda):
+        device_name=cpp_device(is_cuda=self.is_cuda)
+        if device_name.startswith('vulkan'):
             if down_llamacpp_bin(process_callback=self._process_callback):
                 gguf_file = Path(f"{self.local_dir}/Hy-MT2-1.8B-Q8_0.gguf")
                 if not gguf_file.exists():
@@ -56,7 +56,6 @@ class HYMT2(BaseTrans):
                         [HYMT2_GGUF_HF],
                         self._process_callback,
                     )
-                vk_idx = get_vulkan_device_index()
                 port = _get_free_port()
                 srv_bin = "llama-server.exe" if platform.system() == "Windows" else "llama-server"
                 srv_path = f"{ROOT_DIR}/llama_cpp/{srv_bin}"
@@ -65,7 +64,7 @@ class HYMT2(BaseTrans):
                     "-m",
                     str(gguf_file),
                     "--device",
-                    f"Vulkan{vk_idx}",
+                    str(device_name),
                     "-ngl",
                     "99",
                     "--host",
@@ -75,7 +74,7 @@ class HYMT2(BaseTrans):
                     "-c",
                     "16384",
                 ]
-                logger.debug(f"HY-MT2 starting llama-server on Vulkan{vk_idx}: {cmd=}")
+                logger.debug(f"HY-MT2 starting llama-server on Vulkan: {cmd=}")
                 self.hy.server_proc = subprocess.Popen(
                     cmd,
                     stdout=subprocess.DEVNULL,
@@ -93,7 +92,7 @@ class HYMT2(BaseTrans):
                     try:
                         r = requests.get(f"{self.hy.server_url}/health", timeout=1)
                         if r.status_code == 200:
-                            logger.debug(f"HY-MT2: running on Vulkan{vk_idx} via llama-server ({self.hy.server_url})")
+                            logger.debug(f"HY-MT2: running on Vulkan via llama-server ({self.hy.server_url})")
                             return True
                     except Exception:
                         pass
@@ -118,10 +117,10 @@ class HYMT2(BaseTrans):
         self.hy.hymt2_tokenizer = AutoTokenizer.from_pretrained(self.local_dir, trust_remote_code=True)
 
         # Load model
-        device = resolve_torch_device(settings.get('device_name', 'auto'), is_cuda=self.is_cuda)
+        # device = resolve_torch_device(settings.get('device_name', 'auto'), is_cuda=self.is_cuda)
         self.hy.hymt2_model = AutoModelForCausalLM.from_pretrained(
             self.local_dir,
-            device_map=device,
+            device_map=device_name,
             dtype='auto',
             trust_remote_code=True,
         )

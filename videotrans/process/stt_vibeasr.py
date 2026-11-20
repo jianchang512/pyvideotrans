@@ -5,6 +5,7 @@
 import json, traceback
 from pathlib import Path
 from videotrans.configure.config import logger
+from videotrans.util.gpus import transformers_device
 
 
 def videasr_fun(
@@ -14,6 +15,7 @@ def videasr_fun(
         model_name=None,
         detect_language=None,
         hotword=None,
+        is_cuda=False,
         **kw
 ):
 
@@ -24,7 +26,7 @@ def videasr_fun(
     raws=[]
     try:
         processor = AutoProcessor.from_pretrained(local_dir)
-        model = VibeVoiceAsrForConditionalGeneration.from_pretrained(local_dir, device_map=kw.get('device_name', 'auto'))
+        model = VibeVoiceAsrForConditionalGeneration.from_pretrained(local_dir, device_map=transformers_device(device=kw.get('device_name','auto'),is_cuda=is_cuda))
         
         srts = [item for item in json.loads(Path(cut_audio_list).read_text(encoding='utf-8'))]
 

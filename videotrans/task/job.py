@@ -7,6 +7,7 @@ from videotrans.configure.config import tr, settings, app_cfg, logger
 from videotrans.configure.excepts import get_msg_from_except
 
 from videotrans.util import gpus
+from videotrans.util.gpus import exists_hard
 from videotrans.util.tools import get_recogn_type,get_tanslate_type,get_tts_type,send_notification
 
 
@@ -204,11 +205,10 @@ class WorkerTaskDone(BaseWorker):
         trk.task_done()
 
 def start_thread():
-    gpus.getset_gpu()
     cpu_count = max(int(os.cpu_count()),1)
 
     # 不存在时固定为1，存在可用显卡时，进一步判断应该启动几个GPU进程,  1->min(CPU核数,8)
-    if app_cfg.NVIDIA_GPU_NUMS > 0:
+    if exists_hard():
         try:
             app_cfg.MAX_GPU_PROCESS =  min(cpu_count,8,max(1,int(float(settings.get('process_max_gpu', 0))) ))
         except (TypeError,ValueError):

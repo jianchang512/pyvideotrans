@@ -1,9 +1,10 @@
 # 字幕批量翻译
-from PySide6.QtCore import QTimer
+
 
 
 def openwin():
-    from videotrans.winform import set_device_list
+    # from videotrans.winform import set_device_list
+    from videotrans.util.gpus import exists_hard
     from videotrans.translator import LANGNAME_DICT
     from videotrans.winform import get_cls
     from videotrans.util.help_misc import show_glossary_editor, show_error, set_proxy
@@ -41,7 +42,7 @@ def openwin():
         winobj.fanyi_start.setDisabled(state)
         winobj.fanyi_stop.setDisabled(not state)
         winobj.fanyi_targettext.setDisabled(state)
-        winobj.device_combo.setDisabled(state)
+        # winobj.device_combo.setDisabled(state)
 
     def feed(d):
         nonlocal percent
@@ -129,8 +130,8 @@ def openwin():
         winobj.fanyi_targettext.clear()
         winobj.loglabel.setText('')
         is_cuda=winobj.is_cuda.isChecked()
-        if is_cuda:
-            settings['device_name'] = winobj.device_combo.itemData(winobj.device_combo.currentIndex())
+        # if is_cuda:
+        #     settings['device_name'] = winobj.device_combo.itemData(winobj.device_combo.currentIndex())
 
         settings['aisendsrt'] = winobj.aisendsrt.isChecked()
 
@@ -289,7 +290,7 @@ def openwin():
 
     def check_cuda(state):
         # 选中如果无效，则取消
-        if state and app_cfg.NVIDIA_GPU_NUMS == 0:
+        if state and not exists_hard():
             winobj.is_cuda.setChecked(False)
             winobj.is_cuda.setDisabled(True)
             show_error(tr('nocuda'))
@@ -338,7 +339,7 @@ def openwin():
         winobj.save_source.setChecked(params.get("trans_save_source",False))
         winobj.is_cuda.setChecked(params.get("trans_is_cuda",False))
         winobj.is_cuda.toggled.connect(check_cuda)
-        QTimer.singleShot(5,lambda :set_device_list(winobj,'trans_is_cuda'))
+        # QTimer.singleShot(5,lambda :set_device_list(winobj,'trans_is_cuda'))
 
     _bind()
     return winobj

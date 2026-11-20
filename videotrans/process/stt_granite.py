@@ -7,12 +7,14 @@ from pathlib import Path
 from typing import List, Tuple, Union
 from videotrans.configure.config import logger as vt_logger
 from videotrans.process._stt_utils import _write_log
+from videotrans.util.gpus import transformers_device
 
 
 def granite_asr(
         cut_audio_list=None,
         logs_file=None,
         local_dir=None,
+        is_cuda=False,
         **kw
 ):
     import torchaudio
@@ -21,7 +23,7 @@ def granite_asr(
     processor = AutoProcessor.from_pretrained(local_dir)
     tokenizer = processor.tokenizer
     model = AutoModelForSpeechSeq2Seq.from_pretrained(
-        local_dir, device_map=kw.get('device_name','auto'), dtype='auto'
+        local_dir, device_map=transformers_device(device=kw.get('device_name','auto'),is_cuda=is_cuda), dtype='auto'
     )
 
     msg = f"Loading model running on {model.device}"

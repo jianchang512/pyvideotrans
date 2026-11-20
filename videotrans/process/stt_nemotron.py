@@ -6,13 +6,14 @@ import re, json, traceback
 from pathlib import Path
 from videotrans.configure.config import logger
 from videotrans.process._stt_utils import _write_log
-
+from videotrans.util.gpus import transformers_device
 
 
 def nemotron_asr(
         cut_audio_list=None,
         logs_file=None,
         local_dir=None,
+        is_cuda=False,
         **kw
 ):
     from transformers import AutoModelForRNNT, AutoProcessor
@@ -24,7 +25,7 @@ def nemotron_asr(
                                              json.loads(Path(cut_audio_list).read_text(encoding='utf-8'))]
         raws = cut_audio_list
         processor = AutoProcessor.from_pretrained(local_dir)
-        model = AutoModelForRNNT.from_pretrained(local_dir, device_map="auto")
+        model = AutoModelForRNNT.from_pretrained(local_dir, device_map=transformers_device(device=kw.get('device_name','auto'),is_cuda=is_cuda))
         msg = f"running on {model.device}"
         _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
         logger.debug(f'huggingface_asr渠道使用模型: {local_dir},{msg}')

@@ -1,8 +1,8 @@
-from PySide6.QtCore import QTimer
 
 
 def openwin():
-    from videotrans.winform import set_device_list
+    # from videotrans.winform import set_device_list
+    from videotrans.util.gpus import exists_hard
     from videotrans.util.help_role import get_audiocpp_rolelist
     from videotrans.util._srt_parse import ass_to_srt
     from videotrans.translator import LANGNAME_DICT
@@ -49,7 +49,7 @@ def openwin():
         winobj.tmp_rolelist.setDisabled(state)
         winobj.assign_role_button.setDisabled(state)
         winobj.hecheng_stop.setDisabled(not state)
-        winobj.device_combo.setDisabled(state)
+        # winobj.device_combo.setDisabled(state)
 
     def feed(d):
         if winobj.has_done:
@@ -184,9 +184,9 @@ def openwin():
         uuid = video_obj['uuid']
         app_cfg.rm_uuid(uuid)
         is_cuda=winobj.is_cuda.isChecked()
-        if is_cuda:
-            config.settings['device_name'] = winobj.device_combo.itemData(winobj.device_combo.currentIndex())
-            config.settings.save()
+        # if is_cuda:
+        #     config.settings['device_name'] = winobj.device_combo.itemData(winobj.device_combo.currentIndex())
+        #     config.settings.save()
         cfg = {
             "voice_role": default_role,  # Default role
             "cache_folder": config.TEMP_DIR + f'/{uuid}',
@@ -345,7 +345,7 @@ def openwin():
 
     def check_cuda(state):
         # 选中如果无效，则取消
-        if state and app_cfg.NVIDIA_GPU_NUMS == 0:
+        if state and not exists_hard():
             winobj.is_cuda.setChecked(False)
             winobj.is_cuda.setDisabled(True)
             show_error(tr('nocuda'))
@@ -394,7 +394,7 @@ def openwin():
         tts_type_change(last_tts_type)
 
         winobj.hecheng_role.setCurrentIndex(int(params.get("dubb_role", 0)))
-        QTimer.singleShot(5,lambda :set_device_list(winobj,'dubb_is_cuda'))
+        # QTimer.singleShot(5,lambda :set_device_list(winobj,'dubb_is_cuda'))
 
     _bind()
     return winobj

@@ -4,15 +4,14 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, Any, Tuple, Optional
 from videotrans.configure._i18n import tr
-from videotrans.configure._paths import REDUBB_STATUS_FILE, REDUBB_QUEUE_FILE, IPC_STATUS_FILE
+from videotrans.configure._paths import REDUBB_STATUS_FILE, REDUBB_QUEUE_FILE
 from videotrans.configure.config import params, logger, app_cfg, ROOT_DIR
 from videotrans.configure.excepts import DubbingSrtError
-from videotrans.configure.constants import  AUDIO_CPP_WIN_MS, AUDIO_CPP_WIN_HF, AUDIO_CPP_MAC_HF
 from videotrans.tts._base import BaseTTS
 from videotrans.util.help_role import get_f5tts_role
-from videotrans.util.help_misc import vail_file, is_connect_hf, exec_audiocpp, _audiocpp_cmd_uses_gpu, _audiocpp_cmd_to_cpu
-from videotrans.util.help_down import down_zip, down_file_from_hf, down_audiocpp_bin
-from videotrans.util.gpus import get_audiocpp_backend_args
+from videotrans.util.help_misc import vail_file, exec_audiocpp
+from videotrans.util.help_down import down_file_from_hf, down_audiocpp_bin
+from videotrans.util.gpus import cpp_device
 
 
 @dataclass(repr=False)
@@ -94,7 +93,12 @@ class AudiocppTTS(BaseTTS):
                     logger.exception(f'audio.cpp: {e}', exc_info=True)
                     raise
 
-
+            device_name=cpp_device(is_cuda=self.is_cuda)
+            if ":" in device_name:
+                name,dev_index=device_name.split(":",1)
+                device_list=["--backend",name,"--device",str(dev_index)]
+            else:
+                device_list=["--backend",device_name]
             for i, item in enumerate(queue_tts):
                 if app_cfg.exit_soft or (self.is_redubb and Path(REDUBB_STATUS_FILE).exists()):
                     return True
@@ -112,12 +116,10 @@ class AudiocppTTS(BaseTTS):
                         "--family",
                         self.model_name,
                         "--model",
-                        self.model_path,
-                        "--backend",
-                        "best" if self.is_cuda else "cpu",
-                        "--text",
-                        f"{item['text']}",
+                        self.model_path
                     ]
+                    cmd.extend(device_list)
+                    cmd.extend(["--text",f"{item['text']}"])
                     if ref_wav:
                         cmd.extend(["--voice-ref", ref_wav])
                     if self.gguf_obj.get("is_reference_text") and ref_text:
@@ -129,10 +131,10 @@ class AudiocppTTS(BaseTTS):
                     if self.gguf_obj.get("is_seed"):
                         cmd.append("--request-option")
                         cmd.append("seed=24")
-                    if self.model_name=='ming3_tts':
-                        if ref_text:
-                            cmd.extend(["--request-option", f'reference_text="{ref_text}"'])
-                        cmd.extend(["--request-option", f'language={lang}'])
+                    # if self.model_name=='ming3_tts':
+                    #     if ref_text:
+                    #         cmd.extend(["--request-option", f'reference_text="{ref_text}"'])
+                    #     cmd.extend(["--request-option", f'language={lang}'])
 
                     cmd.extend(extra_cmd + ["--out", os.path.normpath(item['filename'] + '-24k.wav')])
 

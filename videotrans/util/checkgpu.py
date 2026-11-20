@@ -3,7 +3,7 @@ import time
 import traceback
 
 from PySide6.QtCore import QThread, Signal
-from videotrans.configure.config import logger, app_cfg
+from videotrans.configure import config
 
 
 
@@ -13,12 +13,21 @@ class AiLoaderThread(QThread):
     def run(self):
         try:
             _st = time.time()
-            from videotrans.util.gpus import get_device_choices
             from . import gpus
-            _count = gpus.getset_gpu()
-            app_cfg.dev_choices = get_device_choices()
-            logger.debug(f"找到 {_count} 个 GPUs, 耗时: {int(time.time() - _st)}s")
-            logger.debug(f"可用加速器信息:{app_cfg.dev_choices=}")
+            gpus.getset_gpu()
+            _devices=["auto"]
+            if config.app_cfg.NVIDIA_GPU_NUMS>0:
+                _devices.append("cuda")
+                if config.app_cfg.NVIDIA_GPU_NUMS>1:
+                    for i in range(config.app_cfg.NVIDIA_GPU_NUMS):
+                        _devices.append(f"cuda:{i}")
+            if config.app_cfg.VULKAN_LIST:
+                for it in config.app_cfg.VULKAN_LIST:
+                    _devices.append(f"vulkan:{it['index']}")
+            if config.app_cfg.MPS_NUMS:
+                _devices.append("mps")
+                _devices.append("metal")
+            config.ACCESS_DEVICES=_devices
             self.gpu_io.emit("end")
         except Exception as e:
             err = traceback.format_exc()

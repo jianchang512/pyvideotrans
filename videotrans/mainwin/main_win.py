@@ -181,8 +181,8 @@ class MainWindow(BindSignalsMixin, LifecycleMixin, QMainWindow, Ui_MainWindow):
 
     def _start_workers(self, status):
         if status == 'end':
-            from videotrans.winform import set_device_list
-            set_device_list(self,'is_cuda')
+            # from videotrans.winform import set_device_list
+            # set_device_list(self,'is_cuda')
             from videotrans.task.job import start_thread
             self.worker_threads = start_thread()
             self.startbtn.setDisabled(False)

@@ -247,29 +247,21 @@ class BaseCon:
 
         # 提交任务，并显式传入参数，确保子进程拿到正确的参数
         logs_file = kwargs.get('logs_file',f'{TEMP_ROOT}/{_st}.log')
-        device_index = 0
         status_dict={"is_end":False}
         try:
             Path(logs_file).touch()
             threading.Thread(target=self._signal_of_process, args=(logs_file,status_dict), daemon=True).start()
             # 再次判断cuda/vulkan是否有效，防止预先获取失败
-            if is_cuda:
-                import torch
-                from videotrans.util.gpus import is_vulkan_available
-                if not torch.cuda.is_available() and not is_vulkan_available():
-                    is_cuda = False
             # 更新 is_cuda
-            if "is_cuda" in kwargs:
-                kwargs['is_cuda']=is_cuda
+            kwargs['is_cuda']=is_cuda
             # gpu， device_index 固定使用第0号
-            kwargs['device_index'] = 0
-            raw_dev = str(settings.get('device_name', 'auto') or 'auto')
-            kwargs['raw_device_name'] = raw_dev
-            if raw_dev.lower().startswith('vulkan'):
-                from videotrans.util.gpus import resolve_torch_device
-                kwargs['device_name'] = resolve_torch_device(raw_dev, is_cuda=bool(is_cuda))
-            else:
-                kwargs['device_name'] = raw_dev
+            # kwargs['device_index'] = 0
+            kwargs['device_name'] = str(settings.get('device_name', 'auto') or 'auto')
+            # if raw_dev.lower().startswith('vulkan'):
+            #     from videotrans.util.gpus import resolve_torch_device
+            #     kwargs['device_name'] = resolve_torch_device(raw_dev, is_cuda=bool(is_cuda))
+            # else:
+            #     kwargs['device_name'] = raw_dev
             logger.debug(f'新进程任务 参数:{kwargs=}')
             future = GlobalProcessManager.submit_task_cpu(
                 callback,
@@ -307,9 +299,8 @@ class BaseCon:
             _cuda = ''
             if kwargs.get('model_name'):
                 _model = ' Model:' + kwargs.get('model_name')
-            if is_cuda and device_index > -1:
-                _cuda = f" GPU{device_index}"
-            logger.exception(f'{title}: {_model}{_cuda}, {kwargs=},{e}', exc_info=True)
+
+            logger.exception(f'{title}: {_model}, {kwargs=},{e}', exc_info=True)
             raise VideoTransError(f'{_model}{_cuda} {e}')
         except BaseException as e:
             logger.exception(f'{title},{e}', exc_info=True)

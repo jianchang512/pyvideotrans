@@ -7,12 +7,14 @@ from pathlib import Path
 from typing import List, Tuple, Union
 from videotrans.util import gpus
 from videotrans.configure.config import logger
+from videotrans.util.gpus import transformers_device
 
 
 def glmasr_asr(
         cut_audio_list=None,
         logs_file=None,
         local_dir=None,
+        is_cuda=False,
         **kw
 ):
     quant=None
@@ -29,7 +31,7 @@ def glmasr_asr(
 
     model = GlmAsrForConditionalGeneration.from_pretrained(
         local_dir,
-        device_map=kw.get('device_name','auto'),
+        device_map=transformers_device(device=kw.get('device_name','auto'),is_cuda=is_cuda),
         quantization_config=quant,
         dtype='auto'
     )

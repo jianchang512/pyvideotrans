@@ -8,6 +8,8 @@ from typing import List, Tuple, Union
 
 from videotrans.configure._paths import TEMP_ROOT
 from videotrans.configure.config import logger, ROOT_DIR
+from videotrans.util.gpus import whisper_device
+
 
 def openai_whisper(
         *,
@@ -22,16 +24,13 @@ def openai_whisper(
         jianfan=False,
         temperature=None,
         compression_ratio_threshold=2.2,
-        device_index=0,  # gpu索引
         max_speech_ms=6000,
         min_speech_ms=3000,
         **kw
 ):
     import whisper,zhconv
     from videotrans.process._stt_utils import _write_log, _resegment
-    device=kw.get('device_name','auto')
-    if device=='auto':
-        device=f"cuda:{device_index}" if is_cuda else 'cpu'
+    device= whisper_device(device=kw.get('device_name','auto'),is_cuda=is_cuda)
 
     if not Path(f'{ROOT_DIR}/models/{model_name}.pt').exists():
         msg = f'Model {model_name} will be automatically downloaded'

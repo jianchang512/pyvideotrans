@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import List, Tuple, Union
 
 from videotrans.configure.config import logger,ROOT_DIR
+from videotrans.util.gpus import whisper_device
 
 
 def paraformer(
@@ -18,7 +19,6 @@ def paraformer(
         audio_file=None,
         max_speakers=-1,
         cache_folder=None,
-        device_index=0,  # gpu索引
         hotword=None,
         **kw
 ):
@@ -26,9 +26,7 @@ def paraformer(
     from modelscope.utils.constant import Tasks
     from videotrans.util._srt_parse import ms_to_time_string
     from videotrans.process._stt_utils import _write_log
-    device=kw.get('device_name','auto')
-    if device=='auto':
-        device = f'cuda:{device_index}' if is_cuda else 'cpu'
+    device=whisper_device(device=kw.get('device_name','auto'),is_cuda=is_cuda),
     msg = f'Load {model_name} running on {device}'
     _write_log(logs_file, json.dumps({"type": "logs", "text":msg}))
     logger.debug(f'阿里FunASR渠道使用 {msg}')
@@ -48,8 +46,7 @@ def paraformer(
             disable_update=True,
             disable_progress_bar=True,
             disable_log=True,
-            device=device,
-
+            device=device
             # trust_remote_code=True,
         )
 

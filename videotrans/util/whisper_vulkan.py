@@ -5,18 +5,18 @@ Drop-in Vulkan (ggml / pywhispercpp) Whisper inference engine compatible with fa
 import os
 import platform
 import shutil
-import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 
-from videotrans.configure.config import ROOT_DIR, logger, settings
+from videotrans.configure.config import ROOT_DIR, logger, settings, app_cfg
 from videotrans.configure.constants import WHISPERCPP_MODEL_URL_HF, WHISPERCPP_MODEL_URL_MS
-from videotrans.util.gpus import get_vulkan_device_index, is_vulkan_available
 
 # Standard Whisper models hosted on ggerganov/whisper.cpp (HF) and viggocx/whisper.cpp (ModelScope)
+from videotrans.util.gpus import cpp_device
+
 _STANDARD_GGML_MODELS: Dict[str, str] = {
     "tiny": "ggml-tiny.bin",
     "tiny.en": "ggml-tiny.en.bin",
@@ -126,8 +126,8 @@ def should_use_whisper_vulkan(model_name: str, device_name: Optional[str] = None
     instead of CTranslate2 faster-whisper.
     """
     if not is_cuda or platform.system() == 'Darwin': return False
-    import torch
-    if torch.cuda.is_available():
+
+    if app_cfg.NVIDIA_GPU_NUMS<1:
         return False
 
     if not is_pywhispercpp_available():
@@ -136,7 +136,7 @@ def should_use_whisper_vulkan(model_name: str, device_name: Optional[str] = None
         return False
     if device_name is None:
         device_name = str(settings.get("device_name", "auto") or "auto")
-    dev = str(device_name).strip().lower()
+    dev=cpp_device(device=device_name, is_cuda=is_cuda)
     # If the user explicitly forced 'cuda:N' in advanced settings and did not request vulkan/auto,
     # still use pywhispercpp when Vulkan is available unless CTranslate2 is explicitly requested via env.
     if os.environ.get("FORCE_CTRANSLATE2", "").lower() in ("1", "true", "yes") and not dev.startswith("vulkan"):
@@ -298,7 +298,7 @@ class PyWhisperCppModel:
     ):
         from pywhispercpp.model import Model
 
-        self.device = str(device or "auto").strip().lower()
+        self.device = str(device or "cpu").strip().lower()
         self.compute_type = compute_type
         self.model_name = model_name or model_size_or_path
 
@@ -323,10 +323,7 @@ class PyWhisperCppModel:
             self.gpu_device = 0
         elif self.device.startswith("vulkan"):
             self.use_gpu = True
-            self.gpu_device = get_vulkan_device_index(self.device)
-        elif is_cuda or (self.device in ("auto", "cuda") and is_vulkan_available()):
-            self.use_gpu = is_vulkan_available()
-            self.gpu_device = get_vulkan_device_index(self.device)
+            self.gpu_device = int(self.device.split(":")[-1]) if ":" in self.device else 0
         else:
             self.use_gpu = False
             self.gpu_device = 0

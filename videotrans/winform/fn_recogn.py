@@ -1,8 +1,9 @@
-from PySide6.QtCore import QTimer
+
 
 
 def openwin():
-    from videotrans.winform import set_device_list
+    # from videotrans.winform import set_device_list
+    from videotrans.util.gpus import exists_hard
     from videotrans.translator import LANGNAME_DICT,LLM_CONCERT_DICT
     from videotrans.winform import get_cls
     from videotrans.util.help_misc import  show_error
@@ -84,7 +85,7 @@ def openwin():
         winobj.nums_diariz.setDisabled(state)
         winobj.spk_insert.setDisabled(state)
         winobj.shibie_stop.setDisabled(not state)
-        winobj.device_combo.setDisabled(state)
+        # winobj.device_combo.setDisabled(state)
 
     def shibie_start_fun():
         nonlocal  uuid_list
@@ -131,8 +132,8 @@ def openwin():
         winobj.label_shibie10.setText('')
         winobj.shibie_text.clear()
         stt_rephrase = winobj.rephrase.isChecked()
-        if is_cuda:
-            settings['device_name'] = winobj.device_combo.itemData(winobj.device_combo.currentIndex())
+        # if is_cuda:
+        #     settings['device_name'] = winobj.device_combo.itemData(winobj.device_combo.currentIndex())
         settings.save()
         from videotrans.util.help_ffmpeg import format_video
         try:
@@ -189,7 +190,7 @@ def openwin():
 
     def check_cuda(state):
         # 选中如果无效，则取消
-        if state and app_cfg.NVIDIA_GPU_NUMS == 0:
+        if state and not exists_hard():
             winobj.is_cuda.setChecked(False)
             winobj.is_cuda.setDisabled(True)
             show_error(tr('nocuda'))
@@ -304,7 +305,7 @@ def openwin():
         winobj.loglabel.clicked.connect(show_detail_error)
         winobj.shibie_model.currentIndexChanged.connect(model_type_change)
         # Postpone the execution to ensure the accelerator has completed its acquisition
-        QTimer.singleShot(5,lambda :set_device_list(winobj,'stt_cuda'))
+        # QTimer.singleShot(5,lambda :set_device_list(winobj,'stt_cuda'))
 
     _bind()
     return winobj

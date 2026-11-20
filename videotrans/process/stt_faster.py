@@ -8,7 +8,7 @@ from typing import List, Tuple, Union
 
 from videotrans.configure._paths import TEMP_ROOT,ROOT_DIR
 from videotrans.configure.config import logger
-
+from videotrans.util.gpus import whisper_device, cpp_device
 
 
 def faster_whisper(
@@ -46,19 +46,21 @@ def faster_whisper(
     raws = []
     if detect_language == 'fil':
         detect_language = 'tl'
-    raw_device = kw.get('raw_device_name') or kw.get('device_name', 'auto')
-    device = raw_device
-    if device == 'auto':
-        device = "cuda" if is_cuda else 'cpu'
+
+    device=whisper_device(device=kw.get('device_name', 'auto'),is_cuda=is_cuda)
+    if is_cuda and not device.startswith('cuda'):
+        device=cpp_device(device="cpu",is_cuda=is_cuda)
+
     def _create_model(_compute_type):
-        logger.debug(f'[faster_whisper] 加载模型{model_name}: {is_cuda=},{raw_device=}, running on {device},{_compute_type=}')
-        # Only switch to Vulkan when hardware acceleration is explicitly specified
-        if  should_use_whisper_vulkan(model_name, device_name=raw_device,is_cuda=is_cuda):
+        nonlocal device
+        logger.debug(f'[faster_whisper] 加载模型{model_name}: {is_cuda=},running on {device},{_compute_type=}')
+        # 仅在 cuda 不可用，且 vulkan 时使用
+        if  device.startswith('vulkan'):
             try:
-                logger.debug(f'[faster_whisper/vulkan]加载GGML模型 {model_name}: running on {raw_device} ({is_cuda=})')
+                logger.debug(f'[faster_whisper/vulkan]加载GGML模型 {model_name}: running on {device} ({is_cuda=})')
                 return PyWhisperCppModel(
                     local_dir or model_name,
-                    device=raw_device,
+                    device=device,
                     compute_type=_compute_type,
                     model_name=model_name,
                     is_cuda=is_cuda,
@@ -66,13 +68,14 @@ def faster_whisper(
             except Exception as vulkan_err:
                 if not local_dir or not Path(f'{local_dir}/model.bin').exists():
                     raise
+                device="cpu"
                 logger.warning(f'faster-whisper Vulkan (pywhispercpp) 加载失败，尝试回退 CTranslate2: {vulkan_err}')
-        ct2_device = "cuda" if (is_cuda and str(device).startswith("vulkan")) else device
+
         try:
 
             return WhisperModel(
                 local_dir,
-                device=ct2_device,
+                device=device,
                 compute_type=_compute_type
             )            
         except Exception as e:
@@ -80,13 +83,13 @@ def faster_whisper(
                 raise
             # 对数据类型问题引发的错误重试
             # cuda下先尝试使用 float16
-            if is_cuda and _compute_type != 'float16':
+            if device.startswith('cuda') and _compute_type != 'float16':
                 logger.warning(f'faster-whisper CUDA下 加载模型失败，更改为 [float16] 类型后重试{e}')
                 return _create_model('float16')
 
 
             # 如果cpu并且非 int8,先尝试 int8
-            if not is_cuda and _compute_type != 'int8':
+            if device.startswith('cpu') and _compute_type != 'int8':
                 logger.warning(f'faster-whisper CPU下 加载模型失败，更改为 [int8] 类型后重试{e}')
                 return _create_model('int8')
             # 保底 float32

@@ -34,6 +34,9 @@ if _proxy:
 
 TEMP_DIR = f'{TEMP_ROOT}/None'
 
+ACCESS_DEVICES=["auto"]
+
+
 def init_run():
     global TEMP_DIR
     TEMP_DIR = f'{TEMP_ROOT}/{os.getpid()}'

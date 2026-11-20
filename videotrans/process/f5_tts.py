@@ -10,6 +10,8 @@ from videotrans.configure.config import logger,ROOT_DIR,REDUBB_QUEUE_FILE,REDUBB
 from ._utils import _write_log,convert_to_wav
 
 # ----- 绕过 f5tts overrides 的严格类型检查 -----
+from ..util.gpus import whisper_device
+
 try:
     import overrides
     def _dummy_overrides(*args, **kwargs):
@@ -75,7 +77,6 @@ def f5tts_fun(
         logs_file=None,
         speed=1.0,
         is_cuda=False,
-        device_index=0, # gpu索引
         is_redubb=False,#是否处于单视频校对配音流程
         **kw
 )->Tuple[bool,Union[str,None]]:
@@ -90,9 +91,10 @@ def f5tts_fun(
     if not cfg:
         return False,f"[F5-TTS] may not support {language}"
 
-    device=kw.get('device_name','auto')
-    if device =='auto':
-        device=f'cuda:{device_index}' if is_cuda else gpus.mps_or_cpu()
+    device=whisper_device(device=kw.get('device_name','auto'),is_cuda=is_cuda,allow_mps=True)
+    # device=kw.get('device_name','auto')
+    # if device =='auto':
+    #     device=f'cuda:{device_index}' if is_cuda else gpus.mps_or_cpu()
 
     local_dir=f'{ROOT_DIR}/models/models--'+cfg['repid'].replace('/','--')
     f5tts = _F5TTS(

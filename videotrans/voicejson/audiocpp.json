@@ -21,8 +21,8 @@
     "file": "Ming-3.0-TTS-0.5B-GGUF/ming-3.0-tts-0.5b-q8_0.gguf",
     "url": "https://huggingface.co/audio-cpp/Ming-3.0-TTS-0.5B-GGUF/resolve/main/ming-3.0-tts-0.5b-q8_0.gguf?download=true",
 	"support_languages":["zh", "en", "ja", "ko", "de", "fr", "es"],
-    "is_reference_text": false,
-    "is_language": false,
+    "is_reference_text": true,
+    "is_language": true,
     "is_seed": false
   },
   "confucius4_tts": {
@@ -145,5 +145,14 @@
     "is_reference_text": false,
     "is_language": true,
     "is_send": true
+  },
+  "audio8_tts": {
+    "type": "clon",
+    "file": "Audio8-TTS-Realistic-0.6b-GGUF/audio8-tts-realistic-0.6b-q8_0.gguf",
+    "url": "https://huggingface.co/audio-cpp/Audio8-TTS-Realistic-0.6b-GGUF/resolve/main/audio8-tts-realistic-0.6b-q8_0.gguf?download=true",
+	"support_languages":["auto", "yue", "zh", "nl", "en", "fr", "de", "it", "ja", "ko", "pl", "es"],
+    "is_reference_text": true,
+    "is_language": true,
+    "is_seed": true
   }
 }

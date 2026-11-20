@@ -606,28 +606,28 @@ def is_dir_not_empty(dir_path: str) -> bool:
     except Exception:
         return False
 
-def _audiocpp_cmd_uses_gpu(cmd) -> bool:
-    for i in range(len(cmd) - 1):
-        if cmd[i] == "--backend":
-            return str(cmd[i + 1]).strip().lower() != "cpu"
-    return False
+# def _audiocpp_cmd_uses_gpu(cmd) -> bool:
+#     for i in range(len(cmd) - 1):
+#         if cmd[i] == "--backend":
+#             return str(cmd[i + 1]).strip().lower() != "cpu"
+#     return False
 
-
-def _audiocpp_cmd_to_cpu(cmd) -> list:
-    out = []
-    skip_next = False
-    for i, tok in enumerate(cmd):
-        if skip_next:
-            skip_next = False
-            continue
-        if tok == "--backend" and i + 1 < len(cmd):
-            out.extend(["--backend", "cpu"])
-            skip_next = True
-        elif tok == "--device" and i + 1 < len(cmd):
-            skip_next = True
-        else:
-            out.append(tok)
-    return out
+#
+# def _audiocpp_cmd_to_cpu(cmd) -> list:
+#     out = []
+#     skip_next = False
+#     for i, tok in enumerate(cmd):
+#         if skip_next:
+#             skip_next = False
+#             continue
+#         if tok == "--backend" and i + 1 < len(cmd):
+#             out.extend(["--backend", "cpu"])
+#             skip_next = True
+#         elif tok == "--device" and i + 1 < len(cmd):
+#             skip_next = True
+#         else:
+#             out.append(tok)
+#     return out
 
 
  # When using AMD/Intel on Windows with Vulkan acceleration, download the Vulkan version of audio.cpp separately to the `audio_cpp_vulkan` folder. For CPU and CUDA acceleration, use version 12.4 of CUDA. Actual testing has revealed that if users encounter issues with Vulkan, there's a high probability that switching back to CPU will still fail
@@ -681,13 +681,13 @@ def _ensure_audiocpp_threads(cmd: list) -> list:
 
 # No retry for failures. When the acceleration fails due to the audio.cpp and Vulkan versions on Windows, fallback to CPU still has a high probability of failure
 def exec_audiocpp(cmd):
-    from videotrans.util.gpus import get_audiocpp_backend_args
-    cmd = list(cmd)
-    for i in range(len(cmd) - 1):
-        if cmd[i] == "--backend" and cmd[i + 1] == "best":
-            backend_args = get_audiocpp_backend_args()
-            cmd[i : i + 2] = backend_args
-            break
+    # from videotrans.util.gpus import get_audiocpp_backend_args
+    # cmd = list(cmd)
+    # for i in range(len(cmd) - 1):
+    #     if cmd[i] == "--backend" and cmd[i + 1] == "best":
+    #         backend_args = get_audiocpp_backend_args()
+    #         cmd[i : i + 2] = backend_args
+    #         break
     _ensure_audiocpp_threads(cmd)
     logger.debug(f'audio.cpp start: {cmd=}')
     rc, stdout, stderr, aborted = _run_audiocpp_proc(cmd)

@@ -8,12 +8,14 @@ import traceback, json, os
 from typing import Tuple, Union
 from videotrans.configure.config import logger, ROOT_DIR, REDUBB_QUEUE_FILE, REDUBB_STATUS_FILE
 from ._utils import _write_log, convert_to_wav
+from ..util.gpus import transformers_device
 
 
 def omnivoice_fun(
         queue_tts_file=None,  # 配音数据存在 json文件下，根据文件路径获取
         logs_file=None,
         speed=1.0,
+        is_cuda=False,
         is_redubb=False,  # 是否处于单视频校对配音流程
         language=None,
         **kw
@@ -25,7 +27,7 @@ def omnivoice_fun(
 
     model = OmniVoice.from_pretrained(
         f'{ROOT_DIR}/models/models--k2-fsa--OmniVoice',
-        device_map=kw.get('device_name','auto'),
+        device_map=transformers_device(device=kw.get('device_name','auto'),is_cuda=is_cuda),
         dtype='auto'
     )
     logger.debug(f'OmniVoice-TTS本地内置渠道，running on {model.device}')

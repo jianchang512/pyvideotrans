@@ -8,6 +8,7 @@ import traceback, json
 from typing import Tuple, Union
 from videotrans.configure.config import logger,ROOT_DIR,REDUBB_QUEUE_FILE,REDUBB_STATUS_FILE
 from ._utils import _write_log,convert_to_wav
+from ..util.gpus import whisper_device
 
 
 def confucius_fun(
@@ -15,7 +16,6 @@ def confucius_fun(
         language='zh',#语言
         logs_file=None,
         is_cuda=False,
-        device_index=0, # gpu索引
         is_redubb=False,#是否处于单视频校对配音流程
         **kw
 )->Tuple[bool,Union[str,None]]:
@@ -24,9 +24,10 @@ def confucius_fun(
     from videotrans.confuciustts.cli.inference import ConfuciusTTS
 
     try:
-        device=kw.get('device_name','auto')
-        if device == 'auto':
-            device=f'cuda:{device_index}' if is_cuda else 'cpu'
+        # device=kw.get('device_name','auto')
+        device=whisper_device(device=kw.get('device_name','auto'),is_cuda=is_cuda)
+        # if device == 'auto':
+        #     device=f'cuda:{device_index}' if is_cuda else 'cpu'
         model = ConfuciusTTS(
             device=device
         )

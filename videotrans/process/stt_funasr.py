@@ -6,6 +6,7 @@ import json, traceback
 from pathlib import Path
 from typing import List, Tuple, Union
 from videotrans.configure.config import logger, ROOT_DIR
+from videotrans.util.gpus import whisper_device
 
 
 def funasr_mlt(
@@ -14,7 +15,6 @@ def funasr_mlt(
         model_name=None,
         logs_file=None,
         is_cuda=False,
-        device_index=0,  # gpu索引
         hotword=None,
         **kw
 ):
@@ -23,9 +23,8 @@ def funasr_mlt(
     from modelscope.pipelines import pipeline
     from modelscope.utils.constant import Tasks
 
-    device=kw.get('device_name','auto')
-    if device=='auto':
-        device = f"cuda:{device_index}" if is_cuda else 'cpu'
+    device=whisper_device(device=kw.get('device_name','auto'),is_cuda=is_cuda),
+
 
     msg = f'Load {model_name} running on {device}'
     _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))

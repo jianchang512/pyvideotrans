@@ -10,7 +10,7 @@ from videotrans.configure.excepts import DubbingSrtError
 from videotrans.configure.constants import SPACY_URL_MS,SPACY_URL_HF
 from videotrans.tts._base import BaseTTS
 from videotrans.util.help_role import get_chatterbox_role
-from videotrans.util.gpus import mps_or_cpu
+from videotrans.util.gpus import whisper_device
 import soundfile as sf
 from videotrans.util.help_misc import vail_file, is_connect_hf
 
@@ -34,8 +34,7 @@ class ChatterBoxTTS(BaseTTS):
 
     def _exec(self):
         from chatterbox.mtl_tts import ChatterboxMultilingualTTS
-        from videotrans.util.gpus import resolve_torch_device
-        device = resolve_torch_device(settings.get('device_name', 'auto'), is_cuda=self.is_cuda)
+        device = whisper_device(settings.get('device_name', 'auto'), is_cuda=self.is_cuda)
         logger.debug(f'Chatterbox running on {device}')
         model = ChatterboxMultilingualTTS.from_local(self.local_dir, device=device,  t3_model="v3")
 

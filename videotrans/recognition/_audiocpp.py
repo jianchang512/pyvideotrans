@@ -16,6 +16,7 @@ from videotrans.configure.excepts import NO_RETRY_EXCEPT, SpeechToTextError
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
 from videotrans.util._srt_parse import ms_to_time_string
+from videotrans.util.gpus import cpp_device
 from videotrans.util.help_down import down_audiocpp_bin, down_file_from_hf
 from videotrans.util.help_misc import exec_audiocpp
 
@@ -58,6 +59,12 @@ class AudiocppRecogn(BaseRecogn):
         err=''
         ok_nums=0
         cli_name = "audiocpp_cli.exe" if platform.system() == 'Windows' else 'audiocpp_cli'
+        device_name=cpp_device(is_cuda=self.is_cuda)
+        if ":" in device_name:
+            name,dev_index=device_name.split(":",1)
+            device_list=["--backend",name,"--device",str(dev_index)]
+        else:
+            device_list=["--backend",device_name]
         for i, it in enumerate(raws):
             txt_file=f'{self.cache_folder}/audio_asr_txt_{i}.txt'
             cmd = [
@@ -67,12 +74,10 @@ class AudiocppRecogn(BaseRecogn):
                         "--family",
                         self.model_name,
                         "--model",
-                        f"{ROOT_DIR}/models/{self.gguf_obj['file']}",
-                        "--backend",
-                        "best" if self.is_cuda else "cpu",
-                        "--audio",
-                        it['filename'],
+                        f"{ROOT_DIR}/models/{self.gguf_obj['file']}"
             ]
+            cmd.extend(device_list)
+            cmd.extend([ "--audio",it['filename']])
             if langcode:
                 cmd.extend(['--language',langcode])
 

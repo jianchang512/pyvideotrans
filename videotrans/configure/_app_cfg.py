@@ -12,6 +12,8 @@ class AppCfg:
     存储直接属于 config.py 的运行时属性 (原全局变量)。
     """
     NVIDIA_GPU_NUMS: int = -1
+    MPS_NUMS: int = 0
+    VULKAN_LIST: List = field(default_factory=list)
     MAX_CPU_PROCESS: int = 1
     MAX_GPU_PROCESS: int = 1
 

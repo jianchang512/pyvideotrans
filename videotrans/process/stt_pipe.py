@@ -6,7 +6,7 @@ import re, json, traceback
 from pathlib import Path
 from videotrans.configure.config import logger
 from videotrans.process._stt_utils import _write_log
-
+from videotrans.util.gpus import transformers_device
 
 
 def pipe_asr(
@@ -15,6 +15,7 @@ def pipe_asr(
         detect_language=None,
         logs_file=None,
         local_dir=None,
+        is_cuda=False,
         **kw
 ):
     from transformers import pipeline
@@ -34,7 +35,7 @@ def pipe_asr(
             task="automatic-speech-recognition",
             model=local_dir,
             batch_size=4,
-            device_map=kw.get('device_name','auto'),
+            device_map=transformers_device(device=kw.get('device_name','auto'),is_cuda=is_cuda),
             dtype='auto'
         )
         msg = f"running on {p.model.device}"

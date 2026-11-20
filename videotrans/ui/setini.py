@@ -14,6 +14,7 @@ from videotrans.configure.config import ROOT_DIR, tr, app_cfg, settings
 # 中文注释 界面ui控制
 from videotrans.util.help_misc import open_url
 from .advset_keys import notices,  ComboBox_List, ComboBox_Data
+from ..configure import config
 
 
 class Ui_setini(QtWidgets.QWidget):
@@ -42,8 +43,9 @@ class Ui_setini(QtWidgets.QWidget):
         val = str(settings.get(key, ""))
         # 下拉列表 comboBox
         if self._is_comboBox(key):
-            combobox_data = self._get_comboBox(key)
+            combobox_data = self._get_comboBox(key) if key != 'device_name' else config.ACCESS_DEVICES
             tmp1 = QtWidgets.QComboBox()
+
             tmp1.addItems(combobox_data)
 
             if key=='llm_ai_type':
@@ -219,6 +221,12 @@ class Ui_setini(QtWidgets.QWidget):
             obj.addItems(list(_support.keys()))
             if current_text in _support:
                 obj.setCurrentText(current_text)
+
+        for it in self.findChildren(QtWidgets.QComboBox):
+            if hasattr(it, 'objectName') and it.objectName()=='device_name':
+                it.clear()
+                it.addItems(config.ACCESS_DEVICES)
+                break
 
     def retranslateUi(self, setini):
         setini.setWindowTitle(tr("Options"))
