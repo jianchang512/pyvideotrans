@@ -1023,6 +1023,7 @@
   "OpenAI-compatible API, one key for DeepSeek, Qwen, GPT, Claude and Gemini models, prepaid with no monthly fee": "兼容 OpenAI 的 API，一个密钥即可调用 DeepSeek、Qwen、GPT、Claude 和 Gemini 模型，预付费，无月费",
   "OpenAI-compatible API, one key for OpenAI, Anthropic, Google and DeepSeek models, routed to the original providers": "兼容 OpenAI 的 API，一个密钥即可调用 OpenAI、Anthropic、Google 和 DeepSeek 模型，请求直接路由到原厂服务商",
   "OpenAI-compatible gateway, one key for DeepSeek, Qwen, GPT, Claude and Gemini models": "兼容 OpenAI 的网关，一个密钥即可调用 DeepSeek、Qwen、GPT、Claude 和 Gemini 模型",
+  "OpenAI-compatible endpoint for your API keys, subscription accounts and local models. Use the cloud URL with a key, or a local daemon URL without one": "兼容 OpenAI 的端点，可接入你的 API Key、订阅账号和本地模型。使用云端地址时需要填写密钥，使用本地守护进程地址时无需密钥",
   "Get API Key": "获取 API Key",
 
     "common_head": "通用设置",
