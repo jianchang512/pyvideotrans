@@ -373,6 +373,15 @@ _default["openllm"] = {
     "openllm_max_token": 16384,
 }
 
+from videotrans.configure.constants import AIGROW_MODELS
+
+_default["aigrow"] = {
+    # aigrow.gg
+    "aigrow_key": "",
+    "aigrow_model": AIGROW_MODELS.split(',')[0],
+    "aigrow_max_token": 16384,
+}
+
 
 # todo: 根据 name 返回配置dict???
 # 返回默认值
