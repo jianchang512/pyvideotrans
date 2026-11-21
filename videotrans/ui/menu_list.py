@@ -39,6 +39,7 @@ MENU_CFG_TRANS = [
     ("uberllm", 'UberLLM', None),
     ("requesty", 'Requesty', None),
     ("trustedrouter", 'TrustedRouter', None),
+    ("openllm", 'OpenLLM', None),
 
     ("deepl", "DeepL API", None),
     ("deeplx", "DeepLX API", None),

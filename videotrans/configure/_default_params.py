@@ -363,6 +363,16 @@ _default["trustedrouter"] = {
     "trustedrouter_max_token": 16384,
 }
 
+from videotrans.configure.constants import OPENLLM_MODELS
+
+_default["openllm"] = {
+    # openllm.sh: cloud https://www.openllm.sh/v1 with a key, or a local daemon http://127.0.0.1:8787/v1 (no key)
+    "openllm_api": "https://www.openllm.sh/v1",
+    "openllm_key": "",
+    "openllm_model": "plus",
+    "openllm_max_token": 16384,
+}
+
 
 # todo: 根据 name 返回配置dict???
 # 返回默认值
