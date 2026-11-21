@@ -49,46 +49,46 @@ ZHIPUAI_ASR_MODELS="glm-asr-2512"
 
 AUDIOCPP_ASR_MODELS={
     "fun_asr_nano":{
-        "url":"https://huggingface.co/FunAudioLLM/Fun-ASR-Nano-2512-GGUF/resolve/main/fun-asr-nano-2512-q8_0.gguf?download=true", #下载地址
+        "url":"/FunAudioLLM/Fun-ASR-Nano-2512-GGUF/resolve/main/fun-asr-nano-2512-q8_0.gguf?download=true", #下载地址
         "file":"Fun-ASR-Nano-2512-GGUF/fun-asr-nano-2512-q8_0.gguf", # 本地模型位置
         "languages":["zh","en","ja","yue"],
         "allow_language_tag":True, # 有些模型不支持使用 language标签
         "extra":["--request-option","audio_chunk_mode=none"] # 某些模型需要禁用vad
     },
     "qwen3_asr":{
-        "url":"https://huggingface.co/audio-cpp/audio.cpp-gguf/resolve/main/Qwen3-ASR-1.7B-GGUF/qwen3-asr-1.7b-q8_0.gguf?download=true",
+        "url":"/audio-cpp/audio.cpp-gguf/resolve/main/Qwen3-ASR-1.7B-GGUF/qwen3-asr-1.7b-q8_0.gguf?download=true",
         "languages":["zh", "en", "yue", "ar", "de", "fr", "es", "pt", "id", "it", "ko", "ru", "th", "vi", "ja", "tr", "hi", "ms", "nl", "sv", "da", "fi", "pl", "cs", "fil", "fa", "el", "hu", "mk", "ro"],
         "allow_language_tag":True,
         "file":"Qwen3-ASR-1.7B-GGUF/qwen3-asr-1.7b-q8_0.gguf",
         "extra":["--request-option","audio_chunk_mode=none"]
     },
     "sense_asr":{
-        "url":"https://huggingface.co/FunAudioLLM/SenseVoiceSmall-GGUF-audiocpp/resolve/main/sensevoice-small-q8-audiocpp-v1.gguf?download=true",
+        "url":"/FunAudioLLM/SenseVoiceSmall-GGUF-audiocpp/resolve/main/sensevoice-small-q8-audiocpp-v1.gguf?download=true",
         "file":"SenseVoice-Small-GGUF/sensevoice-small-q8-audiocpp-v1.gguf",
         "languages":["zh", "en", "yue", "ja", "ko", "pt", "ru", "es", "it", "fr", "de", "nl", "pl", "tr", "ar", "hi", "vi", "th", "id", "ms", "fa"],
         "allow_language_tag":True,
         "extra":["--request-option","audio_chunk_mode=none"]
     },
     "vibevoice_asr":{
-      "url":"https://huggingface.co/audio-cpp/audio.cpp-gguf/resolve/main/VibeVoice-ASR-GGUF/vibevoice-asr-q8_0.gguf?download=true",
+      "url":"/audio-cpp/audio.cpp-gguf/resolve/main/VibeVoice-ASR-GGUF/vibevoice-asr-q8_0.gguf?download=true",
         "file":"VibeVoice-ASR-GGUF/vibevoice-asr-q8_0.gguf",
         "allow_language_tag":True,
         "extra":["--request-option","audio_chunk_mode=none"]
     },
     "moss_transcribe_diarize":{
-        "url":"https://huggingface.co/audio-cpp/audio.cpp-gguf/resolve/main/MOSS-Transcribe-Diarize-GGUF/moss-transcribe-diarize-q8_0.gguf?download=true",
+        "url":"/audio-cpp/audio.cpp-gguf/resolve/main/MOSS-Transcribe-Diarize-GGUF/moss-transcribe-diarize-q8_0.gguf?download=true",
         "allow_language_tag":False,
         "file":"MOSS-Transcribe-Diarize-GGUF/moss-transcribe-diarize-q8_0.gguf"
     },
     "parakeet_tdt":{
-        "url":"https://huggingface.co/audio-cpp/audio.cpp-gguf/resolve/main/Parakeet-TDT-0.6B-v3-GGUF/parakeet-tdt-0.6b-v3-q8_0.gguf?download=true",
+        "url":"/audio-cpp/audio.cpp-gguf/resolve/main/Parakeet-TDT-0.6B-v3-GGUF/parakeet-tdt-0.6b-v3-q8_0.gguf?download=true",
         "languages":["bg", "hr", "cs", "da", "nl", "en", "et", "fi", "fr", "de", "el", "hu", "it", "lv", "lt", "mt", "pl", "pt", "ro", "sk", "sl", "es", "sv", "ru", "uk"],
         "allow_language_tag":False,
         "file":"Parakeet-TDT-0.6B-v3-GGUF/parakeet-tdt-0.6b-v3-q8_0.gguf",
         "extra":["--request-option","audio_chunk_mode=none"]
     },
     "nemotron_asr":{
-        "url":"https://huggingface.co/audio-cpp/audio.cpp-gguf/resolve/main/Nemotron-3.5-ASR-Streaming-0.6B-GGUF/nemotron-3.5-asr-streaming-0.6b-q8_0.gguf?download=true",
+        "url":"/audio-cpp/audio.cpp-gguf/resolve/main/Nemotron-3.5-ASR-Streaming-0.6B-GGUF/nemotron-3.5-asr-streaming-0.6b-q8_0.gguf?download=true",
         "allow_language_tag":True,
         "file":"Nemotron-3.5-ASR-Streaming-0.6B-GGUF/nemotron-3.5-asr-streaming-0.6b-q8_0.gguf"
     }
@@ -202,91 +202,70 @@ no_proxy = ",".join( [
 ])
 
 #-------------模型下载地址===========================================
+# 统一上传到  huggingface.co ，方便中国大陆直接使用国内镜像站 hf-mirror.com, github.com 国内下载极慢，几KB/s,无权威镜像站
 # whisper.cpp windows二进制文件
-WHISPER_CPP_URL_MS = 'https://modelscope.cn/models/himyworld/videotrans/resolve/master/whisper-cpp-win32.zip'
-WHISPER_CPP_URL_HF = 'https://huggingface.co/mortimerme/repocollect/resolve/main/whisper-cpp-win32.zip?download=true'
+WHISPER_CPP_URL_HF = '/mortimerme/repocollect/resolve/main/whisper-cpp-win32.zip?download=true'
 
 # 内置说话人下载地址
-BUILTINT_URL_MS = [
-    "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/seg_model.onnx",
-    "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/nemo_en_titanet_small.onnx",
-    "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/onnx/3dspeaker_speech_eres2net_large_sv_zh-cn_3dspeaker_16k.onnx"
-]
 BUILTINT_URL_HF = [
-    "https://huggingface.co/mortimerme/repocollect/resolve/main/onnx/seg_model.onnx?download=true",
-    "https://huggingface.co/mortimerme/repocollect/resolve/main/onnx/nemo_en_titanet_small.onnx?download=true",
-    "https://huggingface.co/mortimerme/repocollect/resolve/main/onnx/3dspeaker_speech_eres2net_large_sv_zh-cn_3dspeaker_16k.onnx?download=true"
+    "/mortimerme/repocollect/resolve/main/onnx/seg_model.onnx?download=true",
+    "/mortimerme/repocollect/resolve/main/onnx/nemo_en_titanet_small.onnx?download=true",
+    "/mortimerme/repocollect/resolve/main/onnx/3dspeaker_speech_eres2net_large_sv_zh-cn_3dspeaker_16k.onnx?download=true"
 ]
 
 # 内置标点恢复模型下载地址
-PUNC_RESTORE_MS = [
-    "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/puntc/model.onnx",
-    "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/puntc/config.yaml",
-    "https://www.modelscope.cn/models/himyworld/videotrans/resolve/master/puntc/tokens.json",
-]
 PUNC_RESTORE_HF = [
-    "https://huggingface.co/mortimerme/repocollect/resolve/main/puntc/model.onnx?download=true",
-    "https://huggingface.co/mortimerme/repocollect/resolve/main/puntc/config.yaml?download=true",
-    "https://huggingface.co/mortimerme/repocollect/resolve/main/puntc/tokens.json?download=true",
+    "/mortimerme/repocollect/resolve/main/puntc/model.onnx?download=true",
+    "/mortimerme/repocollect/resolve/main/puntc/config.yaml?download=true",
+    "/mortimerme/repocollect/resolve/main/puntc/tokens.json?download=true",
 ]
 # 降噪模型下载地址
-DENOISE_URL_HF = 'https://huggingface.co/mortimerme/repocollect/resolve/main/onnx/{}?download=true'
+DENOISE_URL_HF = '/mortimerme/repocollect/resolve/main/onnx/{}?download=true'
 
 # 背景音频分离地址前缀
-UVR_URL_HF = 'https://huggingface.co/mortimerme/repocollect/resolve/main/onnx/{}?download=true'
+UVR_URL_HF = '/mortimerme/repocollect/resolve/main/onnx/{}?download=true'
 # M2M100模型下载地址
-M2M100_URL_MS = 'https://modelscope.cn/models/himyworld/videotrans/resolve/master/m2m100_12b_model.zip'
-M2M100_URL_HF = 'https://huggingface.co/mortimerme/repocollect/resolve/main/m2m100_12b_model.zip?download=true'
+M2M100_URL_HF = '/mortimerme/repocollect/resolve/main/m2m100_12b_model.zip?download=true'
 # ZipVoice-TTS 下载地址
-ZIPVOICE_URL_MS = 'https://modelscope.cn/models/himyworld/videotrans/resolve/master/zipvoice-tts.zip'
-ZIPVOICE_URL_HF = 'https://huggingface.co/mortimerme/repocollect/resolve/main/zipvoice-tts.zip?download=true'
+ZIPVOICE_URL_HF = '/mortimerme/repocollect/resolve/main/zipvoice-tts.zip?download=true'
 # VITS-TTS 下载地址
-VITS_URL_MS = 'https://modelscope.cn/models/himyworld/videotrans/resolve/master/vits-tts.zip'
-VITS_URL_HF = 'https://huggingface.co/mortimerme/repocollect/resolve/main/vits-tts.zip?download=true'
+VITS_URL_HF = '/mortimerme/repocollect/resolve/main/vits-tts.zip?download=true'
 # GPTW 用于 piper-TTS  下载地址
-GPTW_URL_MS = 'https://modelscope.cn/models/himyworld/videotrans/resolve/master/G2PWModel-v2-onnx.zip'
-GPTW_URL_HF = 'https://huggingface.co/mortimerme/repocollect/resolve/main/G2PWModel-v2-onnx.zip?download=true'
+GPTW_URL_HF = '/mortimerme/repocollect/resolve/main/G2PWModel-v2-onnx.zip?download=true'
 # 小红书语音识别 fireredasr 下载地址
-FIRERED_URL_MS = 'https://modelscope.cn/models/himyworld/videotrans/resolve/master/fireredasr2aed.zip'
-FIRERED_URL_HF = 'https://huggingface.co/mortimerme/repocollect/resolve/main/fireredasr2aed.zip?download=true'
+FIRERED_URL_HF = '/mortimerme/repocollect/resolve/main/fireredasr2aed.zip?download=true'
 # dolphine 语音识别模型下载地址
-DOLPHIN_URL_MS = 'https://modelscope.cn/models/himyworld/videotrans/resolve/master/dolphin.zip'
-DOLPHIN_URL_HF = 'https://huggingface.co/mortimerme/repocollect/resolve/main/dolphin.zip?download=true'
-# parakeet-ja日语识别模型下载地址
-PARAKEETJA_URL_MS = 'https://modelscope.cn/models/himyworld/videotrans/resolve/master/parakeet-ja.zip'
-PARAKEETJA_URL_HF = 'https://huggingface.co/mortimerme/repocollect/resolve/main/parakeet-ja.zip?download=true'
+DOLPHIN_URL_HF = '/mortimerme/repocollect/resolve/main/dolphin.zip?download=true'
 # omnilingual 语音识别模型下载地址
-OMNILINGUAL_URL_MS = 'https://modelscope.cn/models/himyworld/videotrans/resolve/master/omnilingual.zip'
-OMNILINGUAL_URL_HF = 'https://huggingface.co/mortimerme/repocollect/resolve/main/omnilingual.zip?download=true'
+OMNILINGUAL_URL_HF = '/mortimerme/repocollect/resolve/main/omnilingual.zip?download=true'
 
 # realtime stt
-REALTIME_URL_MS = 'https://modelscope.cn/models/himyworld/videotrans/resolve/master/realtimestt.zip'
-REALTIME_URL_HF = 'https://huggingface.co/mortimerme/repocollect/resolve/main/realtimestt.zip?download=true'
+REALTIME_URL_HF = '/mortimerme/repocollect/resolve/main/realtimestt.zip?download=true'
 
 # whisper.cpp 模型下载地址
-WHISPERCPP_MODEL_URL_HF = 'https://huggingface.co/ggerganov/whisper.cpp/resolve/main/{}?download=true'
-WHISPERCPP_MODEL_URL_MS = 'https://modelscope.cn/models/viggocx/whisper.cpp/resolve/master/{}'
+WHISPERCPP_MODEL_URL_HF = '/ggerganov/whisper.cpp/resolve/main/{}?download=true'
 
 # spacy_ontonotes.zip
-SPACY_URL_MS = 'https://modelscope.cn/models/himyworld/videotrans/resolve/master/spacy_ontonotes.zip'
-SPACY_URL_HF = 'https://github.com/explosion/spacy-pkuseg/releases/download/v0.0.26/spacy_ontonotes.zip'
+SPACY_URL_HF = '/mortimerme/repocollect/resolve/main/spacy_ontonotes.zip?download=true'
 
 # audio.cpp
-AUDIO_CPP_MAC_HF="https://github.com/0xShug0/audio.cpp/releases/download/v0.9.5/audio-v0.9.5-bin-macos-arm64-metal.tar.gz"
-AUDIO_CPP_LINUX_VULKAN_HF="https://github.com/0xShug0/audio.cpp/releases/download/v0.9.5/audio-v0.9.5-bin-ubuntu-x64-vulkan-portable.tar.gz"
-AUDIO_CPP_WIN_VULKAN_HF="https://github.com/0xShug0/audio.cpp/releases/download/v0.9.5/audio-v0.9.5-bin-windows-x64-vulkan-portable.zip"
+AUDIO_CPP_MAC_HF="/mortimerme/repocollect/resolve/main/audio-v0.9.5-bin-macos-arm64-metal.tar.gz?download=true"
+
+AUDIO_CPP_LINUX_VULKAN_HF="/mortimerme/repocollect/resolve/main/audio-v0.9.5-bin-ubuntu-x64-vulkan-portable.tar.gz?download=true"
+
+AUDIO_CPP_WIN_VULKAN_HF="/mortimerme/repocollect/resolve/main/audio-v0.9.5-bin-windows-x64-vulkan-portable.zip?download=true"
 
 
-AUDIO_CPP_WIN_MS="https://modelscope.cn/models/himyworld/videotrans/resolve/master/audio-v0.9.5-bin-windows-x64-cuda12.4.zip"
-AUDIO_CPP_WIN_HF="https://huggingface.co/mortimerme/repocollect/resolve/main/audio-v0.9.5-bin-windows-x64-cuda12.4.zip?download=true"
+AUDIO_CPP_WIN_HF="/mortimerme/repocollect/resolve/main/audio-v0.9.5-bin-windows-x64-cuda12.4.zip?download=true"
 
-LLAMA_CPP_LINUX_VULKAN_HF="https://github.com/ggml-org/llama.cpp/releases/download/b12359/llama-b12359-bin-ubuntu-vulkan-x64.tar.gz"
-LLAMA_CPP_WIN_VULKAN_HF="https://github.com/ggml-org/llama.cpp/releases/download/b12359/llama-b12359-bin-win-vulkan-x64.zip"
+LLAMA_CPP_LINUX_VULKAN_HF="/mortimerme/repocollect/resolve/main/llama-b12359-bin-ubuntu-vulkan-x64.tar.gz?download=true"
+LLAMA_CPP_WIN_VULKAN_HF="/mortimerme/repocollect/resolve/main/llama-b12359-bin-win-vulkan-x64.zip?download=true"
+LLAMA_CPP_MAC_HF="/mortimerme/repocollect/resolve/main/llama-b12600-bin-macos-arm64.tar.gz?download=true"
 HYMT2_GGUF_HF="/tencent/Hy-MT2-1.8B-GGUF/resolve/main/Hy-MT2-1.8B-Q8_0.gguf?download=true"
 
-AUDIO_CPP_MELBAND="https://huggingface.co/audio-cpp/audio.cpp-gguf/resolve/main/Mel-Band-RoFormer-GGUF/mel-band-roformer-q8_0.gguf?download=true"
-AUDIO_CPP_BS="https://huggingface.co/audio-cpp/audio.cpp-gguf/resolve/main/BS-RoFormer-ep368-GGUF/bs-roformer-ep368-q8_0.gguf?download=true"
-ZIPENHANCER_HF="https://huggingface.co/mortimerme/repocollect/resolve/main/zipenhancer.safetensors?download=true"
+AUDIO_CPP_MELBAND="/audio-cpp/audio.cpp-gguf/resolve/main/Mel-Band-RoFormer-GGUF/mel-band-roformer-q8_0.gguf?download=true"
+AUDIO_CPP_BS="/audio-cpp/audio.cpp-gguf/resolve/main/BS-RoFormer-ep368-GGUF/bs-roformer-ep368-q8_0.gguf?download=true"
+ZIPENHANCER_HF="/mortimerme/repocollect/resolve/main/zipenhancer.safetensors?download=true"
 
 
 # ----------Rubberband 库安装提示------------------

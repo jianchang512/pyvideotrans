@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Union
 from videotrans.configure.config import  logger, settings,ROOT_DIR
-from videotrans.configure.constants import OMNILINGUAL_URL_MS, OMNILINGUAL_URL_HF
+from videotrans.configure.constants import OMNILINGUAL_URL_HF
 from videotrans.configure.excepts import SpeechToTextError
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
@@ -35,7 +35,7 @@ class OmnilingualRecogn(BaseRecogn):
         if not Path(f'{self.local_dir}/model.int8.onnx').exists():
             from videotrans.util import help_down
             help_down.down_zip(f"{ROOT_DIR}/models",
-                           OMNILINGUAL_URL_MS if not is_connect_hf() else OMNILINGUAL_URL_HF ,
+                           OMNILINGUAL_URL_HF ,
                            self._process_callback)
         return True
         

@@ -72,7 +72,7 @@ def remove_noise(*, input_file, output_file,logs_file=None,model_name='dpdfnet2.
     _st = time.time()
     logger.debug(f'开始降噪，使用模型 {model_name}')
     _write_log(logs_file,f"downloading {model_name}...")
-    down_file_from_hf(f'{ROOT_DIR}/models/onnx', urls=[DENOISE_URL_HF.replace('https://huggingface.co','').replace('{}',model_name)])
+    down_file_from_hf(f'{ROOT_DIR}/models/onnx', urls=[DENOISE_URL_HF.replace('{}',model_name)])
 
 
     def load_audio(filename: str):

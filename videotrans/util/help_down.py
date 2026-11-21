@@ -295,6 +295,11 @@ def down_zip(local_dir, zip_url, callback=None) -> bool:
     from videotrans.configure.excepts import DownloadModelsError
     import requests
     proxy = None
+    if not zip_url.startswith('https:'):
+        from .help_misc import is_connect_hf
+        is_connect_hf()
+        endpoint = os.environ.get('HF_ENDPOINT')
+        zip_url=f'{endpoint}{zip_url}'
     # modelscope.cn 阿里魔塔不使用代理
     if 'modelscope.cn' not in zip_url:
         proxy = {"https": app_cfg.proxy} if app_cfg.proxy else None
@@ -548,29 +553,24 @@ def down_audiocpp_bin(process_callback=None):
         return True
 
     from videotrans.configure.constants import (
-        AUDIO_CPP_WIN_MS,
         AUDIO_CPP_WIN_HF,
-        AUDIO_CPP_MAC_HF,
         AUDIO_CPP_WIN_VULKAN_HF,
+        AUDIO_CPP_MAC_HF,
         AUDIO_CPP_LINUX_VULKAN_HF,
     )
 
 
     # 仅 Windows cuda 版本区分 hf/ms 下载地址，其他统一从 github.com/0xShug0/audio.cpp 原始地址下载
     urls = {
-        "Darwin": {"ms": AUDIO_CPP_MAC_HF, "hf": AUDIO_CPP_MAC_HF},
-        "Windows": {
-            "ms":  AUDIO_CPP_WIN_MS,
-            "hf": AUDIO_CPP_WIN_HF,
-        },
-        "Linux": {"ms": AUDIO_CPP_LINUX_VULKAN_HF, "hf": AUDIO_CPP_LINUX_VULKAN_HF},
+        "Darwin": AUDIO_CPP_MAC_HF,
+        "Windows":  AUDIO_CPP_WIN_HF,
+        "Linux": AUDIO_CPP_LINUX_VULKAN_HF
     }
-    from .help_misc import is_connect_hf
     if not p.exists():
-        down_zip(f'{ROOT_DIR}/audio_cpp', urls[_os]['ms'] if _os =='Windows' and not is_connect_hf()  else urls[_os]['hf'], callback=process_callback)
+        down_zip(f'{ROOT_DIR}/audio_cpp', urls[_os], callback=process_callback)
         if _os == 'Linux':
             _patch_linux_audiocpp_glibc(Path(f'{ROOT_DIR}/audio_cpp'))
-    # win上额外下载vulkan 仅仅用于vulkan，cpu运行仍然使用cuda版
+    # win上额外下载 vulkan 仅仅用于 vulkan，cpu运行仍然使用cuda版
     if _os=='Windows' and not Path(f'{ROOT_DIR}/audio_cpp_vulkan/{cli_name}').exists():
          down_zip(f'{ROOT_DIR}/audio_cpp_vulkan', AUDIO_CPP_WIN_VULKAN_HF, callback=process_callback)
     return True
@@ -586,15 +586,17 @@ def down_llamacpp_bin(process_callback=None):
     from videotrans.configure.constants import (
         LLAMA_CPP_LINUX_VULKAN_HF,
         LLAMA_CPP_WIN_VULKAN_HF,
+        LLAMA_CPP_MAC_HF,
     )
     urls = {
         "Windows": LLAMA_CPP_WIN_VULKAN_HF,
         "Linux": LLAMA_CPP_LINUX_VULKAN_HF,
+        "Darwin":LLAMA_CPP_MAC_HF
     }
     if _os not in urls:
         return False
     down_zip(f'{ROOT_DIR}/llama_cpp', urls[_os], callback=process_callback)
-    if _os == 'Linux':
+    if _os in ['Linux','Darwin']:
         for f in Path(f'{ROOT_DIR}/llama_cpp').iterdir():
             if f.is_file() and not f.is_symlink() and f.name.startswith(('llama', 'ggml')):
                 try:

@@ -12,7 +12,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 import numpy as np
 
 from videotrans.configure.config import ROOT_DIR, logger, settings, app_cfg
-from videotrans.configure.constants import WHISPERCPP_MODEL_URL_HF, WHISPERCPP_MODEL_URL_MS
+from videotrans.configure.constants import WHISPERCPP_MODEL_URL_HF
 
 # Standard Whisper models hosted on ggerganov/whisper.cpp (HF) and viggocx/whisper.cpp (ModelScope)
 from videotrans.util.gpus import cpp_device
@@ -86,7 +86,7 @@ def is_pywhispercpp_available() -> bool:
         return False
 
 
-def get_ggml_model_info(model_name: str) -> Optional[Tuple[str, str, Optional[str]]]:
+def get_ggml_model_info(model_name: str) -> Optional[Tuple[str, str]]:
     """
     Map a Whisper model name to (local_filename, hf_url, ms_url).
     Returns None if the model name does not have a known GGML counterpart.
@@ -96,23 +96,15 @@ def get_ggml_model_info(model_name: str) -> Optional[Tuple[str, str, Optional[st
     name = model_name.strip()
 
     if name.startswith("ggml-") and name.endswith(".bin"):
-        return (
-            name,
-            WHISPERCPP_MODEL_URL_HF.replace("{}", name),
-            WHISPERCPP_MODEL_URL_MS.replace("{}", name),
-        )
+        return name, WHISPERCPP_MODEL_URL_HF.replace("{}", name)
 
     if name in _STANDARD_GGML_MODELS:
         ggml_file = _STANDARD_GGML_MODELS[name]
-        return (
-            ggml_file,
-            WHISPERCPP_MODEL_URL_HF.replace("{}", ggml_file),
-            WHISPERCPP_MODEL_URL_MS.replace("{}", ggml_file),
-        )
+        return ggml_file,WHISPERCPP_MODEL_URL_HF.replace("{}", ggml_file)
 
     if name in _DISTIL_GGML_URLS:
         ggml_file, hf_rel_url = _DISTIL_GGML_URLS[name]
-        return ggml_file, hf_rel_url, None
+        return ggml_file, hf_rel_url
 
     return None
 
@@ -153,7 +145,7 @@ def ensure_ggml_whisper_model(model_name: str, callback: Optional[Callable] = No
     if info is None:
         raise ValueError(f"Unsupported GGML Whisper model: {model_name}")
 
-    ggml_file, hf_url, ms_url = info
+    ggml_file, download_url = info
     models_dir = Path(ROOT_DIR) / "models"
     models_dir.mkdir(parents=True, exist_ok=True)
     target_path = models_dir / ggml_file
@@ -162,10 +154,8 @@ def ensure_ggml_whisper_model(model_name: str, callback: Optional[Callable] = No
         return str(target_path)
 
     from videotrans.util import help_down
-    from videotrans.util.help_misc import is_connect_hf
 
-    use_hf = is_connect_hf() or ms_url is None
-    download_url = hf_url if use_hf else ms_url
+
 
     # For distil-large-v3.5, upstream file is named ggml-model.bin
     upstream_filename = download_url.split("/")[-1].split("?")[0]

@@ -9,14 +9,12 @@ from pathlib import Path
 from videotrans.configure import constants
 from videotrans.configure._paths import ROOT_DIR
 from videotrans.configure.config import tr, settings, logger
-from videotrans.configure.constants import WHISPER_CPP_URL_MS, WHISPER_CPP_URL_HF, WHISPERCPP_MODEL_URL_MS, \
-    WHISPERCPP_MODEL_URL_HF
+from videotrans.configure.constants import WHISPER_CPP_URL_HF, WHISPERCPP_MODEL_URL_HF
 from videotrans.configure.excepts import SpeechToTextError
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util._srt_parse import get_subtitle_from_srt, ms_to_time_string
 from videotrans.util.gpus import cpp_device
 from videotrans.util.help_down import down_zip
-from videotrans.util.help_misc import is_connect_hf
 
 
 @dataclass(repr=False)
@@ -25,7 +23,7 @@ class CPPRecogn(BaseRecogn):
     def _win_download_cli(self):
         # windows上自动下载exe
         self.signal(text=f'Download whisper-cli.exe ')
-        down_zip(f'{ROOT_DIR}', WHISPER_CPP_URL_MS  if is_connect_hf() is False else WHISPER_CPP_URL_HF, callback=self._process_callback)
+        down_zip(f'{ROOT_DIR}', WHISPER_CPP_URL_HF, callback=self._process_callback)
 
 
     def _exec(self):
@@ -38,10 +36,7 @@ class CPPRecogn(BaseRecogn):
 
         if not Path(f'{ROOT_DIR}/models/{self.model_name}').is_file():
             from videotrans.util import help_down
-            if not is_connect_hf():
-                url=WHISPERCPP_MODEL_URL_MS.replace('{}',self.model_name)
-            else:
-                url=WHISPERCPP_MODEL_URL_HF.replace('{}',self.model_name)
+            url=WHISPERCPP_MODEL_URL_HF.replace('{}',self.model_name)
             help_down.down_file_from_hf(
                 f"{ROOT_DIR}/models",
                 [url],

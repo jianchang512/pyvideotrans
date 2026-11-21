@@ -9,9 +9,6 @@
 """
 
 import importlib
-import platform
-
-from videotrans.configure import  config
 from videotrans.configure.config import app_cfg
 
 

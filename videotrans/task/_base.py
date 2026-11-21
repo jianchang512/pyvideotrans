@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import List, Union
 from videotrans.configure.config import tr, app_cfg, logger, ROOT_DIR, settings
 from videotrans.configure.base import BaseCon
-from videotrans.configure.constants import BUILTINT_URL_MS, BUILTINT_URL_HF
+from videotrans.configure.constants import BUILTINT_URL_HF
 from videotrans.task.taskcfg import TaskCfgBase, SrtItem
 from videotrans.translator import LLM_CONCERT_DICT
 from videotrans.translator._runner import get_model_transobj
@@ -181,7 +181,7 @@ class BaseTask(BaseCon):
                 "is_cuda": self.cfg.is_cuda
             }
             if speaker_type == 'built':
-                down_file_from_hf(f'{ROOT_DIR}/models/onnx', BUILTINT_URL_MS if not ishf else BUILTINT_URL_HF, callback=self._process_callback)
+                down_file_from_hf(f'{ROOT_DIR}/models/onnx', BUILTINT_URL_HF, callback=self._process_callback)
                 from videotrans.process.prepare_audio import built_speakers as _run_speakers
                 del kw['is_cuda']
                 kw['num_speakers'] = -1 if self.max_speakers < 1 else self.max_speakers

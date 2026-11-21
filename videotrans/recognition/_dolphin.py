@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Union
 from videotrans.configure.config import  logger, settings,ROOT_DIR
-from videotrans.configure.constants import DOLPHIN_URL_MS, DOLPHIN_URL_HF
+from videotrans.configure.constants import DOLPHIN_URL_HF
 from videotrans.configure.excepts import SpeechToTextError
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
@@ -34,7 +34,7 @@ class DolphinRecogn(BaseRecogn):
         if not Path(f'{self.local_dir}/model.int8.onnx').exists():
             from videotrans.util import help_down
             help_down.down_zip(f"{ROOT_DIR}/models",
-                           DOLPHIN_URL_MS if not is_connect_hf() else DOLPHIN_URL_HF,
+                           DOLPHIN_URL_HF,
                            self._process_callback)
         return True
         

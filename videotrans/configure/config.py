@@ -33,7 +33,7 @@ if _proxy:
         settings['proxy'] = _proxy
 
 TEMP_DIR = f'{TEMP_ROOT}/None'
-
+# 高级选项中硬件选择列表
 ACCESS_DEVICES=["auto"]
 
 

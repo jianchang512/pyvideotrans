@@ -251,17 +251,8 @@ class BaseCon:
         try:
             Path(logs_file).touch()
             threading.Thread(target=self._signal_of_process, args=(logs_file,status_dict), daemon=True).start()
-            # 再次判断cuda/vulkan是否有效，防止预先获取失败
-            # 更新 is_cuda
             kwargs['is_cuda']=is_cuda
-            # gpu， device_index 固定使用第0号
-            # kwargs['device_index'] = 0
             kwargs['device_name'] = str(settings.get('device_name', 'auto') or 'auto')
-            # if raw_dev.lower().startswith('vulkan'):
-            #     from videotrans.util.gpus import resolve_torch_device
-            #     kwargs['device_name'] = resolve_torch_device(raw_dev, is_cuda=bool(is_cuda))
-            # else:
-            #     kwargs['device_name'] = raw_dev
             logger.debug(f'新进程任务 参数:{kwargs=}')
             future = GlobalProcessManager.submit_task_cpu(
                 callback,
@@ -286,7 +277,6 @@ class BaseCon:
                     _timeout+=1
                 time.sleep(1)
             data,err = future.result(timeout=10)
-            logger.debug(f'[新进程任务 {title=}] 已返回')
             status_dict['is_end']=True
             if err or not data:
                 raise VideoTransError(err)
@@ -296,12 +286,10 @@ class BaseCon:
             raise
         except BrokenProcessPool as e:
             _model = ''
-            _cuda = ''
             if kwargs.get('model_name'):
                 _model = ' Model:' + kwargs.get('model_name')
-
             logger.exception(f'{title}: {_model}, {kwargs=},{e}', exc_info=True)
-            raise VideoTransError(f'{_model}{_cuda} {e}')
+            raise VideoTransError(f'{_model} {e}')
         except BaseException as e:
             logger.exception(f'{title},{e}', exc_info=True)
             raise

@@ -13,7 +13,7 @@ from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, Q
     QFileDialog, QMessageBox
 
 from videotrans.configure.config import ROOT_DIR,  tr
-from videotrans.configure.constants import REALTIME_URL_HF, REALTIME_URL_MS
+from videotrans.configure.constants import REALTIME_URL_HF
 from videotrans.util.help_down import down_zip
 from videotrans.util.help_misc import is_connect_hf
 
@@ -267,7 +267,7 @@ class DownloadModel(QThread):
     
     
     def run(self):
-        down_zip(f"{ROOT_DIR}/models", REALTIME_URL_MS if not is_connect_hf() else REALTIME_URL_HF,self._process_callback)
+        down_zip(f"{ROOT_DIR}/models", REALTIME_URL_HF,self._process_callback)
     def _process_callback(self,msg):
         self.down.emit(msg)
 

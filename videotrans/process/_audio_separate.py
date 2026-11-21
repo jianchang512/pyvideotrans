@@ -112,7 +112,7 @@ def _use_audiocpp(*,uvr_models, input_file, vocal_file, instr_file,logs_file=Non
         _write_log(logs_file,"downloading models...")
         down_file_from_hf(
                 f'{ROOT_DIR}/models',
-                [_URL.replace('https://huggingface.co','')],
+                [_URL],
         )
     start = time.time()
     # 执行分离

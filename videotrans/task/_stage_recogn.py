@@ -7,7 +7,7 @@ from pathlib import Path
 import os
 
 from videotrans.configure.config import tr, ROOT_DIR, settings, logger
-from videotrans.configure.constants import PUNC_RESTORE_MS, PUNC_RESTORE_HF
+from videotrans.configure.constants import PUNC_RESTORE_HF
 from videotrans.configure.excepts import SpeechToTextError
 from videotrans.recognition import run as run_recogn,  FASTER_WHISPER
 from videotrans.util.help_ffmpeg import conver_to_16k, runffmpeg, cut_from_audio
@@ -86,7 +86,7 @@ class RecognMixin:
         # 恢复标点
         if self.cfg.fix_punc==1:
             try:
-                down_file_from_hf(f'{ROOT_DIR}/models/puntc', PUNC_RESTORE_MS if not is_connect_hf() else PUNC_RESTORE_HF, callback=self._process_callback)
+                down_file_from_hf(f'{ROOT_DIR}/models/puntc', PUNC_RESTORE_HF, callback=self._process_callback)
                 from videotrans.process.prepare_audio import fix_punc
                 text_dict = {f'{it["line"]}': re.sub(r'[,.?!，。？！]', ' ', it["text"]) for it in self.source_srt_list}
                 text_dict_file=f'{self.cfg.cache_folder}/text_dict_file_{time.time()}.json'

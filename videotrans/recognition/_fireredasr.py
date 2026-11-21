@@ -1,9 +1,9 @@
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Union
-from videotrans.configure.config import params, logger, settings,ROOT_DIR
-from videotrans.configure.constants import FIRERED_URL_MS, FIRERED_URL_HF
-from videotrans.configure.excepts import SpeechToTextError, StopTask
+from videotrans.configure.config import logger, settings,ROOT_DIR
+from videotrans.configure.constants import FIRERED_URL_HF
+from videotrans.configure.excepts import SpeechToTextError
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
 import sherpa_onnx
@@ -37,7 +37,7 @@ class FireredRecogn(BaseRecogn):
         if not Path(f'{self.local_dir}/encoder.int8.onnx').exists():
             from videotrans.util import help_down
             help_down.down_zip(f"{ROOT_DIR}/models",
-                           FIRERED_URL_MS if not is_connect_hf() else FIRERED_URL_HF,
+                           FIRERED_URL_HF,
                            self._process_callback)
         return True
         
