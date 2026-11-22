@@ -5,9 +5,9 @@ import time
 from pathlib import Path
 
 from videotrans.configure._paths import DUBBING_CACHE
-from videotrans.configure.config import tr, app_cfg, settings, logger
+from videotrans.configure.config import tr, app_cfg, settings, params, logger
 from videotrans.configure.excepts import DubbingSrtError
-from videotrans.tts import run as run_tts, SUPPORT_CLONE
+from videotrans.tts import run as run_tts, SUPPORT_CLONE, AUDIOCPP_TTS, TTS_MODEL_PARAMS
 from videotrans.util.help_misc import get_md5, vail_file
 from videotrans.util.help_srt import get_subtitle_from_srt, delete_punc
 
@@ -55,6 +55,12 @@ class DubbingMixin:
         voice_role = self.cfg.voice_role
         logger.debug(f'{line_roles=}')
         _lang=self.cfg.detect_language.split('-')[0]
+        # 渠道配音时使用的模型：Audio.cpp 使用任务指定的模型（主窗口和网页界面会指定），未指定时（如 cli）使用保存的模型
+        # 其他在设置中选择模型的渠道不使用任务指定的模型，只使用 params 中保存的模型
+        tts_model = self.cfg.tts_model_name
+        _model_key = TTS_MODEL_PARAMS.get(self.cfg.tts_type)
+        if _model_key and not (self.cfg.tts_type == AUDIOCPP_TTS and tts_model):
+            tts_model = params.get(_model_key)
         for i, it in enumerate(subs):
             if it['end_time'] < it['start_time'] or not it['text'].strip():
                 continue
@@ -63,9 +69,9 @@ class DubbingMixin:
             # 克隆音色时，参考音频是从当前视频中裁切的，缓存键需包含视频 uuid，否则会用上其他视频中说话人的配音
             # uuid 由文件路径、大小和修改时间生成，再次处理同一视频时不变，仍会使用缓存
             _clone = f"-{self.uuid}" if is_clone else ''
-            # Audio.cpp 可选择不同的模型，同一角色由不同模型配出的声音不同，缓存键需包含所选模型，否则换模型后仍会用上之前模型的配音
-            # 未指定模型的任务（主窗口和网页界面只为 Audio.cpp 指定模型）缓存键不变，已有的缓存仍可使用
-            _model = f"-{self.cfg.tts_model_name}" if self.cfg.tts_model_name else ''
+            # 同一角色由不同模型配出的声音不同，缓存键需包含渠道所用的模型，否则换模型后仍会用上之前模型的配音
+            # 没有模型设置的渠道缓存键不变，已有的缓存仍可使用
+            _model = f"-{tts_model}" if tts_model else ''
 
             _key = get_md5(f"{self.cfg.target_language_code}-{it['text']}-{voice}-{rate}-{self.cfg.volume}-{self.cfg.pitch}-{self.cfg.tts_type}-{settings.get('remove_dubb_silence', True)}-{settings.get('remove_dubb_all_silence', True)}-{settings.get('remove_dubb_silence_level', 'default')}-{settings.get('dubbing_normalize',False)}{_clone}{_model}")
 
