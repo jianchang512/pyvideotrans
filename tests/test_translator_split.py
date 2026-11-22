@@ -178,6 +178,11 @@ class TestTranslatorIndexConstants:
         assert OPENLLM_INDEX == 38
         assert OPENLLM_INDEX in AI_TRANS_CHANNELS
 
+    def test_aigrow_index(self):
+        from videotrans.translator import AIGROW_INDEX, AI_TRANS_CHANNELS
+        assert AIGROW_INDEX == 39
+        assert AIGROW_INDEX in AI_TRANS_CHANNELS
+
     def test_infistar_index(self):
         from videotrans.translator import INFISTAR_INDEX, AI_TRANS_CHANNELS
         assert INFISTAR_INDEX == 28

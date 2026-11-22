@@ -1026,6 +1026,7 @@
   "OpenAI-compatible API, one key for OpenAI, Anthropic, Google and DeepSeek models, routed to the original providers": "OpenAI-compatible API, one key for OpenAI, Anthropic, Google and DeepSeek models, routed to the original providers",
   "OpenAI-compatible gateway, one key for DeepSeek, Qwen, GPT, Claude and Gemini models": "OpenAI-compatible gateway, one key for DeepSeek, Qwen, GPT, Claude and Gemini models",
   "OpenAI-compatible endpoint for your API keys, subscription accounts and local models. Use the cloud URL with a key, or a local daemon URL without one": "OpenAI-compatible endpoint for your API keys, subscription accounts and local models. Use the cloud URL with a key, or a local daemon URL without one",
+  "OpenAI-compatible API, one prepaid key for genuine Claude, GPT, Gemini, Grok, Qwen and Kimi models": "OpenAI-compatible API, one prepaid key for genuine Claude, GPT, Gemini, Grok, Qwen and Kimi models",
   "Get API Key": "Get API Key",
 
 
