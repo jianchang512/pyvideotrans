@@ -63,8 +63,11 @@ class DubbingMixin:
             # 克隆音色时，参考音频是从当前视频中裁切的，缓存键需包含视频 uuid，否则会用上其他视频中说话人的配音
             # uuid 由文件路径、大小和修改时间生成，再次处理同一视频时不变，仍会使用缓存
             _clone = f"-{self.uuid}" if is_clone else ''
+            # Audio.cpp 可选择不同的模型，同一角色由不同模型配出的声音不同，缓存键需包含所选模型，否则换模型后仍会用上之前模型的配音
+            # 未指定模型的任务（主窗口和网页界面只为 Audio.cpp 指定模型）缓存键不变，已有的缓存仍可使用
+            _model = f"-{self.cfg.tts_model_name}" if self.cfg.tts_model_name else ''
 
-            _key = get_md5(f"{self.cfg.target_language_code}-{it['text']}-{voice}-{rate}-{self.cfg.volume}-{self.cfg.pitch}-{self.cfg.tts_type}-{settings.get('remove_dubb_silence', True)}-{settings.get('remove_dubb_all_silence', True)}-{settings.get('remove_dubb_silence_level', 'default')}-{settings.get('dubbing_normalize',False)}{_clone}")
+            _key = get_md5(f"{self.cfg.target_language_code}-{it['text']}-{voice}-{rate}-{self.cfg.volume}-{self.cfg.pitch}-{self.cfg.tts_type}-{settings.get('remove_dubb_silence', True)}-{settings.get('remove_dubb_all_silence', True)}-{settings.get('remove_dubb_silence_level', 'default')}-{settings.get('dubbing_normalize',False)}{_clone}{_model}")
 
             tmp_dict = {
                 "text": it['text'],
