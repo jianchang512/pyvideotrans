@@ -231,7 +231,7 @@ ID_NAME_DICT = {
                                            key_name="standardcompute_key",
                                            win="standardcompute",
                                            imp="._standardcompute"),
-    UBERLLM_INDEX: ChannelProvider("UberLLM",
+    UBERLLM_INDEX: ChannelProvider("MartLLM",
                                    key_name="uberllm_key",
                                    win="uberllm",
                                    imp="._uberllm"),
