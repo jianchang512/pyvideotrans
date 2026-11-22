@@ -339,7 +339,7 @@ _default["standardcompute"] = {
 from videotrans.configure.constants import UBERLLM_MODELS
 
 _default["uberllm"] = {
-    # uberllm.dev
+    # martllm.com
     "uberllm_key": "",
     "uberllm_model": UBERLLM_MODELS.split(',')[0],
     "uberllm_max_token": 16384,

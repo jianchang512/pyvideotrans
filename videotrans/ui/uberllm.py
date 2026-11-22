@@ -29,8 +29,8 @@ class Ui_uberllm(QDialog):
         self.label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
         self.label_0.setStyleSheet("background-color: rgba(255, 255, 255,0);text-align:left")
         self.label_0.setCursor(Qt.PointingHandCursor)
-        self.label_0.setText('UberLLM - ' + tr('OpenAI-compatible API, one key for DeepSeek, Qwen, GPT, Claude and Gemini models, prepaid with no monthly fee'))
-        self.label_0.clicked.connect(lambda: open_url(url='https://uberllm.dev/models'))
+        self.label_0.setText('MartLLM - ' + tr('OpenAI-compatible API, one key for DeepSeek, Qwen, GPT, Claude and Gemini models, prepaid with no monthly fee'))
+        self.label_0.clicked.connect(lambda: open_url(url='https://martllm.com/models'))
         v1.addWidget(self.label_0)
 
         self.label_3 = QtWidgets.QLabel()
@@ -100,7 +100,7 @@ class Ui_uberllm(QDialog):
         help_btn.setObjectName("help_btn")
         help_btn.setCursor(Qt.PointingHandCursor)
         help_btn.setText(tr("Get API Key"))
-        help_btn.clicked.connect(lambda: open_url(url='https://uberllm.dev/signup'))
+        help_btn.clicked.connect(lambda: open_url(url='https://martllm.com/signup'))
 
         h4.addWidget(self.set)
         h4.addWidget(self.test)
@@ -122,7 +122,7 @@ class Ui_uberllm(QDialog):
         self.max_token.setText(str(params.get("uberllm_max_token", '')))
 
     def retranslateUi(self, form):
-        form.setWindowTitle("UberLLM")
+        form.setWindowTitle("MartLLM")
         self.label_3.setText(tr("SK"))
         self.label_4.setText(tr("{lang} represents the target language name, do not delete it."))
         self.set.setText(tr('Save'))
