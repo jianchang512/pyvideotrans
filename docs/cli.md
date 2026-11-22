@@ -128,13 +128,27 @@ uv run cli.py --task <任务类型> --name "<文件路径>" [其他参数]
 |------|------|--------|------|
 | `--recogn_type` | int | `0` | 语音识别渠道编号（0=faster-whisper, 1=openai-whisper, ...） |
 | `--detect_language` | str | `auto` | 音频发音语言（auto=自动检测, zh-cn, en, ja, ...） |
-| `--model_name` | str | `tiny` | 模型名称（仅 faster-whisper/openai-whisper 有效） |
+| `--model_name` | str | `tiny` | 模型名称；本地 Qwen3-ASR 也可传入原生 Transformers 模型目录 |
 | `--cuda` | flag | 否 | 启用 CUDA GPU 加速 |
 | `--remove_noise` | flag | 否 | 启用降噪 |
 | `--enable_diariz` | flag | 否 | 启用说话人识别 |
 | `--nums_diariz` | int | `-1` | 说话人数量（-1=自动检测） |
 | `--rephrase` | int | `0` | 重新断句（0=默认, 1=LLM 断句） |
 | `--fix_punc` | flag | 否 | 恢复标点符号 |
+
+### 使用本地 Qwen3-ASR 检查点
+
+本地 Qwen3-ASR 渠道（`--recogn_type 2`）支持 `0.6B`、`1.7B` 或原生 Transformers
+检查点的目录。目录需包含完整模型、处理器和分词器文件。已有的模型目录仅读取，不会被覆盖。
+英文研究示例（[Oruk Fourier 2B](https://huggingface.co/oruk/oruk-fourier-2b)）：
+
+```bash
+hf download oruk/oruk-fourier-2b --revision 8c2a8871f1304aa2f634da4fb95e24438c4945b9 --local-dir ./models/oruk-fourier-2b
+uv run cli.py --task stt --name sample.wav --recogn_type 2 --model_name ./models/oruk-fourier-2b --detect_language en --cuda
+```
+
+该模型权重采用 CC BY-NC 4.0 许可。商用及托管/API 服务需向 Oruk 单独申请许可。
+首次使用英文时间戳时，程序还会按原有流程下载独立的 Qwen 对齐模型。
 
 ### 示例
 

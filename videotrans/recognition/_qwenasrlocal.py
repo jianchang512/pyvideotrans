@@ -24,31 +24,38 @@ class QwenasrlocalRecogn(BaseRecogn):
 
     def __post_init__(self):
         super().__post_init__()
-        if self.model_name not in ['1.7B','0.6B']:
-            self.model_name='0.6B'
-        self.local_dir=f'{ROOT_DIR}/models/models--Qwen--Qwen3-ASR-{self.model_name}-hf'
+        model_path = Path(self.model_name).expanduser() if self.model_name else None
+        self.asr_repo = None
+        local_path_requested = model_path and (
+            model_path.is_absolute() or model_path.parent != Path(".")
+            or self.model_name.startswith(".") or model_path.is_dir()
+        )
+        if self.model_name not in ("1.7B", "0.6B") and local_path_requested:
+            if not (model_path / "config.json").is_file():
+                raise ValueError(f"Missing config.json in local Qwen3-ASR checkpoint: {model_path}")
+            self.local_dir = str(model_path.resolve())
+        else:
+            if self.model_name not in ["1.7B", "0.6B"]:
+                self.model_name = "0.6B"
+            self.asr_repo = f"Qwen/Qwen3-ASR-{self.model_name}-hf"
+            self.local_dir = f"{ROOT_DIR}/models/models--Qwen--Qwen3-ASR-{self.model_name}-hf"
 
+        self.aligner_dir = f"{ROOT_DIR}/models/models--Qwen--Qwen3-ForcedAligner-0.6B-hf"
 
     def _download(self):
-        _repid=f'Qwen/Qwen3-ASR-{self.model_name}-hf'
-        if Path(self.local_dir+'/model.safetensors').exists() and Path(f"{ROOT_DIR}/models/models--Qwen--Qwen3-ForcedAligner-0.6B-hf/model.safetensors").exists():
+        models = [("Qwen/Qwen3-ForcedAligner-0.6B-hf", self.aligner_dir)]
+        if self.asr_repo:
+            models.insert(0, (self.asr_repo, self.local_dir))
+        missing = [(repo, path) for repo, path in models if not (Path(path) / "model.safetensors").is_file()]
+        if not missing:
             return
-        if not is_connect_hf():
-            check_and_down_ms(_repid, callback=self._process_callback, local_dir=self.local_dir)
-            check_and_down_ms(
-                "Qwen/Qwen3-ForcedAligner-0.6B-hf", 
-                callback=self._process_callback, 
-                local_dir=f"{ROOT_DIR}/models/models--Qwen--Qwen3-ForcedAligner-0.6B-hf")
-        else:
-            check_and_down_hf(model_id=_repid,
-                                    repo_id=_repid,
-                                    local_dir=self.local_dir,
-                                    callback=self._process_callback)
-            check_and_down_hf(
-                "Qwen/Qwen3-ForcedAligner-0.6B-hf",
-                repo_id="Qwen/Qwen3-ForcedAligner-0.6B-hf", 
-                callback=self._process_callback, 
-                local_dir=f"{ROOT_DIR}/models/models--Qwen--Qwen3-ForcedAligner-0.6B-hf")
+
+        use_hf = is_connect_hf()
+        for repo, path in missing:
+            if use_hf:
+                check_and_down_hf(model_id=repo, repo_id=repo, callback=self._process_callback, local_dir=path)
+            else:
+                check_and_down_ms(repo, callback=self._process_callback, local_dir=path)
 
     def _exec(self) -> Union[List[SrtItem], None]:
         if self._exit(): return
@@ -73,7 +80,7 @@ class QwenasrlocalRecogn(BaseRecogn):
             "logs_file": logs_file,
             "model_name": self.model_name,
             "local_dir":self.local_dir,
-            "local_dir_align":f"{ROOT_DIR}/models/models--Qwen--Qwen3-ForcedAligner-0.6B-hf",
+            "local_dir_align":self.aligner_dir,
             "hotword":settings.get('hotwords'),
             "min_speech_ms":_min_speech,
             "max_speech_ms":_max_speech,
