@@ -1,4 +1,4 @@
-import traceback,os
+import traceback
 from queue import Empty
 
 from PySide6.QtCore import QThread
@@ -6,7 +6,6 @@ from PySide6.QtCore import QThread
 from videotrans.configure.config import tr, settings, app_cfg, logger, CPU_NUMS
 from videotrans.configure.excepts import get_msg_from_except
 
-from videotrans.util import gpus
 from videotrans.util.gpus import exists_hard
 from videotrans.util.tools import get_recogn_type,get_tanslate_type,get_tts_type,send_notification
 
@@ -221,7 +220,7 @@ def start_thread():
         app_cfg.MAX_CPU_PROCESS = 0
     if app_cfg.MAX_CPU_PROCESS > 0:
         # 最小1个
-        app_cfg.MAX_CPU_PROCESS=int(min(app_cfg.MAX_CPU_PROCESS, 8, cpu_count))
+        app_cfg.MAX_CPU_PROCESS=int(min(app_cfg.MAX_CPU_PROCESS, 8, CPU_NUMS))
     else:
         import psutil
         mem = psutil.virtual_memory()
