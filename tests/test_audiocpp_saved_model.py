@@ -6,7 +6,7 @@ import pytest
 
 from videotrans import tts
 from videotrans.configure import config
-from videotrans.configure.config import app_cfg, params
+from videotrans.configure.config import ROOT_DIR, app_cfg, params
 from videotrans.tts import _audiocpp, _base
 from videotrans.util.help_role import get_audiocpp_rolelist
 
@@ -22,8 +22,6 @@ def audiocpp(monkeypatch, tmp_path):
     played, and the audio.cpp cli writes a short wav and records its command"""
     monkeypatch.setattr(app_cfg, "exec_mode", "cli")
     monkeypatch.setattr(config, "TEMP_DIR", (tmp_path / "tmp").as_posix())
-    # _exec() puts the folder of the cli in front of PATH
-    monkeypatch.setenv("PATH", os.environ.get("PATH", ""))
     monkeypatch.setitem(params, "audiocpp_model", SAVED)
     monkeypatch.setattr(_audiocpp, "down_audiocpp_bin", lambda **kwargs: None)
     monkeypatch.setattr(_audiocpp, "down_file_from_hf", lambda *args, **kwargs: None)
@@ -60,7 +58,7 @@ def _models(commands):
 
 
 def _model(name):
-    return name, f"models/{get_audiocpp_rolelist(name)['file']}"
+    return name, f"{ROOT_DIR}/models/{get_audiocpp_rolelist(name)['file']}"
 
 
 def test_trial_dubbing_without_a_model_uses_the_saved_one(audiocpp):
