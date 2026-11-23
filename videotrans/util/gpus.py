@@ -226,7 +226,8 @@ def _get_audio_bin(is_vulkan=False):
             return "audiocpp_cli"
         if shutil.which('audiocpp_server'):
             return "audiocpp_server"
-    return False
+        return False
+    return audio_cli_file
 
 def _is_support(backend="vulkan"):
     audio_cli_file=_get_audio_bin(is_vulkan=backend=="vulkan")

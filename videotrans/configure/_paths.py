@@ -23,6 +23,7 @@ IPC_STATUS_FILE=f'{TEMP_ROOT}/exit.pid'
 
 Path(f"{ROOT_DIR}/models").mkdir(parents=True, exist_ok=True)
 Path(f"{ROOT_DIR}/logs").mkdir(parents=True, exist_ok=True)
+Path(f"{TEMP_ROOT}").mkdir(parents=True, exist_ok=True)
 Path(f"{TRANSLATE_CACHE}").mkdir(parents=True, exist_ok=True)
 Path(f"{DUBBING_CACHE}").mkdir(parents=True, exist_ok=True)
 
