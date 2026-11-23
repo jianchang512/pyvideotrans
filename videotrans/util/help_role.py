@@ -401,7 +401,8 @@ def role_menu(tts_type, langcode=None) -> List:
         _f5=list(get_f5tts_role().keys())
         _customs=params.get('ttsapi_voice_role', '').strip()
         if _customs:
-            return  _f5 + _customs
+            # 自定义角色在设置中以英文逗号分隔保存，需拆分为列表并去除空白后追加在参考音频之后
+            return _f5 + [it.strip() for it in _customs.split(',') if it.strip()]
         return _f5
 
     if tts_type == tts.GPTSOVITS_TTS:
