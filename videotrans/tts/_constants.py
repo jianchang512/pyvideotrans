@@ -110,6 +110,21 @@ SUPPORT_VOLUME=[EDGE_TTS, AZURE_TTS,FISHAUDIOAPI_TTS,MINIMAXI_TTS,DOUBAO2_TTS,GL
 CHANGE_BY_LANGUAGE = [EDGE_TTS, MINIMAXI_TTS, AZURE_TTS, DOUBAO2_TTS, AI302_TTS, KOKORO_TTS,
                       PIPER_TTS, VITSCNEN_TTS, DEEPGRAM_TTS,FISHAUDIOAPI_TTS]
 
+# 在设置中选择配音模型的渠道，值为保存所选模型的 params 键，渠道配音时从中读取模型
+# Audio.cpp 只在任务未指定模型时（如 cli 未传入 --tts_model_name）使用保存的模型
+TTS_MODEL_PARAMS = {
+    AUDIOCPP_TTS: 'audiocpp_model',
+    BAILIAN_TTS: 'bailian_ttsmodel',
+    XIAOMI_TTS: 'xiaomi_ttsmodel',
+    MINIMAXI_TTS: 'minimaxi_tts_model',
+    OPENAI_TTS: 'openaitts_model',
+    GEMINI_TTS: 'gemini_ttsmodel',
+    ELEVENLABS_TTS: 'elevenlabstts_model',
+    SILICONFLOW_API: 'siliconflow_tts_model',
+    OPENROUTER_API: 'openrouter_tts_model',
+    FISHAUDIOAPI_TTS: 'fishaudio_model',
+}
+
 # 渠道id对应的设置窗口和sk键名,
 # key_name: 存储 SK 或 api url的键，通过 app_cfg.params 调用，如果不存在该值，在使用时报错未填写
 # win: 对应 winform 包中的文件名及 ui 包中的文件名，用于调用打开设置窗口

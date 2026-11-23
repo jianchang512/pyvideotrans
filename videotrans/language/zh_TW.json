@@ -1018,6 +1018,8 @@
   "a GPU cloud with an OpenAI-compatible model API (DeepSeek, Kimi, GLM, MiniMax)": "GPU 雲，提供相容 OpenAI 的模型 API（DeepSeek、Kimi、GLM、MiniMax）",
   "OpenAI-compatible API, the StandardCompute model routes each request to the cheapest enabled model that can handle it, with automatic fallback": "相容 OpenAI 的 API，選用 StandardCompute 模型時，每個請求會自動路由到能勝任且成本最低的已啟用模型，並支援自動回退",
   "OpenAI-compatible gateway, one key for DeepSeek, Qwen, GPT, Claude and Gemini models": "相容 OpenAI 的閘道，一個金鑰即可呼叫 DeepSeek、Qwen、GPT、Claude 和 Gemini 模型",
+  "OpenAI-compatible endpoint for your API keys, subscription accounts and local models. Use the cloud URL with a key, or a local daemon URL without one": "相容 OpenAI 的端點，可接入你的 API Key、訂閱帳號和本地模型。使用雲端網址時需要填寫金鑰，使用本地常駐程式網址時無需金鑰",
+  "OpenAI-compatible API, one prepaid key for genuine Claude, GPT, Gemini, Grok, Qwen and Kimi models": "相容 OpenAI 的 API，一個預付金鑰即可呼叫正版 Claude、GPT、Gemini、Grok、Qwen 和 Kimi 模型",
   "Get API Key": "獲取 API Key",
   "common_head": "通用設定",
   "video_head": "影片輸出控制",

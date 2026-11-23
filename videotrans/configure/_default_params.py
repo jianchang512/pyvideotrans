@@ -339,7 +339,7 @@ _default["standardcompute"] = {
 from videotrans.configure.constants import UBERLLM_MODELS
 
 _default["uberllm"] = {
-    # uberllm.dev
+    # martllm.com
     "uberllm_key": "",
     "uberllm_model": UBERLLM_MODELS.split(',')[0],
     "uberllm_max_token": 16384,
@@ -361,6 +361,25 @@ _default["trustedrouter"] = {
     "trustedrouter_key": "",
     "trustedrouter_model": TRUSTEDROUTER_MODELS.split(',')[0],
     "trustedrouter_max_token": 16384,
+}
+
+from videotrans.configure.constants import OPENLLM_MODELS
+
+_default["openllm"] = {
+    # openllm.sh: cloud https://www.openllm.sh/v1 with a key, or a local daemon http://127.0.0.1:8787/v1 (no key)
+    "openllm_api": "https://www.openllm.sh/v1",
+    "openllm_key": "",
+    "openllm_model": "plus",
+    "openllm_max_token": 16384,
+}
+
+from videotrans.configure.constants import AIGROW_MODELS
+
+_default["aigrow"] = {
+    # aigrow.gg
+    "aigrow_key": "",
+    "aigrow_model": AIGROW_MODELS.split(',')[0],
+    "aigrow_max_token": 16384,
 }
 
 

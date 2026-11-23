@@ -194,18 +194,19 @@ class EnglishNormalizer:
         """
         This method is used to expand ordinals such as '1st', '2nd' into spoken words.
         """
-        # 定义英文序数词的后缀映射表
-        ordinal_suffixes = {1: "st", 2: "nd", 3: "rd"}
-
         # 提取序数词的数字部分并转换为整数
         num = int(num.group(0)[:-2])
-        # 根据序数的不同情况选择正确的后缀
-        if 10 <= num % 100 <= 20:
-            suffix = "th"
+        # 只改写最后一个词: one -> first, twenty -> twentieth, twenty-one -> twenty-first
+        head, last = re.match(r"(.*?)([a-z]+)$", self.number_to_words(num)).groups()
+        irregular = {"one": "first", "two": "second", "three": "third", "five": "fifth",
+                     "eight": "eighth", "nine": "ninth", "twelve": "twelfth"}
+        if last in irregular:
+            last = irregular[last]
+        elif last.endswith("y"):
+            last = last[:-1] + "ieth"
         else:
-            suffix = ordinal_suffixes.get(num % 10, "th")
-        # 将整数转换为对应的英文序数词形式并添加后缀
-        return self.number_to_words(num) + suffix
+            last += "th"
+        return head + last
 
     def _expand_number(self, m: str) -> str:
         """
