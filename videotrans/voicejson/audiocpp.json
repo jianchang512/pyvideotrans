@@ -108,16 +108,6 @@
     "is_seed": false
   },
 
-  "fireredtts3": {
-    "type": "clon",
-    "file": "FireRedTTS3-Base-GGUF/fireredtts3-base-q8_0.gguf",
-    "url": "/audio-cpp/audio.cpp-gguf/resolve/main/FireRedTTS3-Base-GGUF/fireredtts3-base-q8_0.gguf?download=true",
-    "support_languages": ["ar","yue","zh","cz","nl","en","fr","de","el","hi","id","it","ja","ko","pl","pt","ro","ru","es","th", "tr","uk","fi","vi"],
-    "is_reference_text": true,
-    "is_language": true,
-    "is_seed": true
-  },
-  
 
   
   "breeze_tts": {

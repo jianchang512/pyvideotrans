@@ -62,8 +62,6 @@ class AudiocppTTS(BaseTTS):
         _except = None
         lang = self.language.split('-')[0]
         queue_tts = self.queue_tts
-        if self.model_name=='fireredtts3':
-            lang=LANGUAGE_FIRERED3.get(lang,'Chinese')
 
         activate_audiocpp_server(self)
         while 1:

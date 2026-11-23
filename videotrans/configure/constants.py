@@ -99,14 +99,15 @@ AUDIOCPP_ASR_MODELS={
         "max_tokens":1024,
         "audio_chunk_mode":"none"
     },
-    "lfm3_audio":{
-        "url":"/LiquidAI/LFM3-Audio-2B-GGUF/resolve/main/LFM3-Audio-2B-Q8_0.gguf?download=true", #下载地址
-        "file":"LFM3-Audio-2B-GGUF/LFM3-Audio-2B-Q8_0.gguf", # 本地模型位置
-        "languages":["ar", "da", "de", "el", "en", "es", "fi", "fr", "he", "it", "ja", "ko", "nl", "pl", "pt", "sv", "tr", "zh"],
-        "allow_language_tag":True, # 有些模型不支持使用 language标签
-        "max_tokens":1024,
-        "audio_chunk_mode":"none"
-    },
+    # info 正常，但实际asr任务报错  no gguf model source in builtin model spec for family 'lfm3_audio'
+    # "lfm3_audio":{
+    #     "url":"/LiquidAI/LFM3-Audio-2B-GGUF/resolve/main/LFM3-Audio-2B-Q8_0.gguf?download=true", #下载地址
+    #     "file":"LFM3-Audio-2B-GGUF/LFM3-Audio-2B-Q8_0.gguf", # 本地模型位置
+    #     "languages":["ar", "da", "de", "el", "en", "es", "fi", "fr", "he", "it", "ja", "ko", "nl", "pl", "pt", "sv", "tr", "zh"],
+    #     "allow_language_tag":True, # 有些模型不支持使用 language标签
+    #     "max_tokens":1024,
+    #     "audio_chunk_mode":"none"
+    # },
     "vibevoice_asr":{
         "url":"/audio-cpp/audio.cpp-gguf/resolve/main/VibeVoice-ASR-GGUF/vibevoice-asr-q8_0.gguf?download=true",
         "file":"VibeVoice-ASR-GGUF/vibevoice-asr-q8_0.gguf",

@@ -167,8 +167,7 @@ class Audio_Server:
             if model["task"] in ("tts", "clon"):
                 if it.get("is_seed"):
                     model["default_request_options"] = {"seed": 42}
-                if name=='fireredtts3':
-                    model["default_request_options"].update({"num_inference_steps":4,"guidance_scale":2.0,"stop_threshold":0.5})
+
                 model["default_voice_preset"] = {
                     "voice_ref": f'{ROOT_DIR}/f5-tts/en_female_1.wav',
                     "reference_text": "Genes of intracellular calcium metabolism and blood pressure control in primary hypertension.",
@@ -354,6 +353,9 @@ def exec_audiocpp(cmd):
 
         if _OS=='Windows' and "vulkan" in cmd and not stderr:
             raise RuntimeError(tr("The native Vulkan may be disabled or unavailable. Please disable hardware acceleration and try again"))
+        if "no gguf model source in builtin model spec for family" in f'{stdout}{stderr}':
+            raise RuntimeError(tr("You may need to upgrade audio.cpp. Please delete the {} folder, then re-execute the automatic download of the latest audio.cpp, or manually update audio_cpp",cmd[0]))
+
         raise RuntimeError(
             f'proc.returncode={rc},{stderr=}\n{stdout=}\n{cmd=}'
         )
