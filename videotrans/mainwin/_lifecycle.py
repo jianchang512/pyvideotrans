@@ -1,13 +1,7 @@
 import os
-import platform
-import shutil
 import subprocess
 import sys
-import getpass
 from pathlib import Path
-
-from videotrans.configure import config
-
 
 class LifecycleMixin:
 
@@ -27,52 +21,53 @@ class LifecycleMixin:
             self.is_restarting = True
             self.close()
 
-    @staticmethod
-    def kill_processes(process_name):
-        from videotrans.configure.config import logger
-
-        current_user = getpass.getuser()
-        if platform.system() == "Windows":
-            try:
-                result = subprocess.run(
-                    f'taskkill /F /FI "USERNAME eq {current_user}" /IM {process_name}.exe',
-                    shell=True,
-                    capture_output=True,
-                    text=True
-                )
-                if result.returncode != 0:
-                    logger.warning(f"taskkill returned: {result.returncode}, output: {result.stdout}")
-            except Exception as e:
-                logger.exception(f"Error using taskkill: {e}", exc_info=True)
-
-            return
-
-        try:
-            result = subprocess.run(
-                ['pkill', '-9', '-u', current_user, process_name],
-                capture_output=True,
-                text=True
-            )
-            if result.returncode != 0:
-                logger.warning(f"pkill returned: {result.returncode}", exc_info=True)
-        except Exception as e:
-            logger.exception(f"Error using pkill: {e}", exc_info=True)
-
     def closeEvent(self, event):
         self.hide()
-        from videotrans.configure.config import app_cfg, ROOT_DIR, TEMP_DIR, TEMP_ROOT,REDUBB_STATUS_FILE,IPC_STATUS_FILE
+        from videotrans.configure.config import app_cfg, ROOT_DIR, REDUBB_STATUS_FILE,IPC_STATUS_FILE,logger
+        from PySide6.QtCore import QSettings,QThreadPool
+        from videotrans.task.clean_life import safe_quit
+        os.chdir(ROOT_DIR)
+
         app_cfg.exit_soft = True
         app_cfg.current_status = 'stop'
-        Path(REDUBB_STATUS_FILE).touch()
-        Path(IPC_STATUS_FILE).touch()
-        os.chdir(ROOT_DIR)
-        self.cleanup_and_accept()
+        Path(REDUBB_STATUS_FILE).touch(exist_ok=True)
+        Path(IPC_STATUS_FILE).touch(exist_ok=True)
 
+        sets = QSettings("pyvideotrans", "settings")
+        sets.setValue("windowSize", self.size())
+        _forms=app_cfg.child_forms.values() if app_cfg.child_forms else []
+        try:
+            for w in _forms:
+                if not w or not hasattr(w, 'hide'):
+                    continue
+                w.hide()
+        except Exception as e:
+            logger.exception(f'子窗口隐藏中出错 {e}', exc_info=True)
 
+        if hasattr(self,'worker_threads'):
+            for thread in self.worker_threads:
+                if thread and thread.isRunning():
+                    thread.requestInterruption()
+
+            # 等待所有线程安全结束
+            for thread in self.worker_threads:
+                if thread and thread.isRunning():
+                    thread.wait(3000)  # 等待3秒
+
+        try:
+            for w in _forms:
+                if not w or not hasattr(w, 'close'):
+                    continue
+                w.close()
+        except Exception as e:
+            logger.exception(f'子窗口关闭中出错{e}', exc_info=True)
+
+        safe_quit()
+        QThreadPool.globalInstance().waitForDone(5000)
 
         if not self.is_restarting:
-            event.accept()
-            return
+            return event.accept()
+
 
         if getattr(sys, 'frozen', False):
             subprocess.Popen([sys.executable] + sys.argv[1:])
@@ -81,54 +76,3 @@ class LifecycleMixin:
 
         event.accept()
         os._exit(0)
-
-    def cleanup_and_accept(self):
-        from PySide6.QtCore import QCoreApplication, QSettings, QThreadPool
-        from videotrans.configure.config import app_cfg, logger,TEMP_ROOT,TEMP_DIR
-
-        QCoreApplication.processEvents()
-        sets = QSettings("pyvideotrans", "settings")
-        sets.setValue("windowSize", self.size())
-        try:
-            for w in app_cfg.child_forms.values():
-                if w and hasattr(w, 'hide'):
-                    w.hide()
-        except Exception as e:
-            logger.exception(f'子窗口隐藏中出错 {e}', exc_info=True)
-
-        for thread in self.worker_threads:
-            if thread and thread.isRunning():
-                thread.requestInterruption()
-
-        # 等待所有线程安全结束
-        for thread in self.worker_threads:
-            if thread and thread.isRunning():
-                thread.wait(3000)  # 等待3秒
-
-        try:
-            for w in app_cfg.child_forms.values():
-                if w and hasattr(w, 'close'):
-                    w.close()
-        except Exception as e:
-            logger.exception(f'子窗口关闭中出错{e}', exc_info=True)
-
-        self.kill_processes('ffmpeg')
-        if config.AUDIO_SERVER_CFG and hasattr(config.AUDIO_SERVER_CFG,'quit'):
-            try:
-                config.AUDIO_SERVER_CFG.quit()
-            except Exception:
-                pass
-
-        # 清理 TEMP_ROOT 下的 txt srt json 文件，
-        # 不直接删除 tmp 文件夹，避免同时启动多个实例导致其他报错，保留 pid 状态文件，防止其他实例出错
-        for it in Path(TEMP_ROOT).iterdir():
-            if it.is_file() and it.suffix.lower()!='pid':
-                try:
-                    it.unlink()
-                except Exception:
-                    pass
-        try:
-            shutil.rmtree(TEMP_DIR, ignore_errors=True)
-        except OSError as e:
-            pass
-        QThreadPool.globalInstance().waitForDone(5000)

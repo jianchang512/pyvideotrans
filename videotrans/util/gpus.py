@@ -18,7 +18,7 @@ class AiLoaderThread(QThread):
 
     def run(self):
         try:
-            getset_gpu()
+            check_hardware_availability()
             devices=["auto"]
             if config.app_cfg.NVIDIA_GPU_NUMS>0:
                 devices.append("cuda")
@@ -77,15 +77,9 @@ def get_vulkan_devices() -> List[Dict[str, Any]]:
     return devices
 
 
-# 获取可用的gpu数量 并缓存在 config.NVIDIA_GPU_NUMS 中，0=无可用显卡
-#
-# force_cpu: 未使用参数
-#   True 强制使用 cpu 即强制设定没有显卡
-def getset_gpu():
-    # 尚未获取过时是 -1
-    if app_cfg.NVIDIA_GPU_NUMS > -1:
-        return
 
+def check_hardware_availability():
+    # 尚未获取过时是 -1
     app_cfg.NVIDIA_GPU_NUMS=0
     app_cfg.MPS_NUMS=0
     if _os == 'Darwin':
@@ -97,7 +91,7 @@ def getset_gpu():
             logger.debug(f'MPS可用？{app_cfg.MPS_NUMS=}')
         except Exception:
             pass
-        return
+        return app_cfg.MPS_NUMS
 
     try:
         if subprocess.run(["nvidia-smi"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,).returncode != 0:
@@ -112,7 +106,7 @@ def getset_gpu():
         pass
 
     app_cfg.VULKAN_LIST=get_vulkan_devices()
-    return
+    return app_cfg.NVIDIA_GPU_NUMS or len(app_cfg.VULKAN_LIST)
 
 # 用于 faster-whisper /openai-whisper 的设备名， cpu/cuda/mps
 # 如果明确指定了设备名如 cuda/mps 且可用，则返回该名，否则优先cuda/mps，保底cpu
