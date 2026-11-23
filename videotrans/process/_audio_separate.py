@@ -11,7 +11,7 @@ from videotrans.process._utils import _write_log
 # Darwin Windows Linux
 from videotrans.util.gpus import cpp_device
 from videotrans.util.help_down import down_file_from_hf
-from videotrans.util.help_misc import exec_audiocpp
+from videotrans.util.help_audiocpp import exec_audiocpp
 
 OS_TYPE=platform.system()
 AUDIO_CPP=f'{ROOT_DIR}/audio_cpp/audiocpp_cli{".exe" if OS_TYPE=="Windows" else ""}'

@@ -1,3 +1,4 @@
+import platform
 from pathlib import Path
 
 from videotrans import translator, recognition, tts
@@ -12,8 +13,7 @@ class WinActionConfigMixin:
 
     @staticmethod
     def show_xxl_select():
-        import sys
-        if sys.platform != 'win32':
+        if platform.system() != 'Windows':
             show_error(
                 tr("faster-whisper-xxl.exe is only available on Windows"))
             return False

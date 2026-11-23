@@ -6,6 +6,8 @@ import sys
 import getpass
 from pathlib import Path
 
+from videotrans.configure import config
+
 
 class LifecycleMixin:
 
@@ -111,6 +113,11 @@ class LifecycleMixin:
             logger.exception(f'子窗口关闭中出错{e}', exc_info=True)
 
         self.kill_processes('ffmpeg')
+        if config.AUDIO_SERVER_CFG and hasattr(config.AUDIO_SERVER_CFG,'quit'):
+            try:
+                config.AUDIO_SERVER_CFG.quit()
+            except Exception:
+                pass
 
         # 清理 TEMP_ROOT 下的 txt srt json 文件，
         # 不直接删除 tmp 文件夹，避免同时启动多个实例导致其他报错，保留 pid 状态文件，防止其他实例出错

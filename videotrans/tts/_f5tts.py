@@ -2,7 +2,7 @@ from dataclasses import dataclass,field
 from typing import List, Dict, Union,Any
 import sys,json,time,os
 from videotrans.tts._base import BaseTTS
-from videotrans.configure.config import ROOT_DIR, app_cfg, logger,tr,TEMP_DIR
+from videotrans.configure.config import ROOT_DIR, app_cfg, logger, tr, TEMP_DIR, CPU_NUMS
 from videotrans.configure.excepts import DubbingSrtError
 from videotrans.util.help_misc import vail_file
 from pathlib import Path
@@ -61,7 +61,7 @@ class F5TTSBuilt(BaseTTS):
         self.signal(text=tr('Standardized dubbing segment processing'))
         all_task = []
 
-        with ThreadPoolExecutor(max_workers=min(4,len(self.queue_tts),os.cpu_count())) as pool:
+        with ThreadPoolExecutor(max_workers=min(4,len(self.queue_tts),CPU_NUMS)) as pool:
             for item in self.queue_tts:
                 if vail_file(item['filename']):continue
                 filename=item.get('filename','')+"-24k.wav"

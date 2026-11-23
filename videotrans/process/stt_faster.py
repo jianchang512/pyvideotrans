@@ -3,8 +3,8 @@
 # 失败：第一个值为False，则为失败，第二个值存储失败原因
 # 成功，第一个值存在需要的返回值，不需要时返回True，第二个值为None
 import json, traceback
+import platform
 from pathlib import Path
-from typing import List, Tuple, Union
 
 from videotrans.configure._paths import TEMP_ROOT,ROOT_DIR
 from videotrans.configure.config import logger
@@ -39,17 +39,16 @@ def faster_whisper(
 ):
     import zhconv
     from videotrans.process._stt_utils import _write_log,_resegment2,_resegment
-    from videotrans.util._srt_parse import ms_to_time_string
-    from faster_whisper import WhisperModel, BatchedInferencePipeline
-    from videotrans.util.whisper_vulkan import should_use_whisper_vulkan, PyWhisperCppModel
+    from faster_whisper import WhisperModel
+    from videotrans.util.whisper_vulkan import PyWhisperCppModel
 
     raws = []
     if detect_language == 'fil':
         detect_language = 'tl'
 
     device=whisper_device(device=kw.get('device_name', 'auto'),is_cuda=is_cuda)
-    if is_cuda and not device.startswith('cuda'):
-        device=cpp_device(device="cpu",is_cuda=is_cuda)
+    if is_cuda and not device.startswith('cuda') and platform.system()!='Darwin':
+        device="vulkan"
 
     def _create_model(_compute_type):
         nonlocal device
@@ -60,10 +59,8 @@ def faster_whisper(
                 logger.debug(f'[faster_whisper/vulkan]加载GGML模型 {model_name}: running on {device} ({is_cuda=})')
                 return PyWhisperCppModel(
                     local_dir or model_name,
-                    device=device,
                     compute_type=_compute_type,
                     model_name=model_name,
-                    is_cuda=is_cuda,
                 )
             except Exception as vulkan_err:
                 if not local_dir or not Path(f'{local_dir}/model.bin').exists():

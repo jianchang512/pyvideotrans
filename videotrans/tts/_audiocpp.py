@@ -1,17 +1,21 @@
-import json, subprocess, os, sys, tempfile
-import time, platform
+import json
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, Any, Tuple, Optional
+from typing import Dict, Any
+
+import requests
+
+from videotrans.configure import config
 from videotrans.configure._i18n import tr
 from videotrans.configure._paths import REDUBB_STATUS_FILE, REDUBB_QUEUE_FILE
 from videotrans.configure.config import params, logger, app_cfg, ROOT_DIR
 from videotrans.configure.excepts import DubbingSrtError
 from videotrans.tts._base import BaseTTS
+from videotrans.util.help_audiocpp import activate_audiocpp_server
 from videotrans.util.help_role import get_f5tts_role
-from videotrans.util.help_misc import vail_file, exec_audiocpp
+from videotrans.util.help_misc import vail_file
 from videotrans.util.help_down import down_file_from_hf, down_audiocpp_bin
-from videotrans.util.gpus import cpp_device
 
 
 @dataclass(repr=False)
@@ -43,31 +47,12 @@ class AudiocppTTS(BaseTTS):
         if Path(gguf_file).exists():
             return True
 
-        # Reuse already-downloaded OmniVoice safetensors directory if present
-        # if self.model_name == "omnivoice":
-        #     safetensors_dir = Path(f"{ROOT_DIR}/models/models--k2-fsa--OmniVoice")
-        #     if (safetensors_dir / "model.safetensors").exists():
-        #         self.model_path = safetensors_dir.as_posix()
-        #         return True
-
         model_url = self.gguf_obj.get('url', '')
         down_file_from_hf(
             Path(gguf_file).parent.as_posix(),
             [model_url],
             self._process_callback)
         return True
-
-    def _resolve_ref(self, item: Dict[str, Any], lang: str) -> Tuple[Optional[str], Optional[str]]:
-        ref_wav, ref_text = self.get_ref_wav(item)
-        if ref_wav and Path(ref_wav).exists():
-            return str(Path(ref_wav).resolve()), ref_text
-        if self.gguf_obj.get("type") == "clon":
-            default_wav = "zh_female_cn.wav" if lang in ("zh", "yue") else "en_female_1.wav"
-            fallback_path = Path(f"{ROOT_DIR}/f5-tts/{default_wav}")
-            if fallback_path.exists():
-                fallback_text = self.roledict.get(default_wav, "")
-                return str(fallback_path.resolve()), fallback_text
-        return None, None
 
 
     # The batch mode has been removed, making management inconvenient. We will uniformly use exec_audiocpp to execute audio.cpp
@@ -76,13 +61,8 @@ class AudiocppTTS(BaseTTS):
         _except = None
         lang = self.language.split('-')[0]
         queue_tts = self.queue_tts
-        
-        txt_file = ROOT_DIR + '/pyvideotrans_audiocpp.txt'
-        cli_name = "audiocpp_cli.exe" if platform.system() == 'Windows' else 'audiocpp_cli'
-        extra_cmd = []
-        if Path(txt_file).exists():
-            extra_cmd = [c for c in Path(txt_file).read_text(encoding='utf-8').strip().split(' ') if c]
-        # 循环，用于轮询重新配音数据，非重新配音时，第一轮直接返回
+
+        activate_audiocpp_server(self)
         while 1:
             if self.is_redubb and Path(REDUBB_STATUS_FILE).exists():
                 return True
@@ -93,52 +73,27 @@ class AudiocppTTS(BaseTTS):
                     logger.exception(f'audio.cpp: {e}', exc_info=True)
                     raise
 
-            device_name=cpp_device(is_cuda=self.is_cuda)
-            if ":" in device_name:
-                name,dev_index=device_name.split(":",1)
-                device_list=["--backend",name,"--device",str(dev_index)]
-            else:
-                device_list=["--backend",device_name]
             for i, item in enumerate(queue_tts):
                 if app_cfg.exit_soft or (self.is_redubb and Path(REDUBB_STATUS_FILE).exists()):
                     return True
                 if vail_file(item['filename']):
                     ok += 1
                     continue
-                ref_wav, ref_text = self._resolve_ref(item, lang)
+                ref_wav, ref_text = self.get_ref_wav(item)
 
                 try:
                     self.signal(text=f'{tr("Dubbing")} {i}/{self.len}')
-                    cmd = [
-                        f"{ROOT_DIR}/audio_cpp/{cli_name}",
-                        "--task",
-                        self.gguf_obj.get('type', 'tts'),
-                        "--family",
-                        self.model_name,
-                        "--model",
-                        self.model_path
-                    ]
-                    cmd.extend(device_list)
-                    cmd.extend(["--text",f"{item['text']}"])
-                    if ref_wav:
-                        cmd.extend(["--voice-ref", ref_wav])
+                    payload={
+                        "model":self.model_name,
+                        "input":item['text'],
+                        "voice_ref": { "type": "path", "path":ref_wav },
+                    }
                     if self.gguf_obj.get("is_reference_text") and ref_text:
-                        cmd.append("--reference-text")
-                        cmd.append(ref_text)
+                        payload['reference_text']=ref_text
                     if self.gguf_obj.get("is_language"):
-                        cmd.append("--language")
-                        cmd.append(lang)
-                    if self.gguf_obj.get("is_seed"):
-                        cmd.append("--request-option")
-                        cmd.append("seed=24")
-                    # if self.model_name=='ming3_tts':
-                    #     if ref_text:
-                    #         cmd.extend(["--request-option", f'reference_text="{ref_text}"'])
-                    #     cmd.extend(["--request-option", f'language={lang}'])
+                        payload['language']=lang
+                    self._api(payload,filename=item['filename'])
 
-                    cmd.extend(extra_cmd + ["--out", os.path.normpath(item['filename'] + '-24k.wav')])
-
-                    exec_audiocpp(cmd)
                     if not vail_file(item['filename'] + '-24k.wav'):
                         err += 1
                         continue
@@ -163,3 +118,17 @@ class AudiocppTTS(BaseTTS):
         self.signal(text=msg)
         logger.debug(f'audio.cpp 配音结束：{msg}')
 
+
+    def _api(self,payload,filename):
+        response = requests.post(f'{config.AUDIO_SERVER_CFG.api_endpoint}/v1/audio/speech', headers={
+            "content-type": "application/json",
+        }, json=payload)
+        if response.status_code!=200:
+            try:
+                msg=response.json().get("error",{}).get("message",response.text)
+                raise RuntimeError(f'{msg}\n' + (tr('Insufficient permissions') if "Access is denied" in msg else ""))
+            except json.JSONDecodeError:
+                raise RuntimeError(response.text)
+
+        with open(f'{filename}-24k.wav', 'wb') as f:
+            f.write(response.content)

@@ -19,6 +19,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 download_lock = threading.Lock()
 max_retries = 10  # 最大重试次数
 retry_delay = 5  # 失败后等待几秒重试
+_os=platform.system()
 
 """解析URL获取纯净文件名 (去除 ?query)"""
 
@@ -385,6 +386,7 @@ def down_zip(local_dir, zip_url, callback=None) -> bool:
                 top_dirs = {m.name.split('/')[0] for m in members if m.name and not m.name.startswith('.')}
                 tf.extractall(path=local_dir)
                 # 若归档内有单一顶层目录（如 audio-v0.9.4-bin-ubuntu-x64-vulkan-portable），将其内容平铺到 local_dir
+                """
                 if len(top_dirs) == 1:
                     top_dir = Path(local_dir) / next(iter(top_dirs))
                     if top_dir.is_dir() and top_dir != Path(local_dir):
@@ -397,6 +399,7 @@ def down_zip(local_dir, zip_url, callback=None) -> bool:
                                     dest.unlink()
                             shutil.move(str(item), str(dest))
                         shutil.rmtree(top_dir, ignore_errors=True)
+                """
         else:
             with zipfile.ZipFile(temp_zip_path, 'r') as zf:
                 zf.extractall(path=local_dir)
@@ -501,51 +504,50 @@ def check_and_down_ms(model_id, callback=None, local_dir=None, allow_patterns=No
 
 
 # 下载 audio_cpp
-def _patch_linux_audiocpp_glibc(audio_cpp_dir: Path):
-    """Patch Linux audio.cpp portable binaries that reference GLIBC_2.43 math symbols to work on older glibc."""
-    import struct
-    import subprocess
-
-    def _elf_hash(name: bytes) -> int:
-        h = 0
-        for b in name:
-            h = ((h << 4) + b) & 0xFFFFFFFF
-            g = h & 0xF0000000
-            if g:
-                h ^= g >> 24
-            h &= ~g & 0xFFFFFFFF
-        return h
-
-    old_ver = b"GLIBC_2.43\x00"
-    new_ver = b"GLIBC_2.27\x00"
-    old_hash = struct.pack("<I", _elf_hash(b"GLIBC_2.43"))
-    new_hash = struct.pack("<I", _elf_hash(b"GLIBC_2.27"))
-
-    for f in audio_cpp_dir.iterdir():
-        if not f.is_file() or f.is_symlink():
-            continue
-        if f.name in ("audiocpp_cli", "audiocpp_server"):
-            try:
-                f.chmod(f.stat().st_mode | 0o755)
-            except OSError:
-                pass
-        try:
-            data = f.read_bytes()
-        except OSError:
-            continue
-        if not data.startswith(b"\x7fELF"):
-            continue
-        if shutil.which("patchelf"):
-            for sym in ("log10f", "atan2f", "acosf", "sqrtf"):
-                subprocess.run(["patchelf", "--clear-symbol-version", sym, str(f)], check=False, capture_output=True)
-            data = f.read_bytes()
-        if old_ver in data:
-            data = data.replace(old_ver, new_ver).replace(old_hash, new_hash)
-            f.write_bytes(data)
+# def _patch_linux_audiocpp_glibc(audio_cpp_dir: Path):
+#     """Patch Linux audio.cpp portable binaries that reference GLIBC_2.43 math symbols to work on older glibc."""
+#     import struct
+#     import subprocess
+#
+#     def _elf_hash(name: bytes) -> int:
+#         h = 0
+#         for b in name:
+#             h = ((h << 4) + b) & 0xFFFFFFFF
+#             g = h & 0xF0000000
+#             if g:
+#                 h ^= g >> 24
+#             h &= ~g & 0xFFFFFFFF
+#         return h
+#
+#     old_ver = b"GLIBC_2.43\x00"
+#     new_ver = b"GLIBC_2.27\x00"
+#     old_hash = struct.pack("<I", _elf_hash(b"GLIBC_2.43"))
+#     new_hash = struct.pack("<I", _elf_hash(b"GLIBC_2.27"))
+#
+#     for f in audio_cpp_dir.iterdir():
+#         if not f.is_file() or f.is_symlink():
+#             continue
+#         if f.name in ("audiocpp_cli", "audiocpp_server"):
+#             try:
+#                 f.chmod(f.stat().st_mode | 0o755)
+#             except OSError:
+#                 pass
+#         try:
+#             data = f.read_bytes()
+#         except OSError:
+#             continue
+#         if not data.startswith(b"\x7fELF"):
+#             continue
+#         if shutil.which("patchelf"):
+#             for sym in ("log10f", "atan2f", "acosf", "sqrtf"):
+#                 subprocess.run(["patchelf", "--clear-symbol-version", sym, str(f)], check=False, capture_output=True)
+#             data = f.read_bytes()
+#         if old_ver in data:
+#             data = data.replace(old_ver, new_ver).replace(old_hash, new_hash)
+#             f.write_bytes(data)
 
 
 def down_audiocpp_bin(process_callback=None):
-    _os = platform.system()
     cli_name = "audiocpp_cli.exe" if _os == 'Windows' else 'audiocpp_cli'
     p = Path(f'{ROOT_DIR}/audio_cpp/{cli_name}')
 
@@ -568,16 +570,16 @@ def down_audiocpp_bin(process_callback=None):
     }
     if not p.exists():
         down_zip(f'{ROOT_DIR}/audio_cpp', urls[_os], callback=process_callback)
-        if _os == 'Linux':
-            _patch_linux_audiocpp_glibc(Path(f'{ROOT_DIR}/audio_cpp'))
-    # win上额外下载 vulkan 仅仅用于 vulkan，cpu运行仍然使用cuda版
-    if _os=='Windows' and not Path(f'{ROOT_DIR}/audio_cpp_vulkan/{cli_name}').exists():
+        # if _os == 'Linux': #并不能解决 GLIC 版本问题
+        #     _patch_linux_audiocpp_glibc(Path(f'{ROOT_DIR}/audio_cpp'))
+    # win上检测到 vulkan 设备后额外下载 vulkan 仅仅用于 vulkan，cpu运行仍然使用cuda版
+    if _os=='Windows' and app_cfg.AUDIOCPP_REAL_VULKAN and not Path(f'{ROOT_DIR}/audio_cpp_vulkan/{cli_name}').exists():
          down_zip(f'{ROOT_DIR}/audio_cpp_vulkan', AUDIO_CPP_WIN_VULKAN_HF, callback=process_callback)
     return True
 
 
 def down_llamacpp_bin(process_callback=None):
-    _os = platform.system()
+
     srv_name = "llama-server.exe" if _os == 'Windows' else 'llama-server'
     p = Path(f'{ROOT_DIR}/llama_cpp/{srv_name}')
     if p.exists():

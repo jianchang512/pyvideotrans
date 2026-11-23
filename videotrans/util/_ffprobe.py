@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import json
+import platform
 import re
 import subprocess
 import sys
@@ -24,7 +25,7 @@ def _run_ffprobe_internal(cmd: list[str]) -> str:
             encoding="utf-8",
             errors='replace',
             check=True,
-            creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0
+            creationflags=subprocess.CREATE_NO_WINDOW if platform.system() == 'Windows' else 0
         )
         return p.stdout.strip()
     except FileNotFoundError as e:

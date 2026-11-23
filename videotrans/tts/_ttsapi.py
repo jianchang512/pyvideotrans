@@ -1,4 +1,5 @@
 import logging
+import platform
 import sys,re
 from dataclasses import dataclass
 from typing import List, Dict
@@ -60,7 +61,7 @@ class TTSAPI(BaseTTS):
                 "language": self.language.split('-')[0] if self.language else "",
                 "extra": params.get('ttsapi_extra',''),
                 "voice": data_item['role'].strip(),
-                "ostype": sys.platform,
+                "ostype": platform.system(),
                 "rate": self.speed}
         headers = {
             'Content-Type': 'application/x-www-form-urlencoded',

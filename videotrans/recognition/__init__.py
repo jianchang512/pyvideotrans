@@ -13,8 +13,6 @@ def get_model_by_type(recogn_type: int) -> List[str]:
         return constants.DEEPGRAM_ASR_MODELS.split(',')
     if recogn_type == Whisper_CPP:
         return constants.WHISPER_CPP_MODELS.split(',')
-    if recogn_type == WHISPER_NET:
-        return constants.WHISPER_NET_MODELS.split(',')
     if recogn_type == QWENASR:
         return constants.QWEN_ASR_LOCAL_MODELS.split(',')
     if recogn_type == QWEN3ASR:

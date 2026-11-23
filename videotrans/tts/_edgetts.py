@@ -9,7 +9,7 @@ import aiohttp
 from edge_tts import Communicate
 from edge_tts.exceptions import EdgeTTSException
 
-from videotrans.configure.config import tr, settings, app_cfg, logger, ROOT_DIR
+from videotrans.configure.config import tr, settings, app_cfg, logger, ROOT_DIR, CPU_NUMS
 from videotrans.configure.excepts import DubbingSrtError
 from videotrans.tts._base import BaseTTS
 
@@ -256,7 +256,7 @@ class EdgeTTS(BaseTTS):
                 all_task = []
                 from concurrent.futures import ThreadPoolExecutor
                 self.signal(text=f'convert wav[{total_tasks}]')
-                with ThreadPoolExecutor(max_workers=min(1, len(self.queue_tts), os.cpu_count() or 1)) as pool:
+                with ThreadPoolExecutor(max_workers=min(1, len(self.queue_tts),CPU_NUMS)) as pool:
                     for item in self.queue_tts:
                         mp3_path = item['filename'] + ".mp3"
                         if not vail_file(item['filename']) and vail_file(mp3_path):

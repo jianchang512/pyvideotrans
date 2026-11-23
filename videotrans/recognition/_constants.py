@@ -44,30 +44,28 @@ GOOGLE_SPEECH = 25
 Deepgram = 26
 CAMB_ASR = 27
 STT_API = 28
-# .net
-WHISPER_NET = 29
 
 # 自定义API
-CUSTOM_API = 30
+CUSTOM_API = 29
 
 # 在线API
-SILICONFLOW_API = 31
-OPENROUTER_API = 32
-MINIMAX_API = 33
-FISHAUDIO_API = 34
-AUDEXUM_API = 35
+SILICONFLOW_API = 30
+OPENROUTER_API = 31
+MINIMAX_API = 32
+FISHAUDIO_API = 33
+AUDEXUM_API = 34
 
 # 允许切换不同模型的渠道
 ALLOW_CHANGE_MODEL = [
     FASTER_WHISPER, Faster_Whisper_XXL, Whisper_CPP,
     OPENAI_WHISPER, FUNASR_CN, Deepgram,
     WHISPERX_API, HUGGINGFACE_ASR, QWENASR,
-    WHISPER_NET, QWEN3ASR, SILICONFLOW_API, OPENROUTER_API, MINIMAX_API, GEMINI_SPEECH, ElevenLabs, CAMB_ASR,
+     QWEN3ASR, SILICONFLOW_API, OPENROUTER_API, MINIMAX_API, GEMINI_SPEECH, ElevenLabs, CAMB_ASR,
     OPENAI_API, STT_API, XIAOMIASR,AUDIOCPP_API]
 
 # 允许所有语言，无需语言支持检测
 ALLOW_ALL_LANGUAGES = [FASTER_WHISPER, OPENAI_WHISPER, WHISPERX_API, Faster_Whisper_XXL, Whisper_CPP, OPENAI_API,
-                       AI_302, GEMINI_SPEECH, WHISPER_NET, GOOGLE_SPEECH, AUDEXUM_API,FISHAUDIO_API]
+                       AI_302, GEMINI_SPEECH,  GOOGLE_SPEECH, AUDEXUM_API,FISHAUDIO_API]
 
 # 渠道id对应的设置窗口和sk键名,
 # key_name: 存储 SK 或 api url的键，通过 app_cfg.params 调用，如果不存在该值，在使用时报错未填写
@@ -161,8 +159,6 @@ ID_NAME_DICT = {
                              key_name="stt_url",
                              win="sttapi",
                              imp="._sttapi"),
-    WHISPER_NET: ChannelProvider("Whisper.NET",
-                                 imp="._whispernet"),
     CUSTOM_API: ChannelProvider(tr("Custom API"),
                                 key_name="recognapi_url",
                                 win="recognapi",

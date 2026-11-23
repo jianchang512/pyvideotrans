@@ -1,4 +1,4 @@
-
+import platform
 import sys
 import os
 import difflib
@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout,
                                QComboBox, QCheckBox,  QMessageBox)
 from PySide6.QtCore import Qt, QThread, Signal, Slot, QSettings, QUrl
 
-from videotrans.configure.config import ROOT_DIR, settings,  defaulelang,tr
+from videotrans.configure.config import ROOT_DIR, settings, defaulelang, tr, app_cfg
 from videotrans.configure import config
 from videotrans.configure.constants import FASTER_MODELS_DICT
 from videotrans.ui._bottom_btn import _Bottom_btn_layout
@@ -58,14 +58,13 @@ class AlignmentWorker(QThread):
         try:
             self.log_signal.emit(tr("status_loading_model", self.model_name, self.device))
             from videotrans.util.whisper_vulkan import should_use_whisper_vulkan, ensure_ggml_whisper_model, PyWhisperCppModel
-            if should_use_whisper_vulkan(self.model_name, device_name=self.device,is_cuda=self.device=='cuda'):
+            # 仅启用硬件加速并且 cuda 不可用，才考虑 vulkan
+            if self.device=='cuda' and app_cfg.NVIDIA_GPU_NUMS<1 and platform.system() !='Darwin' and should_use_whisper_vulkan(self.model_name):
                 ensure_ggml_whisper_model(self.model_name, callback=self._progress_callback)
                 model = PyWhisperCppModel(
                     self.model_name,
-                    device=self.device,
                     compute_type=self.compute_type,
-                    model_name=self.model_name,
-                    is_cuda=(self.device != "cpu"),
+                    model_name=self.model_name
                 )
             else:
                 check_and_down_hf(self.model_name,FASTER_MODELS_DICT[self.model_name],self.local_dir,callback=self._progress_callback)

@@ -6,7 +6,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 import os
 
-from videotrans.configure.config import tr, ROOT_DIR, settings, logger
+from videotrans.configure.config import tr, ROOT_DIR, settings, logger, CPU_NUMS
 from videotrans.configure.constants import PUNC_RESTORE_HF
 from videotrans.configure.excepts import SpeechToTextError
 from videotrans.recognition import run as run_recogn,  FASTER_WHISPER
@@ -230,7 +230,7 @@ class RecognMixin:
                 logger.exception(f'裁切参考音频失败:{it=},{e}', exc_info=True)
 
         all_task = []
-        with ThreadPoolExecutor(max_workers=min(8, len(self.queue_tts), os.cpu_count())) as pool:
+        with ThreadPoolExecutor(max_workers=min(8, len(self.queue_tts), CPU_NUMS)) as pool:
             for item in self.queue_tts:
                 if item.get('ref_wav'):
                     all_task.append(pool.submit(_cutaudio_from_vocal, item))

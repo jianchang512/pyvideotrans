@@ -1,3 +1,4 @@
+import platform
 import sys,re
 
 from pathlib import Path
@@ -106,7 +107,7 @@ class WinActionCheckMixin:
         return True
 
     def check_name_length(self):
-        if sys.platform != 'win32':
+        if platform.system() != 'Windows':
             return True
         from PySide6.QtWidgets import QMessageBox
         for it in self.queue_mp4:

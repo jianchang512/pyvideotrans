@@ -9,16 +9,16 @@ from typing import List, Union, Dict, Any
 import requests
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_not_exception_type, before_log, after_log
 
+from videotrans.configure import config
+from videotrans.configure._i18n import tr
 from videotrans.configure._paths import ROOT_DIR
 from videotrans.configure.config import params,settings,logger
 from videotrans.configure.constants import AUDIOCPP_ASR_MODELS
-from videotrans.configure.excepts import NO_RETRY_EXCEPT, SpeechToTextError
+from videotrans.configure.excepts import SpeechToTextError
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
-from videotrans.util._srt_parse import ms_to_time_string
-from videotrans.util.gpus import cpp_device
+from videotrans.util.help_audiocpp import activate_audiocpp_server
 from videotrans.util.help_down import down_audiocpp_bin, down_file_from_hf
-from videotrans.util.help_misc import exec_audiocpp
 
 
 @dataclass(repr=False)
@@ -55,42 +55,25 @@ class AudiocppRecogn(BaseRecogn):
         if self.detect_language !='auto' and self.gguf_obj.get('allow_language_tag'):
             langcode = self.detect_language.split('-')[0].lower()
 
-
+        activate_audiocpp_server(self)
         err=''
         ok_nums=0
-        cli_name = "audiocpp_cli.exe" if platform.system() == 'Windows' else 'audiocpp_cli'
-        device_name=cpp_device(is_cuda=self.is_cuda)
-        if ":" in device_name:
-            name,dev_index=device_name.split(":",1)
-            device_list=["--backend",name,"--device",str(dev_index)]
-        else:
-            device_list=["--backend",device_name]
         for i, it in enumerate(raws):
-            txt_file=f'{self.cache_folder}/audio_asr_txt_{i}.txt'
-            cmd = [
-                        f"{ROOT_DIR}/audio_cpp/{cli_name}",
-                        "--task",
-                        "asr",
-                        "--family",
-                        self.model_name,
-                        "--model",
-                        f"{ROOT_DIR}/models/{self.gguf_obj['file']}"
-            ]
-            cmd.extend(device_list)
-            cmd.extend([ "--audio",it['filename']])
+            payload={
+                "model":self.model_name,
+                "audio":it['filename']
+            }
             if langcode:
-                cmd.extend(['--language',langcode])
-
-            if self.gguf_obj.get('extra'):
-                cmd.extend(self.gguf_obj.get('extra'))
-            cmd.extend(["--text-out",txt_file])
-            exec_audiocpp(cmd)
-            text=Path(txt_file).read_text(encoding="utf-8").strip() if Path(txt_file).exists() else None
-            if self.model_name=='moss_transcribe_diarize':
-                text=re.sub(r'\[[a-zA-Z0-9_.-]+?]','',text,flags=re.I)
-            if not text:
-                err=f'error:{i} {cmd=}'
+                payload['language']=langcode
+            try:
+                self.signal(text=f"starting {i+1}/{len(raws)}...")
+                text=self._api(payload)
+                if self.model_name=='moss_transcribe_diarize':
+                    text=re.sub(r'\[[a-zA-Z0-9_.-]+?]','',text,flags=re.I)
+            except Exception as e:
+                err=str(e)
                 continue
+
             raws[i]['text'] =text
             self.signal(text=f"{text}\n", type='subtitle')
             ok_nums+=1
@@ -98,3 +81,14 @@ class AudiocppRecogn(BaseRecogn):
             raise SpeechToTextError(err)
         return raws
 
+    def _api(self,payload):
+        response = requests.post(f'{config.AUDIO_SERVER_CFG.api_endpoint}/v1/audio/transcriptions', headers={
+            "content-type": "application/json",
+        }, json=payload)
+        if response.status_code!=200:
+            try:
+                msg=response.json().get("error",{}).get("message",response.text)
+                raise RuntimeError(f'{msg}\n' + (tr('Insufficient permissions') if "Access is denied" in msg else ""))
+            except json.JSONDecodeError:
+                raise RuntimeError(response.text)
+        return response.json()['text']

@@ -415,7 +415,7 @@ class AssembleMixin:
             stderr=subprocess.PIPE,
             stdin=subprocess.DEVNULL,
             creationflags=(
-                subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
+                subprocess.CREATE_NO_WINDOW if platform.system() == "Windows" else 0
             ),
             cwd=self.cfg.cache_folder,
         )

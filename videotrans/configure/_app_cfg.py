@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass, field
 from queue import Queue
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Union
 
 from videotrans.configure._i18n import _get_langjson_list
 
@@ -9,16 +9,27 @@ from videotrans.configure._i18n import _get_langjson_list
 @dataclass
 class AppCfg:
     """
-    存储直接属于 config.py 的运行时属性 (原全局变量)。
+    存储直接属于 config.py 的运行时属性
     """
+    # 真正在 torch中可使用的 cuda 数量，可能有nvidia显卡但环境不正确
     NVIDIA_GPU_NUMS: int = -1
+    # 是否存在真正能为 audio.cpp 可用的cuda， torch中cuda 检测可用，但audio.cpp中未必可用，需再次检测，True=真实可用
+    AUDIOCPP_REAL_CUDA: Union[None,bool]=None
+
+    # 是否存在 torch中可用的mps后端
     MPS_NUMS: int = 0
+    # torch中cuda 检测可用，但audio.cpp中未必可用，需再次检测，True=真实可用
+    AUDIOCPP_REAL_METAL: Union[None,bool]=None
+
+    # 通过 vulkaninfo --summary 检测出的vulkan，可能存在，但未必能被 audio.cpp 使用
     VULKAN_LIST: List = field(default_factory=list)
+    # vulkaninfo 可检测出vulkan，但因驱动、库文件等原因未必真实可用，True=真实可用
+    AUDIOCPP_REAL_VULKAN: Union[None,bool]=None
     MAX_CPU_PROCESS: int = 1
     MAX_GPU_PROCESS: int = 1
 
     # 可用硬件设备
-    dev_choices:List = field(default_factory=list)
+    dev_choices: List = field(default_factory=list)
 
     # 全局状态标识
     stoped_uuid_set: set = field(default_factory=set)

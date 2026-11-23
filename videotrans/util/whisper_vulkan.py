@@ -11,11 +11,10 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 
-from videotrans.configure.config import ROOT_DIR, logger, settings, app_cfg
+from videotrans.configure.config import ROOT_DIR, logger, app_cfg, CPU_NUMS
 from videotrans.configure.constants import WHISPERCPP_MODEL_URL_HF
 
 # Standard Whisper models hosted on ggerganov/whisper.cpp (HF) and viggocx/whisper.cpp (ModelScope)
-from videotrans.util.gpus import cpp_device
 
 _STANDARD_GGML_MODELS: Dict[str, str] = {
     "tiny": "ggml-tiny.bin",
@@ -112,26 +111,18 @@ def get_ggml_model_info(model_name: str) -> Optional[Tuple[str, str]]:
 # Only consider using Vulkan when is_cuda is enabled and CUDA is unavailable
 # If hardware acceleration is not explicitly enabled, Vulkan will not be used, or if CUDA is available, Vulkan will also not be used
 # Vulkan is only used as a fallback for hardware acceleration, with CUDA being the preferred choice
-def should_use_whisper_vulkan(model_name: str, device_name: Optional[str] = None, is_cuda=False) -> bool:
+def should_use_whisper_vulkan(model_name: str) -> bool:
     """
     Determine whether to use the pywhispercpp (Vulkan / GGML) drop-in engine
     instead of CTranslate2 faster-whisper.
     """
-    if not is_cuda or platform.system() == 'Darwin': return False
-
-    if app_cfg.NVIDIA_GPU_NUMS<1:
-        return False
+    if app_cfg.NVIDIA_GPU_NUMS>0 or platform.system() == 'Darwin': return False
 
     if not is_pywhispercpp_available():
         return False
     if get_ggml_model_info(model_name) is None:
         return False
-    if device_name is None:
-        device_name = str(settings.get("device_name", "auto") or "auto")
-    dev=cpp_device(device=device_name, is_cuda=is_cuda)
-    # If the user explicitly forced 'cuda:N' in advanced settings and did not request vulkan/auto,
-    # still use pywhispercpp when Vulkan is available unless CTranslate2 is explicitly requested via env.
-    if os.environ.get("FORCE_CTRANSLATE2", "").lower() in ("1", "true", "yes") and not dev.startswith("vulkan"):
+    if os.environ.get("FORCE_CTRANSLATE2", "").lower() in ("1", "true", "yes"):
         return False
     return True
 
@@ -271,6 +262,7 @@ def _extract_words_from_segment(
     return merged
 
 
+# 仅在 cuda 无法使用、或 whisper.cpp 渠道不存在二进制文件时考虑
 class PyWhisperCppModel:
     """
     Drop-in replacement for `faster_whisper.WhisperModel` backed by `pywhispercpp` (ggml-vulkan / CPU).
@@ -279,16 +271,12 @@ class PyWhisperCppModel:
     def __init__(
         self,
         model_size_or_path: str,
-        device: str = "auto",
-        device_index: int = 0,
         compute_type: str = "default",
         model_name: Optional[str] = None,
-        is_cuda: bool = False,
         **kwargs,
     ):
         from pywhispercpp.model import Model
 
-        self.device = str(device or "cpu").strip().lower()
         self.compute_type = compute_type
         self.model_name = model_name or model_size_or_path
 
@@ -308,17 +296,14 @@ class PyWhisperCppModel:
             self.ggml_path = ensure_ggml_whisper_model(inferred_name)
 
         # Determine whether to use Vulkan GPU acceleration
-        if self.device == "cpu":
-            self.use_gpu = False
-            self.gpu_device = 0
-        elif self.device.startswith("vulkan"):
+        if app_cfg.VULKAN_LIST:
             self.use_gpu = True
-            self.gpu_device = int(self.device.split(":")[-1]) if ":" in self.device else 0
+            self.gpu_device = 0
         else:
             self.use_gpu = False
             self.gpu_device = 0
 
-        self.n_threads = max(1, min(8, (os.cpu_count() or 4) // 2))
+        self.n_threads = max(1, min(8, CPU_NUMS // 2))
         logger.debug(
             f"[PyWhisperCppModel] Loading {self.ggml_path} (use_gpu={self.use_gpu}, "
             f"vulkan_device={self.gpu_device}, threads={self.n_threads})"

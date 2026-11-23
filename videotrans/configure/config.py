@@ -35,7 +35,9 @@ if _proxy:
 TEMP_DIR = f'{TEMP_ROOT}/None'
 # 高级选项中硬件选择列表
 ACCESS_DEVICES=["auto"]
-
+# audio.cpp 启动对象
+AUDIO_SERVER_CFG=None
+CPU_NUMS=int(os.cpu_count() or 1)
 
 def init_run():
     global TEMP_DIR

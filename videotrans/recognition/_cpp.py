@@ -1,15 +1,15 @@
 # ToDo 将 whisper.cpp 移动到此
 import os
 import re
-import subprocess
+import subprocess,platform
 import sys
 from dataclasses import dataclass
 from pathlib import Path
 
 from videotrans.configure import constants
 from videotrans.configure._paths import ROOT_DIR
-from videotrans.configure.config import tr, settings, logger
-from videotrans.configure.constants import WHISPER_CPP_URL_HF, WHISPERCPP_MODEL_URL_HF
+from videotrans.configure.config import tr, settings, logger, CPU_NUMS
+from videotrans.configure.constants import WHISPER_CPP_URL_HF, WHISPER_CPP_LINUX_URL_HF,WHISPERCPP_MODEL_URL_HF
 from videotrans.configure.excepts import SpeechToTextError
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util._srt_parse import get_subtitle_from_srt, ms_to_time_string
@@ -17,22 +17,25 @@ from videotrans.util.gpus import cpp_device
 from videotrans.util.help_down import down_zip
 
 
+_os=platform.system()
+
 @dataclass(repr=False)
 class CPPRecogn(BaseRecogn):
 
-    def _win_download_cli(self):
+    def _download_cli(self):
+        if  _os== 'Darwin':return
         # windows上自动下载exe
-        self.signal(text=f'Download whisper-cli.exe ')
-        down_zip(f'{ROOT_DIR}', WHISPER_CPP_URL_HF, callback=self._process_callback)
+        self.signal(text=f'Download whisper-cli')
+        down_zip(f'{ROOT_DIR}', WHISPER_CPP_URL_HF if _os=='Windows' else WHISPER_CPP_LINUX_URL_HF, callback=self._process_callback)
 
 
     def _exec(self):
         cpp_path=f'{ROOT_DIR}/whisper-cpp/whisper-cli'#whisper-cli.exe | whisper-cli
-        if sys.platform=='win32':
+        if _os=='Windows':
             cpp_path+='.exe'
         Path_cpp=Path(cpp_path)
-        if not Path_cpp.is_file() and sys.platform=='win32':
-            self._win_download_cli()
+        if not Path_cpp.is_file():
+            self._download_cli()
 
         if not Path(f'{ROOT_DIR}/models/{self.model_name}').is_file():
             from videotrans.util import help_down
@@ -51,8 +54,7 @@ class CPPRecogn(BaseRecogn):
                 _lang = self.detect_language.split('-')[0]
                 prompt = settings.get(f'initial_prompt_{self.detect_language.replace("-","_")}')
                 model = PyWhisperCppModel(
-                    f'{ROOT_DIR}/models/{self.model_name}',
-                    device=device,
+                    f'{ROOT_DIR}/models/{self.model_name}'
                 )
                 segments, _ = model.transcribe(
                     self.audio_file,
@@ -75,7 +77,7 @@ class CPPRecogn(BaseRecogn):
 
         txt_file = ROOT_DIR + '/pyvideotrans_cpp.txt'
 
-        n_threads = str(max(min(4, int(os.cpu_count() or 4) - 1), 1))
+        n_threads = str(max(min(4, CPU_NUMS - 1), 1))
         cmd = [
             cpp_path,
             "-t" if device.startswith("cuda") else "-p",
@@ -87,9 +89,7 @@ class CPPRecogn(BaseRecogn):
             "-pp",
             "-np"
         ]
-        if device.startswith("cuda"):
-            cmd.extend(["-dev", str(device.split(":")[-1]) if ":" in device else "0"])
-        else:
+        if device.startswith("cpu"):
             cmd.append("-ng")
         _lang=self.detect_language.split('-')[0]
         cmd += ["-l", _lang]
@@ -121,7 +121,7 @@ class CPPRecogn(BaseRecogn):
                 text=True,
                 encoding='utf-8',
                 errors='replace',
-                creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0,
+                creationflags=subprocess.CREATE_NO_WINDOW if _os == 'Windows' else 0,
                 cwd=f'{self.cache_folder}',
                 bufsize=1  # 开启行缓冲，确保逐行实时输出
             )

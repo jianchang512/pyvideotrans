@@ -1,4 +1,4 @@
-
+import platform
 
 
 def openwin():
@@ -197,7 +197,7 @@ def openwin():
         return True
 
     def show_xxl_select():
-        if sys.platform != 'win32':
+        if platform.system() != 'Windows':
             show_error(
                 tr("faster-whisper-xxl.exe is only available on Windows"))
             return False

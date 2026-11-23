@@ -8,7 +8,7 @@ from pathlib import Path
 from videotrans.configure.constants import DENOISE_URL_HF, ZIPENHANCER_HF
 from videotrans.process._utils import _write_log
 from videotrans.util.gpus import cpp_device
-from videotrans.util.help_misc import exec_audiocpp
+from videotrans.util.help_audiocpp import exec_audiocpp
 
 OS_TYPE=platform.system()
 AUDIO_CPP=f'{ROOT_DIR}/audio_cpp/audiocpp_cli{".exe" if OS_TYPE=="Windows" else ""}'

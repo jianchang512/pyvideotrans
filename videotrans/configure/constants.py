@@ -35,7 +35,6 @@ ELEVENLABS_ASR_MODELS='scribe_v2'
 DEEPGRAM_ASR_MODELS =  "nova-3,nova-2,whisper-large"
 GEMINI_ASR_MODELS = "gemini-3.5-transcribe"
 WHISPER_CPP_MODELS = "ggml-tiny.bin,ggml-base.bin,ggml-small.bin,ggml-medium.bin,ggml-large-v1.bin,ggml-large-v2.bin,ggml-large-v3.bin,ggml-large-v3-turbo.bin"
-WHISPER_NET_MODELS = WHISPER_CPP_MODELS
 QWEN_ASR_MODELS = 'qwen3-asr-flash,qwen-audio-3.0-asr-flash,fun-asr-flash-2026-06-15'
 OPENAIRECOGNAPI_MODELS = "whisper-1,gpt-4o-transcribe,gpt-4o-mini-transcribe,gpt-4o-transcribe-diarize"
 OPENROUTER_ASR_MODELS = "microsoft/mai-transcribe-2,microsoft/mai-transcribe-1.5,nvidia/nemotron-3.5-asr-streaming-multilingual-0.6b,nvidia/parakeet-tdt-0.6b-v3,mistralai/voxtral-small-24b-2507-stt,mistralai/voxtral-mini-3b-2507,mistralai/voxtral-mini-transcribe,qwen/qwen3-asr-1.7b,qwen/qwen3-asr-0.6b,qwen/qwen3-asr-flash-2026-02-10,openai/gpt-4o-mini-transcribe,openai/gpt-transcribe,openai/whisper-large-v3-turbo,openai/whisper-large-v3,openai/gpt-4o-transcribe,openai/whisper-1,fish-audio/transcribe-1,x-ai/grok-stt-1.0,deepgram/nova-3,meta/muse-voice-transcribe-1.0,"
@@ -53,44 +52,51 @@ AUDIOCPP_ASR_MODELS={
         "file":"Fun-ASR-Nano-2512-GGUF/fun-asr-nano-2512-q8_0.gguf", # 本地模型位置
         "languages":["zh","en","ja","yue"],
         "allow_language_tag":True, # 有些模型不支持使用 language标签
-        "extra":["--request-option","audio_chunk_mode=none"] # 某些模型需要禁用vad
+        "max_tokens":1024,
+        "audio_chunk_mode":"none"
     },
     "qwen3_asr":{
         "url":"/audio-cpp/audio.cpp-gguf/resolve/main/Qwen3-ASR-1.7B-GGUF/qwen3-asr-1.7b-q8_0.gguf?download=true",
         "languages":["zh", "en", "yue", "ar", "de", "fr", "es", "pt", "id", "it", "ko", "ru", "th", "vi", "ja", "tr", "hi", "ms", "nl", "sv", "da", "fi", "pl", "cs", "fil", "fa", "el", "hu", "mk", "ro"],
         "allow_language_tag":True,
         "file":"Qwen3-ASR-1.7B-GGUF/qwen3-asr-1.7b-q8_0.gguf",
-        "extra":["--request-option","audio_chunk_mode=none"]
+        "max_tokens":1024,
+        "audio_chunk_mode":"none"
     },
     "sense_asr":{
         "url":"/FunAudioLLM/SenseVoiceSmall-GGUF-audiocpp/resolve/main/sensevoice-small-q8-audiocpp-v1.gguf?download=true",
         "file":"SenseVoice-Small-GGUF/sensevoice-small-q8-audiocpp-v1.gguf",
         "languages":["zh", "en", "yue", "ja", "ko", "pt", "ru", "es", "it", "fr", "de", "nl", "pl", "tr", "ar", "hi", "vi", "th", "id", "ms", "fa"],
+        "audio_chunk_mode":"none",
         "allow_language_tag":True,
-        "extra":["--request-option","audio_chunk_mode=none"]
     },
-    "vibevoice_asr":{
-      "url":"/audio-cpp/audio.cpp-gguf/resolve/main/VibeVoice-ASR-GGUF/vibevoice-asr-q8_0.gguf?download=true",
-        "file":"VibeVoice-ASR-GGUF/vibevoice-asr-q8_0.gguf",
-        "allow_language_tag":True,
-        "extra":["--request-option","audio_chunk_mode=none"]
-    },
+    
     "moss_transcribe_diarize":{
         "url":"/audio-cpp/audio.cpp-gguf/resolve/main/MOSS-Transcribe-Diarize-GGUF/moss-transcribe-diarize-q8_0.gguf?download=true",
         "allow_language_tag":False,
-        "file":"MOSS-Transcribe-Diarize-GGUF/moss-transcribe-diarize-q8_0.gguf"
+        "file":"MOSS-Transcribe-Diarize-GGUF/moss-transcribe-diarize-q8_0.gguf",
+        "max_tokens":1024
     },
     "parakeet_tdt":{
         "url":"/audio-cpp/audio.cpp-gguf/resolve/main/Parakeet-TDT-0.6B-v3-GGUF/parakeet-tdt-0.6b-v3-q8_0.gguf?download=true",
         "languages":["bg", "hr", "cs", "da", "nl", "en", "et", "fi", "fr", "de", "el", "hu", "it", "lv", "lt", "mt", "pl", "pt", "ro", "sk", "sl", "es", "sv", "ru", "uk"],
         "allow_language_tag":False,
         "file":"Parakeet-TDT-0.6B-v3-GGUF/parakeet-tdt-0.6b-v3-q8_0.gguf",
-        "extra":["--request-option","audio_chunk_mode=none"]
+        "audio_chunk_mode":"none",
+        "max_tokens":1024
     },
     "nemotron_asr":{
         "url":"/audio-cpp/audio.cpp-gguf/resolve/main/Nemotron-3.5-ASR-Streaming-0.6B-GGUF/nemotron-3.5-asr-streaming-0.6b-q8_0.gguf?download=true",
         "allow_language_tag":True,
-        "file":"Nemotron-3.5-ASR-Streaming-0.6B-GGUF/nemotron-3.5-asr-streaming-0.6b-q8_0.gguf"
+        "file":"Nemotron-3.5-ASR-Streaming-0.6B-GGUF/nemotron-3.5-asr-streaming-0.6b-q8_0.gguf",
+        "max_tokens":1024
+    },
+    "vibevoice_asr":{
+      "url":"/audio-cpp/audio.cpp-gguf/resolve/main/VibeVoice-ASR-GGUF/vibevoice-asr-q8_0.gguf?download=true",
+        "file":"VibeVoice-ASR-GGUF/vibevoice-asr-q8_0.gguf",
+        "allow_language_tag":True,
+        "audio_chunk_mode":"none",
+        "max_tokens":1024
     }
 }
 
@@ -205,6 +211,7 @@ no_proxy = ",".join( [
 # 统一上传到  huggingface.co ，方便中国大陆直接使用国内镜像站 hf-mirror.com, github.com 国内下载极慢，几KB/s,无权威镜像站
 # whisper.cpp windows二进制文件
 WHISPER_CPP_URL_HF = '/mortimerme/repocollect/resolve/main/whisper-cpp-win32.zip?download=true'
+WHISPER_CPP_LINUX_URL_HF = '/mortimerme/repocollect/resolve/main/whisper-cpp-linux.tar.gz?download=true'
 
 # 内置说话人下载地址
 BUILTINT_URL_HF = [

@@ -1,3 +1,4 @@
+import platform
 import re,sys
 import aiohttp
 import requests
@@ -199,7 +200,7 @@ NO_RETRY_EXCEPT = (
 
 def _nofoundfile(e,lang):
     filename=getattr(e, 'filename', '')
-    if sys.platform=='win32' and filename and "/tmp/" not in filename and len(filename)>250:
+    if platform.system()=='Windows' and filename and "/tmp/" not in filename and len(filename)>250:
         return f'请检查文件是否存在，若存在，可能文件名可能过长，请重命名为简短名称，并移动到浅层目录下:\n{filename}' if lang=='zh' else f'The filename may be too long. Please rename it to a shorter name and move it to a shallow directory.:\n{filename}'
     return f"文件不存在：{filename}" if lang == 'zh' else f"File not found: {filename}"
 

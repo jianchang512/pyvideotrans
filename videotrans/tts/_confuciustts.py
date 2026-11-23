@@ -2,7 +2,7 @@ import json,time,os
 from dataclasses import dataclass
 from typing import Union, Dict, List
 from videotrans.tts._base import BaseTTS
-from videotrans.configure.config import settings, logger,tr,ROOT_DIR,app_cfg,TEMP_DIR
+from videotrans.configure.config import settings, logger, tr, ROOT_DIR, app_cfg, TEMP_DIR, CPU_NUMS
 from videotrans.util.help_misc import vail_file
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
@@ -39,7 +39,7 @@ class ConfuciusTTS(BaseTTS):
         self.signal(text=tr('Standardized dubbing segment processing'))
         all_task = []
 
-        with ThreadPoolExecutor(max_workers=min(4,len(self.queue_tts),os.cpu_count())) as pool:
+        with ThreadPoolExecutor(max_workers=min(4,len(self.queue_tts),CPU_NUMS)) as pool:
             for item in self.queue_tts:
                 if vail_file(item['filename']):continue
                 filename=item.get('filename','')+"-24k.wav"

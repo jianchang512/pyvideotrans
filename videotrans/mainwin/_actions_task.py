@@ -1,4 +1,5 @@
 import copy
+import platform
 import re
 import sys
 
@@ -31,7 +32,7 @@ class WinActionTaskMixin:
         forbid_names = []
         for video_path in self.queue_mp4:
             obj: InputFile = format_video(video_path, target_dir)
-            if sys.platform == "win32" and re.search(r'[?:<>*|/"]', obj['basename']):
+            if platform.system() == "Windows" and re.search(r'[?:<>*|/"]', obj['basename']):
                 forbid_names.append(obj['basename'])
                 continue
             self.obj_list.append(obj)
