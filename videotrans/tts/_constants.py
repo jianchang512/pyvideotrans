@@ -125,6 +125,13 @@ TTS_MODEL_PARAMS = {
     FISHAUDIOAPI_TTS: 'fishaudio_model',
 }
 
+# 在设置中还有其他会改变配音效果的参数（如 OpenAI TTS 的提示词、MiniMax 的情绪）的渠道，值为保存这些参数的 params 键，渠道配音时从中读取
+TTS_STYLE_PARAMS = {
+    OPENAI_TTS: ['openaitts_instructions'],
+    MINIMAXI_TTS: ['minimaxi_emotion'],
+    CHATTERBOX_TTS: ['chatterbox_cfg_weight', 'chatterbox_exaggeration'],
+}
+
 # 渠道id对应的设置窗口和sk键名,
 # key_name: 存储 SK 或 api url的键，通过 app_cfg.params 调用，如果不存在该值，在使用时报错未填写
 # win: 对应 winform 包中的文件名及 ui 包中的文件名，用于调用打开设置窗口
