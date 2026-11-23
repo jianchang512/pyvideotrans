@@ -183,6 +183,11 @@ class TestTranslatorIndexConstants:
         assert AIGROW_INDEX == 39
         assert AIGROW_INDEX in AI_TRANS_CHANNELS
 
+    def test_onomeo_index(self):
+        from videotrans.translator import ONOMEO_INDEX, AI_TRANS_CHANNELS
+        assert ONOMEO_INDEX == 40
+        assert ONOMEO_INDEX in AI_TRANS_CHANNELS
+
     def test_infistar_index(self):
         from videotrans.translator import INFISTAR_INDEX, AI_TRANS_CHANNELS
         assert INFISTAR_INDEX == 28
