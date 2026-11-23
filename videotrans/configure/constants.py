@@ -91,8 +91,24 @@ AUDIOCPP_ASR_MODELS={
         "file":"Nemotron-3.5-ASR-Streaming-0.6B-GGUF/nemotron-3.5-asr-streaming-0.6b-q8_0.gguf",
         "max_tokens":1024
     },
+    "haas_asr":{
+        "url":"/audio-cpp/audio.cpp-gguf/resolve/main/Haas-ja-v1.0-GGUF/haas-ja-v1.0-q8_0.gguf?download=true", #下载地址
+        "file":"Haas-ja-v1.0-GGUF/haas-ja-v1.0-q8_0.gguf", # 本地模型位置
+        "languages":["ja"],
+        "allow_language_tag":False, # 有些模型不支持使用 language标签
+        "max_tokens":1024,
+        "audio_chunk_mode":"none"
+    },
+    "lfm3_audio":{
+        "url":"/LiquidAI/LFM3-Audio-2B-GGUF/resolve/main/LFM3-Audio-2B-Q8_0.gguf?download=true", #下载地址
+        "file":"LFM3-Audio-2B-GGUF/LFM3-Audio-2B-Q8_0.gguf", # 本地模型位置
+        "languages":["ar", "da", "de", "el", "en", "es", "fi", "fr", "he", "it", "ja", "ko", "nl", "pl", "pt", "sv", "tr", "zh"],
+        "allow_language_tag":True, # 有些模型不支持使用 language标签
+        "max_tokens":1024,
+        "audio_chunk_mode":"none"
+    },
     "vibevoice_asr":{
-      "url":"/audio-cpp/audio.cpp-gguf/resolve/main/VibeVoice-ASR-GGUF/vibevoice-asr-q8_0.gguf?download=true",
+        "url":"/audio-cpp/audio.cpp-gguf/resolve/main/VibeVoice-ASR-GGUF/vibevoice-asr-q8_0.gguf?download=true",
         "file":"VibeVoice-ASR-GGUF/vibevoice-asr-q8_0.gguf",
         "allow_language_tag":True,
         "audio_chunk_mode":"none",

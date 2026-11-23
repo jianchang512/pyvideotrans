@@ -8,6 +8,7 @@ import requests
 
 from videotrans.configure import config
 from videotrans.configure._i18n import tr
+from videotrans.configure._languages_dict import LANGUAGE_FIRERED3
 from videotrans.configure._paths import REDUBB_STATUS_FILE, REDUBB_QUEUE_FILE
 from videotrans.configure.config import params, logger, app_cfg, ROOT_DIR
 from videotrans.configure.excepts import DubbingSrtError
@@ -61,6 +62,8 @@ class AudiocppTTS(BaseTTS):
         _except = None
         lang = self.language.split('-')[0]
         queue_tts = self.queue_tts
+        if self.model_name=='fireredtts3':
+            lang=LANGUAGE_FIRERED3.get(lang,'Chinese')
 
         activate_audiocpp_server(self)
         while 1:

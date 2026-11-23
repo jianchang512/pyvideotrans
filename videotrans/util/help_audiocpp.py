@@ -167,6 +167,8 @@ class Audio_Server:
             if model["task"] in ("tts", "clon"):
                 if it.get("is_seed"):
                     model["default_request_options"] = {"seed": 42}
+                if name=='fireredtts3':
+                    model["default_request_options"].update({"num_inference_steps":4,"guidance_scale":2.0,"stop_threshold":0.5})
                 model["default_voice_preset"] = {
                     "voice_ref": f'{ROOT_DIR}/f5-tts/en_female_1.wav',
                     "reference_text": "Genes of intracellular calcium metabolism and blood pressure control in primary hypertension.",

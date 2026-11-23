@@ -52,15 +52,7 @@
     "is_language": false,
     "is_seed": true
   },
-  "moss_tts_local": {
-    "type": "clon",
-    "file": "MOSS-TTS-Local-v1.5-GGUF/moss-tts-local-v1.5-q8_0.gguf",
-    "url": "/audio-cpp/audio.cpp-gguf/resolve/main/MOSS-TTS-Local-v1.5-GGUF/moss-tts-local-v1.5-q8_0.gguf?download=true",
-	"support_languages":["zh","en","de","es","fr","ja","it","hu","ko","ru","fa","ar","pl","pt","cs","da","sv","el","tr"],
-    "is_reference_text": false,
-    "is_language": false,
-    "is_seed": true
-  },
+
   "voxcpm2": {
     "type": "tts",
     "file": "VoxCPM2-GGUF/voxcpm2-q8_0.gguf",
@@ -115,6 +107,16 @@
     "is_language": true,
     "is_seed": false
   },
+
+  "fireredtts3": {
+    "type": "clon",
+    "file": "FireRedTTS3-Base-GGUF/fireredtts3-base-q8_0.gguf",
+    "url": "/audio-cpp/audio.cpp-gguf/resolve/main/FireRedTTS3-Base-GGUF/fireredtts3-base-q8_0.gguf?download=true",
+    "support_languages": ["ar","yue","zh","cz","nl","en","fr","de","el","hi","id","it","ja","ko","pl","pt","ro","ru","es","th", "tr","uk","fi","vi"],
+    "is_reference_text": true,
+    "is_language": true,
+    "is_seed": true
+  },
   
 
   
@@ -153,6 +155,15 @@
 	"support_languages":["auto", "yue", "zh", "nl", "en", "fr", "de", "it", "ja", "ko", "pl", "es"],
     "is_reference_text": true,
     "is_language": true,
+    "is_seed": true
+  },
+  "moss_tts_local": {
+    "type": "clon",
+    "file": "MOSS-TTS-Local-v1.5-GGUF/moss-tts-local-v1.5-q8_0.gguf",
+    "url": "/audio-cpp/audio.cpp-gguf/resolve/main/MOSS-TTS-Local-v1.5-GGUF/moss-tts-local-v1.5-q8_0.gguf?download=true",
+	"support_languages":["zh","en","de","es","fr","ja","it","hu","ko","ru","fa","ar","pl","pt","cs","da","sv","el","tr"],
+    "is_reference_text": false,
+    "is_language": false,
     "is_seed": true
   }
 }
