@@ -41,6 +41,7 @@ MENU_CFG_TRANS = [
     ("trustedrouter", 'TrustedRouter', None),
     ("openllm", 'OpenLLM', None),
     ("aigrow", 'AIGROW', None),
+    ("teamorouter", 'TeamoRouter', None),
 
     ("deepl", "DeepL API", None),
     ("deeplx", "DeepLX API", None),

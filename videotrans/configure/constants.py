@@ -122,6 +122,8 @@ TRUSTEDROUTER_MODELS = "deepseek/deepseek-v4-flash,trustedrouter/auto,deepseek/d
 OPENLLM_MODELS = "lite,plus,ultra"
 # Unprefixed ids from https://aigrow.gg/v1/models (2026-11-21), which lists every model with its price and needs no key.
 AIGROW_MODELS = "claude-haiku-5.5,gemini-3.8-flash,gpt-6.1-terra,gpt-6-luna,claude-sonnet-5.5,gemini-4-hydrogen,gpt-6.2-sol,grok-4.7,qwen3.8-max,kimi-k3.1-pro"
+# Unprefixed ids from https://teamorouter.com/models (2026-11-25); GET /v1/models needs an API key.
+TEAMOROUTER_MODELS = "claude-haiku-5-5,deepseek-v4-flash,gpt-6.1-sol,claude-sonnet-5-5,gemini-4-neon,glm-5.3,kimi-k3,qwen3.8-max"
 WORLDROUTER_MODELS = "deepseek-v4-flash,gpt-5.4-mini,gpt-5.4,claude-sonnet-4-6,claude-fable-5,claude-fable-5-1,claude-haiku-4-5,claude-haiku-5-5,claude-opus-4-6,claude-opus-4-7,claude-opus-4-8,claude-opus-5,claude-opus-5-5,claude-sonnet-5,claude-sonnet-5-5,deepseek-v3.2,deepseek-v4-pro,deepseek-v4-1-flash,ernie-5.0,glm-4.5-air,glm-4.6,glm-4.7,glm-4.7-flash,glm-5,glm-5.1,glm-5.2,glm-5.3,glm-5.3-flash,gpt-5.4-nano,gpt-5.4-pro,gpt-5.5,gpt-5.6-luna,gpt-5.6-sol,gpt-5.6-terra,gpt-6-astra,gpt-6-luna,gpt-6-sol,gpt-6.1-sol,gpt-6.1-terra,kimi-k2.6,kimi-k2.7-code,kimi-k3,MiniMax-M2.5,MiniMax-M2.7,MiniMax-M2.7-highspeed,MiniMax-M3"
 ATLASCLOUD_MODELS = "deepseek-ai/deepseek-v4-flash,zai-org/glm-5.3-flash,moonshotai/kimi-k2.6,qwen/qwen3.5-flash,minimaxai/minimax-m2.5"
 CheaperInference_MODELS = "gpt-5.4-mini,gpt-5.4,claude-sonnet-5,gemini-3.1-pro,deepseek-v4-flash"
