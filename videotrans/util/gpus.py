@@ -41,6 +41,7 @@ class AiLoaderThread(QThread):
                 devices.append("metal")
             devices.append("cpu")
             config.ACCESS_DEVICES=devices
+            logger.debug(f'{config.ACCESS_DEVICES=}')
             self.gpu_io.emit("end")
         except Exception as e:
             err = traceback.format_exc()
@@ -233,6 +234,12 @@ def get_audiobin(name="server"):
 # 判断 audiocpp_server 是否真的支持 cuda/vulkan, 虽然有n卡、cuda存在、能检测到vulkan设备，但未必能被audiocpp_server识别到，因此需判断
 def is_support(backend="vulkan"):
     try:
+        """
+        like 
+        {"schema_version":1,"devices":[{"backend":"cuda","registry":"CUDA","index":0,"name":"CUDA0","description":"Tesla T4","type":"gpu","pci_bus_id":"0000:00:04.0","memory":{"free_bytes":15527116800,"total_bytes":15637086208},"caps":{"async":true,"host_buffer":true,"buffer_from_host_ptr":false,"events":true}},{"backend":"cpu","registry":"CPU","index":0,"name":"CPU","description":"Intel(R) Xeon(R) CPU @ 2.00GHz","type":"cpu","pci_bus_id":null,"memory":{"free_bytes":11799359488,"total_bytes":13605818368},"caps":{"async":false,"host_buffer":false,"buffer_from_host_ptr":true,"events":false}}]}
+
+
+        """
         proc = subprocess.run(
             [get_audiobin(), "--list-devices", "--json"],
             capture_output=True,
@@ -242,7 +249,7 @@ def is_support(backend="vulkan"):
             errors="ignore",
         )
         if proc.returncode!=0:
-            logger.error(f'检测 audio.cpp 支持的硬件设备时出错:{proc.returncode=},{proc.stderr=},{proc.stdout=}')
+            logger.error(f'检测 audio.cpp 支持的 [{backend}] 硬件设备时出错:{proc.returncode=},{proc.stderr=},{proc.stdout=}')
             return proc.returncode
         for line in (proc.stdout or "").splitlines():
             line = line.strip()

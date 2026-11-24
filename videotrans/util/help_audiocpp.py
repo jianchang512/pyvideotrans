@@ -298,6 +298,7 @@ def download_audiocpp_check(callback=None):
     # Darwin Linux 允许使用 环境变量中的 audio.cpp 作为后备
     if _os in ['Darwin','Linux']:
         if shutil.which("audiocpp_cli") and shutil.which("audiocpp_server"):
+            logger.debug(f'{_os} 上存在环境中的 audiocpp_cli,直接使用')
             return
         down_zip(str(p.parent), AUDIO_CPP_MAC_HF if _os=='Darwin' else AUDIO_CPP_LINUX_VULKAN_HF, callback=callback)
         return
