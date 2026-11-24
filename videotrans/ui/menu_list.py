@@ -10,23 +10,12 @@ from videotrans.configure._i18n import tr
 #   其他字符串: 弹窗
 
 # 菜单--翻译设置，每个  tuple 是一个菜单，
-MENU_CFG_TRANS = [
-    ("deepseek", 'DeepSeek', None),
-    ("chatgpt", tr("OpenAI API & Compatible AI"), None),
-    ("gemini", "Gemini AI", None),
-    ("localllm", tr("Local LLM API"), None),
-    ("zijiehuoshan", tr("ByteDance Ark"), None),
-    ("zhipuai", tr("Zhipu AI"), None),
-
-    ("minimaxi", "Minimaxi AI", None),
-    ("xiaomi", tr("XiaoMi"), None),
-    ("bailian", tr('Ali-Bailian'), None),
-    ("azure", tr("AzureOpenAI Translation"), None),
-    ("worldrouter", 'WorldRouter', None),
-    ("openrouter", 'OpenRouter.ai', None),
+# Fill in the menu data for the aggregation platform here 聚合平台的菜单数据在此填写
+MENU_CFG_AGG=[
     ("siliconflow", tr("SiliconFlow"), None),
+    ("openrouter", 'OpenRouter.ai', None),
     ("ai302", "302.ai", None),
-    ("litellm", 'LiteLLM', None),
+    ("worldrouter", 'WorldRouter', None),
     ("camb", "CAMB.ai", None),
     ("api_route", 'API ROUTE', None),
     ("cheaperinference", 'Cheaper Inference', None),
@@ -41,6 +30,23 @@ MENU_CFG_TRANS = [
     ("trustedrouter", 'TrustedRouter', None),
     ("openllm", 'OpenLLM', None),
     ("aigrow", 'AIGROW', None),
+
+]
+MENU_CFG_TRANS = [
+    ("deepseek", 'DeepSeek', None),
+    ("chatgpt", tr("OpenAI API & Compatible AI"), None),
+    ("gemini", "Gemini AI", None),
+    ("localllm", tr("Local LLM API"), None),
+    ("zijiehuoshan", tr("ByteDance Ark"), None),
+    ("zhipuai", tr("Zhipu AI"), None),
+
+    ("minimaxi", "Minimaxi AI", None),
+    ("xiaomi", tr("XiaoMi"), None),
+    ("bailian", tr('Ali-Bailian'), None),
+    ("azure", tr("AzureOpenAI Translation"), None),
+
+    ("litellm", 'LiteLLM', None),
+
 
     ("deepl", "DeepL API", None),
     ("deeplx", "DeepLX API", None),

@@ -1208,6 +1208,7 @@
   "Not-Selected": "Not-Selected",
   "Text alignment failed": "Text alignment failed. Please try setting the pronunciation language to [Auto Detect] and try again",
   "The native Vulkan may be disabled or unavailable. Please disable hardware acceleration and try again": "The native Vulkan may be disabled or unavailable. Please disable hardware acceleration and try again",
-  "You may need to upgrade audio.cpp. Please delete the {} folder, then re-execute the automatic download of the latest audio.cpp, or manually update audio_cpp": "You may need to upgrade audio.cpp. Please delete the {}, then re-execute the automatic download of the latest audio.cpp, or manually update audio_cpp"
+  "You may need to upgrade audio.cpp. Please delete the {} folder, then re-execute the automatic download of the latest audio.cpp, or manually update audio_cpp": "You may need to upgrade audio.cpp. Please delete the {}, then re-execute the automatic download of the latest audio.cpp, or manually update audio_cpp",
+  "AI aggregation platform": "AI Model Aggregation Platform　▸"
 
 }

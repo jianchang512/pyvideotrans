@@ -43,7 +43,7 @@ class FasterAll(BaseRecogn):
         if self.recogn_type == 0:
             from videotrans.util.whisper_vulkan import should_use_whisper_vulkan, ensure_ggml_whisper_model
             # 仅启用硬件加速并且 cuda 不可用，才考虑 vulkan
-            if self.is_cuda and app_cfg.NVIDIA_GPU_NUMS<1 and should_use_whisper_vulkan(self.model_name):
+            if self.is_cuda and app_cfg.NVIDIA_CUDA_NUMS<1 and should_use_whisper_vulkan(self.model_name):
                 ensure_ggml_whisper_model(self.model_name, callback=self._process_callback)
                 return
             if not Path(f'{self.local_dir}/model.bin').exists():

@@ -16,7 +16,8 @@ from videotrans.tts._base import BaseTTS
 from videotrans.util.help_audiocpp import activate_audiocpp_server
 from videotrans.util.help_role import get_f5tts_role
 from videotrans.util.help_misc import vail_file
-from videotrans.util.help_down import down_file_from_hf, down_audiocpp_bin
+from videotrans.util.help_down import down_file_from_hf
+from videotrans.util.help_audiocpp import download_audiocpp_check
 
 
 @dataclass(repr=False)
@@ -36,7 +37,7 @@ class AudiocppTTS(BaseTTS):
 
     def _download(self):
         self.signal(text=f'Checking audio.cpp cli exists ')
-        down_audiocpp_bin(process_callback=self._process_callback)
+        download_audiocpp_check(callback=self._process_callback)
 
         self.gguf_obj = self.jsondata.get(self.model_name)
 

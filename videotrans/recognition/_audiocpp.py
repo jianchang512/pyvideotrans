@@ -18,7 +18,8 @@ from videotrans.configure.excepts import SpeechToTextError
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
 from videotrans.util.help_audiocpp import activate_audiocpp_server
-from videotrans.util.help_down import down_audiocpp_bin, down_file_from_hf
+from videotrans.util.help_down import down_file_from_hf
+from videotrans.util.help_audiocpp import download_audiocpp_check
 
 
 @dataclass(repr=False)
@@ -30,7 +31,7 @@ class AudiocppRecogn(BaseRecogn):
 
     def _download(self):
         self.signal(text=f'Checking audio.cpp cli exists ')
-        down_audiocpp_bin(process_callback=self._process_callback)
+        download_audiocpp_check(callback=self._process_callback)
 
         self.gguf_obj = AUDIOCPP_ASR_MODELS.get(self.model_name)
         if not self.gguf_obj or not self.gguf_obj.get('file') or not self.gguf_obj.get('url'):

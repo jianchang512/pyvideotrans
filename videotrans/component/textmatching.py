@@ -59,7 +59,7 @@ class AlignmentWorker(QThread):
             self.log_signal.emit(tr("status_loading_model", self.model_name, self.device))
             from videotrans.util.whisper_vulkan import should_use_whisper_vulkan, ensure_ggml_whisper_model, PyWhisperCppModel
             # 仅启用硬件加速并且 cuda 不可用，才考虑 vulkan
-            if self.device=='cuda' and app_cfg.NVIDIA_GPU_NUMS<1 and platform.system() !='Darwin' and should_use_whisper_vulkan(self.model_name):
+            if self.device=='cuda' and app_cfg.NVIDIA_CUDA_NUMS<1 and platform.system() !='Darwin' and should_use_whisper_vulkan(self.model_name):
                 ensure_ggml_whisper_model(self.model_name, callback=self._progress_callback)
                 model = PyWhisperCppModel(
                     self.model_name,

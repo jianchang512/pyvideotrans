@@ -11,9 +11,12 @@ class AppCfg:
     """
     存储直接属于 config.py 的运行时属性
     """
-    # 真正在 torch中可使用的 cuda 数量，可能有nvidia显卡但环境不正确
-    NVIDIA_GPU_NUMS: int = -1
-    # 是否存在真正能为 audio.cpp 可用的cuda， torch中cuda 检测可用，但audio.cpp中未必可用，需再次检测，True=真实可用
+    # 是否真的存在 nvidia 显卡，仅判断卡数量，不判断环境正确性
+    NVIDIA_COUNT:int=0
+    # 显卡存在，但未必可在 torch 中检测到，例如torch为cpu版
+    NVIDIA_CUDA_NUMS: int =0
+
+    # 是否能真正在 audio.cpp 中使用， torch中cuda 检测可用，但audio.cpp中未必可用，需再次检测，True=真实可用
     AUDIOCPP_REAL_CUDA: Union[None,bool]=None
 
     # 是否存在 torch中可用的mps后端

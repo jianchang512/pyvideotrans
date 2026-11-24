@@ -234,6 +234,10 @@ class PrepareMixin:
         kw = {"input_file": tmpfile, "vocal_file": self.cfg.vocal, "instr_file": self.cfg.instrument,
               "uvr_models": uvr_models,"is_cuda":self.cfg.is_cuda}
         try:
+            if uvr_models in ['mel_band_roformer','bs_roformer']:
+                from videotrans.util.help_audiocpp import download_audiocpp_check
+                download_audiocpp_check(callback=self._process_callback)
+
             rs = self._new_process(callback=vocal_bgm, title=title, is_cuda=False, kwargs=kw)
             if rs and vail_file(self.cfg.vocal) and vail_file(self.cfg.instrument):
                 cmd = [

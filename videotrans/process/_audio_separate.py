@@ -14,7 +14,6 @@ from videotrans.util.help_down import down_file_from_hf
 from videotrans.util.help_audiocpp import exec_audiocpp
 
 OS_TYPE=platform.system()
-AUDIO_CPP=f'{ROOT_DIR}/audio_cpp/audiocpp_cli{".exe" if OS_TYPE=="Windows" else ""}'
 def vocal_bgm(*, input_file, vocal_file, instr_file, logs_file=None, uvr_models="UVR-MDX-NET-Inst_HQ_4",**kw):
     if uvr_models in ['mel_band_roformer','bs_roformer']:
         return _use_audiocpp(uvr_models=uvr_models,input_file=input_file, vocal_file=vocal_file, instr_file=instr_file,logs_file=logs_file,is_cuda=kw.get('is_cuda',False),device_name=kw.get('device_name','cpu'))
@@ -99,9 +98,7 @@ def vocal_bgm(*, input_file, vocal_file, instr_file, logs_file=None, uvr_models=
 
 def _use_audiocpp(*,uvr_models, input_file, vocal_file, instr_file,logs_file=None,is_cuda=False,device_name="cpu"):
     # 如果 audio_cpp
-    from videotrans.util.help_down import down_audiocpp_bin,down_file_from_hf
-    _write_log(logs_file,"downloading audiocpp_cli...")
-    down_audiocpp_bin()
+    from videotrans.util.help_down import down_file_from_hf
     _URL=AUDIO_CPP_MELBAND
     model_file=f'{ROOT_DIR}/models/mel-band-roformer-q8_0.gguf'
     if uvr_models=='bs_roformer':
@@ -125,7 +122,7 @@ def _use_audiocpp(*,uvr_models, input_file, vocal_file, instr_file,logs_file=Non
     else:
         device_list=["--backend",device_name]
     cmd=[
-        AUDIO_CPP,
+        "audiocpp_cli",
         "--task",
         "sep",
         "--family",

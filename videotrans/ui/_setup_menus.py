@@ -1,6 +1,8 @@
 from PySide6 import QtCore, QtGui, QtWidgets
+
+from videotrans.configure._i18n import tr
 from videotrans.ui.menu_list import MENU_CFG_TRANS, MENU_CFG_TTS, MENU_CFG_STT, MENU_CFG_TOOLS, MENU_CFG_HELP, \
-    MENU_CFG_PANEL
+    MENU_CFG_PANEL, MENU_CFG_AGG
 from videotrans.util.help_misc import open_url, show_popup
 
 
@@ -70,9 +72,28 @@ def _setup_actions_and_menus(ui, MainWindow):
     }
 """)
     MainWindow.addToolBar(QtCore.Qt.LeftToolBarArea, ui.toolBar)
-    # 翻译设置
+    # 翻译设置菜单
     for obj in MENU_CFG_TRANS:
         _make_action(ui, obj,ui.menu_Key)
+
+    # TODO 在翻译设置菜单底部增加一个新菜单，鼠标移动上去显示下一级子菜单，下级菜单数据和 MENU_CFG_TRANS 类型一致
+    # 1) 与上面普通项隔开，视觉上更清晰
+    ui.menu_Key.addSeparator()
+
+    # 2) 创建"聚合平台"子菜单。
+    #    QMenu.addMenu() 添加的菜单本身就是 hover 自动展开下一级的，无需额外写鼠标事件
+    ui.menu_Agg = QtWidgets.QMenu(ui.menu_Key)
+    ui.menu_Agg.setObjectName("menu_Agg")
+    ui.menu_Agg.setTitle(tr("AI aggregation platform"))
+    ui.menu_Key.addMenu(ui.menu_Agg)
+    ui.menu_Agg.menuAction().setIcon(
+        ui.menu_Key.style().standardIcon(QtWidgets.QStyle.SP_ArrowRight)
+    )
+
+
+    # 3) 用与 MENU_CFG_TRANS 完全相同的三元组结构 (key, title, _inst) 填充下一级菜单
+    for obj in MENU_CFG_AGG:      # ← 换成你自己的数据源变量名即可
+        _make_action(ui, obj, ui.menu_Agg)
 
 
     for obj in MENU_CFG_TTS:

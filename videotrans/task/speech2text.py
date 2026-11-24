@@ -15,7 +15,7 @@ from videotrans.recognition import run
 from videotrans.task._base import BaseTask
 from videotrans.task.taskcfg import TaskCfgSTT
 from videotrans.translator import LLM_CONCERT_DICT
-from videotrans.util.help_misc import is_connect_hf
+
 
 """
 对应 语音转录 面板
@@ -131,6 +131,9 @@ class SpeechToText(BaseTask):
                     "is_cuda": self.cfg.is_cuda,
                     "model_name": settings.get('noise_model')
                 }
+                if kw.get('model_name')=='zipenhancer':
+                    from videotrans.util.help_audiocpp import download_audiocpp_check
+                    download_audiocpp_check(callback=self._process_callback)
                 _rs = self._new_process(callback=remove_noise, title=title, is_cuda=self.cfg.is_cuda, kwargs=kw)
                 if _rs:
                     self.cfg.shibie_audio = _noise_wav

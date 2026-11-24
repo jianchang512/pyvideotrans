@@ -22,18 +22,16 @@ from videotrans import logger
 from videotrans.configure import config
 from videotrans.configure._paths import ROOT_DIR
 from videotrans.configure.constants import AUDIOCPP_ASR_MODELS
-from videotrans.util.gpus import cpp_device
 from videotrans.util.help_role import get_audiocpp_rolelist
 
 
-_OS = platform.system()
-_IS_WINDOWS = _OS == "Windows"
+_os = platform.system()
+_IS_WINDOWS = _os == "Windows"
 
-# ---- 进程级单例启动锁 ----
 # 只有"需要重启"的线程会拿到这把锁；健康时所有线程走快路径直接返回。
 _START_LOCK = threading.Lock()
 
-# /health 探测超时。localhost 通常 <10ms，2s 足够；不宜过长，避免服务真挂时拖垮所有业务线程。
+# /health 探测超时。2s 。
 _HEALTH_TIMEOUT = 2
 
 
@@ -76,12 +74,13 @@ class Audio_Server:
     cfg_file: Optional[str] = None
     model_cfg: Dict = field(default_factory=dict)
 
-    # 内部状态（不参与 dataclass 语义）
+    # 内部状态
+    _device:str=None
     _log_fp: Any = field(default=None, repr=False)
     _log_path: Optional[Path] = field(default=None, repr=False)
     _lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
 
-    # ---------------- 探测（无副作用） ----------------
+    # ---------------- 探测----------------
     def is_activate(self) -> bool:
         """
         纯读探测，不修改任何状态、不杀进程，可被任意线程并发调用。
@@ -96,7 +95,7 @@ class Audio_Server:
         try:
             r = requests.get(f"{self.api_endpoint}/health", timeout=_HEALTH_TIMEOUT)
             if r.status_code == 200:
-                logger.debug(f"[Audio.cpp]: running on {self.api_endpoint}")
+                logger.debug(f"[Audio.cpp]: running on {self._device}  {self.api_endpoint}")
                 return True
             logger.debug(f"[Audio.cpp] /health 返回 {r.status_code}")
         except requests.RequestException as e:
@@ -128,15 +127,9 @@ class Audio_Server:
                     pass
                 self._log_fp = None
 
-    # ---------------- 配置 / 可执行文件 ----------------
-    def _executable(self) -> Path:
-        sub = "audio_cpp_vulkan" if (self.model_cfg.get("backend") == "vulkan" and _IS_WINDOWS and Path(f'{ROOT_DIR}/audio_cpp_vulkan/audiocpp_server.exe').exists() ) else "audio_cpp"
-        exe = Path(ROOT_DIR) / sub / "audiocpp_server"
-        if _IS_WINDOWS:
-            exe = exe.with_suffix(".exe")
-        return exe
 
     def _create_cfg(self) -> None:
+        from videotrans.util.gpus import cpp_device
         device = cpp_device(is_cuda=True)
         device_index = 0
         if ":" in device:
@@ -146,13 +139,15 @@ class Audio_Server:
             "host": "127.0.0.1",
             "port": self.port,
             "backend": device,
-            "device": int(device_index),
+            "device": int(device_index) if str(device_index).isnumeric() else 0,
             "threads": int(min(max(1, CPU_NUMS), 8)),
             "lazy_load": True,
-            "idle_unload_ms": 60000,
+            "idle_unload_ms": 120000,
             "max_loaded_models": 1,
             "models": [],
         }
+        self._device=f'{cfg["backend"]}:{cfg["device"]}'
+        logger.debug(f'[Audio.cpp server]:{cfg=}')
 
         data = get_audiocpp_rolelist() | AUDIOCPP_ASR_MODELS
         for name, it in data.items():
@@ -211,15 +206,9 @@ class Audio_Server:
     def start(self) -> bool:
         if self.is_activate():
             return True
-
-        exe = self._executable()
-        exe_parent=exe.parent
-        if not exe.exists():
-            if shutil.which("audiocpp_server"):
-                exe="audiocpp_server"
-                exe_parent=ROOT_DIR
-            else:
-                raise FileNotFoundError(f"未找到 Audio.cpp 可执行文件: {exe}")
+        from videotrans.util.gpus import get_audiobin
+        exe = get_audiobin(name="server")
+        exe_parent=f'{ROOT_DIR}/audio_cpp' if exe!="audiocpp_server" else ROOT_DIR
 
         # 清理上一次可能残留的进程/句柄（restart 情形）
         self.quit()
@@ -267,15 +256,15 @@ def activate_audiocpp_server(trk=None) -> bool:
     业务线程唯一入口：
     - 服务健康：快速返回 True（不拿锁、不重启）。
     - 服务不在/已死/探测失败：拿锁、幂等创建、重启。
-    - 启动失败：抛异常，业务侧 try/except 即可感知。
+    - 启动失败：抛异常，业务侧 try/except。
     """
     srv: Optional[Audio_Server] = getattr(config, "AUDIO_SERVER_CFG", None)
 
-    # 快路径：健康直接返回，避免锁竞争
+    # 健康直接返回
     if srv is not None and srv.is_activate():
         return True
 
-    # 慢路径：串行化"创建 + 重启"
+    # 串行化"创建 + 重启"
     if trk and hasattr(trk,'signal'):
         trk.signal(text="Starting Audio.cpp server...")
     with _START_LOCK:
@@ -284,59 +273,57 @@ def activate_audiocpp_server(trk=None) -> bool:
             srv = Audio_Server()
             config.AUDIO_SERVER_CFG = srv
 
-        # 双重检查：可能在上一个持锁线程里已经恢复
+        # 可能在上一个持锁线程里已经恢复
         if srv.is_activate():
             return True
 
         srv.start()
     if trk and hasattr(trk,'signal'):
         trk.signal(text="Start Audio.cpp server succeed...")
-    logger.debug(f"Audio.cpp 已就绪: api={srv.api_endpoint}")
+    logger.debug(f"Audio.cpp 已就绪[{srv._device}]: api={srv.api_endpoint}")
     return True
 
 
-# cli 命令行用于执行 人声背景分离、降噪 等操作
- # When using AMD/Intel on Windows with Vulkan acceleration, download the Vulkan version of audio.cpp separately to the `audio_cpp_vulkan` folder. For CPU and CUDA acceleration, use version 12.4 of CUDA. Actual testing has revealed that if users encounter issues with Vulkan, there's a high probability that switching back to CPU will still fail
-def _run_audiocpp_proc(cmd):
-    cwd=f"{ROOT_DIR}/audio_cpp"
-    _win_vulkan=f"{ROOT_DIR}/audio_cpp_vulkan/audiocpp_cli.exe"
-    if _OS=='Windows' and 'vulkan' in cmd and Path(_win_vulkan).exists():
-        cmd[0]=_win_vulkan
-        cwd=f"{ROOT_DIR}/audio_cpp_vulkan"
+# 下载 audiocpp
+# 1. windows首选cuda，若存在n卡或不存在vulkan设备，则下载cuda版本。 其他下载vulkan版本，检测vulkan版本是否--list-device可用，若报错，仍重新下载cuda版
+# 2. linux上仅下载 Vulkan 版本
+# 3. macos仅下载 arm64版本
+def download_audiocpp_check(callback=None):
+    from videotrans.configure.constants import AUDIO_CPP_MAC_HF,AUDIO_CPP_LINUX_VULKAN_HF,AUDIO_CPP_WIN_VULKAN_HF,AUDIO_CPP_WIN_HF
+    from videotrans.util.help_down import down_zip
+    ext=".exe" if _os=='Windows' else ''
+    p=Path(f'{ROOT_DIR}/audio_cpp/audiocpp_server{ext}')
+    if p.exists():return
 
-    # 可能用户自行编译或将 audiocpp_cli 加入了环境变量，可全局使用
-    if not Path(cmd[0]).exists():
-        if shutil.which("audiocpp_cli"):
-            cmd[0]="audiocpp_cli"
-            cwd=ROOT_DIR
-        else:
-            raise FileNotFoundError(cmd[0])
+    # Darwin Linux 允许使用 环境变量中的 audio.cpp 作为后备
+    if _os in ['Darwin','Linux']:
+        if shutil.which("audiocpp_cli") and shutil.which("audiocpp_server"):
+            return
+        down_zip(str(p.parent), AUDIO_CPP_MAC_HF if _os=='Darwin' else AUDIO_CPP_LINUX_VULKAN_HF, callback=callback)
+        return
 
-    proc = subprocess.Popen(
-        cmd,
-        encoding="utf-8",
-        errors='ignore',
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        stdin=subprocess.DEVNULL,
-        creationflags=subprocess.CREATE_NO_WINDOW if _OS == 'Windows' else 0,
-        cwd=cwd,
-    )
-    while True:
+
+    # 不存在n卡 但是 存在vulkan设备，下载vulkan版本，下载后需检测，若无法运行，需再次下载cuda版本
+    if app_cfg.NVIDIA_COUNT==0 and app_cfg.VULKAN_LIST:
+        down_zip(str(p.parent),AUDIO_CPP_WIN_VULKAN_HF,callback=callback)
+        # 判断是否可运行
+        from videotrans.util.gpus import is_support
+        if p.exists() and is_support(backend="vulkan") in [True,False]:
+            return
         try:
-            stdout, stderr = proc.communicate(timeout=0.1)
-            return proc.returncode, stdout, stderr, False
-        except subprocess.TimeoutExpired:
-            if app_cfg.exit_soft or Path(IPC_STATUS_FILE).exists():
-                proc.kill()
-                proc.communicate()
-                return 0, "", "", True
-
-
+            # 不可用
+            app_cfg.AUDIOCPP_REAL_VULKAN=False
+            shutil.rmtree(str(p.parent),ignore_errors=True)
+        except OSError:
+            pass
+    #其他情况，或 vulkan 无法运行时，重新下载 cuda 版本
+    down_zip(str(p.parent),AUDIO_CPP_WIN_HF,callback=callback)
+    return
 
 # No retry for failures. When the acceleration fails due to the audio.cpp and Vulkan versions on Windows, fallback to CPU still has a high probability of failure
 def exec_audiocpp(cmd):
+    from videotrans.util.gpus import get_audiobin
+    cmd[0]=get_audiobin(name="cli")
     if "--threads" not in cmd:
         cmd.extend(["--threads", str(min(8,max(CPU_NUMS, 1))) ])
     logger.debug(f'audio.cpp start: {cmd=}')
@@ -351,8 +338,6 @@ def exec_audiocpp(cmd):
         if "mem_buffer" in f"{stdout}{stderr}":
             raise RuntimeError(tr('OOMerror'))
 
-        if _OS=='Windows' and "vulkan" in cmd and not stderr:
-            raise RuntimeError(tr("The native Vulkan may be disabled or unavailable. Please disable hardware acceleration and try again"))
         if "no gguf model source in builtin model spec for family" in f'{stdout}{stderr}':
             raise RuntimeError(tr("You may need to upgrade audio.cpp. Please delete the {} folder, then re-execute the automatic download of the latest audio.cpp, or manually update audio_cpp",cmd[0]))
 
@@ -360,3 +345,31 @@ def exec_audiocpp(cmd):
             f'proc.returncode={rc},{stderr=}\n{stdout=}\n{cmd=}'
         )
     return True
+
+
+# cli 命令行用于执行 人声背景分离、降噪 等操作
+def _run_audiocpp_proc(cmd):
+    # 可能用户自行编译或将 audiocpp_cli 加入了环境变量，可全局使用
+    cwd= ROOT_DIR if cmd[0] in ["audiocpp_cli","audiocpp_server"] else f"{ROOT_DIR}/audio_cpp"
+
+    proc = subprocess.Popen(
+        cmd,
+        encoding="utf-8",
+        errors='ignore',
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        stdin=subprocess.DEVNULL,
+        creationflags=subprocess.CREATE_NO_WINDOW if _os == 'Windows' else 0,
+        cwd=cwd,
+    )
+    while True:
+        try:
+            stdout, stderr = proc.communicate(timeout=0.1)
+            return proc.returncode, stdout, stderr, False
+        except subprocess.TimeoutExpired:
+            if app_cfg.exit_soft or Path(IPC_STATUS_FILE).exists():
+                proc.kill()
+                proc.communicate()
+                return 0, "", "", True
+

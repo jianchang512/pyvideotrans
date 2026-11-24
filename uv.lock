@@ -2949,6 +2949,15 @@ wheels = [
 ]
 
 [[package]]
+name = "nvidia-ml-py"
+version = "13.615.71"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/fd/30/b25216758be3d3e2834825d8193609e2d71c770a8bd7984438c058c90268/nvidia_ml_py-13.615.71.tar.gz", hash = "sha256:bebe4e48f51b1dc75028c0815cb7bfa14a31a5bb80be70c9d980c6036953fc3d", size = 57485, upload-time = "2026-09-25T15:15:28.226Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/53/a1/1681dfa1c904d4e3e72e51b55a0ff012d50b766843ef832d584abe2113c6/nvidia_ml_py-13.615.71-py3-none-any.whl", hash = "sha256:959bf4adf6fe1308e4bd739e722236b0d1ec8392e2cefad33ff70c311380b9b6", size = 58132, upload-time = "2026-09-25T15:15:26.54Z" },
+]
+
+[[package]]
 name = "nvidia-nccl-cu12"
 version = "2.26.2"
 source = { registry = "https://pypi.org/simple" }
@@ -4326,6 +4335,7 @@ dependencies = [
     { name = "norbert" },
     { name = "numba" },
     { name = "numpy" },
+    { name = "nvidia-ml-py" },
     { name = "oauthlib" },
     { name = "omegaconf" },
     { name = "omnivoice" },
@@ -4610,6 +4620,7 @@ requires-dist = [
     { name = "norbert", specifier = "==0.2.1" },
     { name = "numba", specifier = "==0.61.2" },
     { name = "numpy", specifier = "==1.26.0" },
+    { name = "nvidia-ml-py", specifier = ">=13.615.71" },
     { name = "oauthlib", specifier = "==3.2.2" },
     { name = "omegaconf", specifier = "==2.3.0" },
     { name = "omnivoice" },

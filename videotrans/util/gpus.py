@@ -1,4 +1,12 @@
-# 1. 获取并缓存可用 gpu 数量 (CUDA + Vulkan)
+# 检测 windows/darwin/linux 系统中 nvidia cuda mps vulkan 等支持情况
+# 环境差异大，兼容问题突出
+# 即便存在nvidia卡，仍需cuda环境配置正确+torch版本正确方可使用
+# 即便存在vulkan设备仍需audio.cpp执行获取到方可使用，可能丢失某些so/dll导致有设备但无法使用
+# 首选用户明确指定的硬件(如果可用并且正确)
+# 次选最佳硬件: cuda/vulkan/mps/cpu
+# transformers 保底 auto，其他cpu
+# audio.cpp 需最终执行一次 --list-devices 确定能检测到设备方可视为可用
+
 import json
 import platform
 import shutil
@@ -11,7 +19,7 @@ from PySide6.QtCore import QThread, Signal
 from videotrans.configure import config
 
 _os=platform.system()
-
+_DEVICES_LIST=['auto','cuda','mps','metal','vulkan','best']
 
 class AiLoaderThread(QThread):
     gpu_io = Signal(str)
@@ -20,10 +28,10 @@ class AiLoaderThread(QThread):
         try:
             check_hardware_availability()
             devices=["auto"]
-            if config.app_cfg.NVIDIA_GPU_NUMS>0:
+            if config.app_cfg.NVIDIA_CUDA_NUMS>0:
                 devices.append("cuda")
-                if config.app_cfg.NVIDIA_GPU_NUMS>1:
-                    for i in range(config.app_cfg.NVIDIA_GPU_NUMS):
+                if config.app_cfg.NVIDIA_CUDA_NUMS>1:
+                    for i in range(config.app_cfg.NVIDIA_CUDA_NUMS):
                         devices.append(f"cuda:{i}")
             if config.app_cfg.VULKAN_LIST:
                 for it in config.app_cfg.VULKAN_LIST:
@@ -41,46 +49,45 @@ class AiLoaderThread(QThread):
 
 def get_vulkan_devices() -> List[Dict[str, Any]]:
     """Return list of available non-CPU Vulkan compute devices in ggml_vulkan order."""
-    if _os=='Darwin':return []
+    if _os=='Darwin' or not shutil.which("vulkaninfo"):
+        logger.warning('无可用 vulkan 设备')
+        return []
     devices: List[Dict[str, Any]] = []
-    if shutil.which("vulkaninfo"):
-        try:
-            proc = subprocess.run(
-                ["vulkaninfo", "--summary"],
-                capture_output=True,
-                text=True,
-                timeout=10,
-                encoding="utf-8",
-                errors="ignore",
-            )
-            out = proc.stdout or ""
-            idx = 0
+    try:
+        proc = subprocess.run(
+            ["vulkaninfo", "--summary"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+            encoding="utf-8",
+            errors="ignore",
+        )
+        out = proc.stdout or ""
+        idx = 0
 
-            for block in out.split("GPU"):
-                if "deviceType" in block and "PHYSICAL_DEVICE_TYPE_CPU" not in block:
-                    name = f"Vulkan{idx}"
-                    for line in block.splitlines():
-                        if "deviceName" in line and "=" in line:
-                            name = line.split("=", 1)[1].strip()
-                            break
-                    devices.append({
-                        "backend": "vulkan",
-                        "index": idx,
-                        "name": f"Vulkan{idx}",
-                        "description": name,
-                        "memory": {"total_bytes": 0},
-                    })
-                    idx += 1
-            logger.debug(f'Vulkan可用信息:{devices}')
-        except Exception as e:
-            logger.debug(f"vulkaninfo check failed: {e}")
+        for block in out.split("GPU"):
+            if "deviceType" in block and "PHYSICAL_DEVICE_TYPE_CPU" not in block:
+                name = f"Vulkan{idx}"
+                for line in block.splitlines():
+                    if "deviceName" in line and "=" in line:
+                        name = line.split("=", 1)[1].strip()
+                        break
+                devices.append({
+                    "backend": "vulkan",
+                    "index": idx,
+                    "name": f"Vulkan{idx}",
+                    "description": name,
+                })
+                idx += 1
+        logger.debug(f'检测到 Vulkan 可用信息:{devices}')
+    except Exception as e:
+        logger.debug(f"vulkaninfo check failed: {e}")
     return devices
 
 
 
 def check_hardware_availability():
-    # 尚未获取过时是 -1
-    app_cfg.NVIDIA_GPU_NUMS=0
+    app_cfg.NVIDIA_CUDA_NUMS=0
     app_cfg.MPS_NUMS=0
     if _os == 'Darwin':
         app_cfg.AUDIOCPP_REAL_CUDA=False
@@ -88,37 +95,45 @@ def check_hardware_availability():
         try:
             import torch
             app_cfg.MPS_NUMS = 1 if torch.backends.mps.is_built() and torch.backends.mps.is_available() else 0
-            logger.debug(f'MPS可用？{app_cfg.MPS_NUMS=}')
+            logger.debug(f'Darwin: {app_cfg.MPS_NUMS=}')
         except Exception:
             pass
         return app_cfg.MPS_NUMS
 
+    # 先判断是否存在n卡
+    from pynvml import nvmlInit, nvmlDeviceGetCount, NVMLError
     try:
-        if subprocess.run(["nvidia-smi"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,).returncode != 0:
-            app_cfg.NVIDIA_GPU_NUMS=0
-            app_cfg.AUDIOCPP_REAL_CUDA=False
-        else:
+        nvmlInit()
+        app_cfg.NVIDIA_COUNT=nvmlDeviceGetCount()
+        logger.debug(f'检测到 nvidia 显卡 {app_cfg.NVIDIA_COUNT} 张')
+    except NVMLError:
+        # 无nvidia卡
+        logger.warning(f'检测到 nvidia 显卡 0 张')
+    except Exception:
+        pass
+
+    try:
+        # 再判断是否torch中可用
+        if app_cfg.NVIDIA_COUNT>0:
             import torch
-            if torch.cuda.is_available():
-                app_cfg.NVIDIA_GPU_NUMS = torch.cuda.device_count()
-                logger.debug(f'可用 NVIDIA 显卡数: {app_cfg.NVIDIA_GPU_NUMS}')
+            app_cfg.NVIDIA_CUDA_NUMS=torch.cuda.device_count() if torch.cuda.is_available() else 0
+        logger.debug(f'检测到可用 NVIDIA CUDA 核: {app_cfg.NVIDIA_CUDA_NUMS}')
     except Exception:
         pass
 
     app_cfg.VULKAN_LIST=get_vulkan_devices()
-    return app_cfg.NVIDIA_GPU_NUMS or len(app_cfg.VULKAN_LIST)
+
 
 # 用于 faster-whisper /openai-whisper 的设备名， cpu/cuda/mps
 # 如果明确指定了设备名如 cuda/mps 且可用，则返回该名，否则优先cuda/mps，保底cpu
 def whisper_device(device:str=None,is_cuda:bool=False,allow_mps=False):
-    device=device or settings.get('device_name','auto') or 'auto'
-    prefix=device.split(":")[0].lower()
+    prefix,idx=_format_device(device)
 
-    if not is_cuda or prefix not in ['auto','cuda','mps','metal','vulkan']:
+    if not is_cuda or prefix not in _DEVICES_LIST:
         return "cpu"
 
-    if app_cfg.NVIDIA_GPU_NUMS>0:
-        return device if prefix=='cuda' else 'cuda'
+    if app_cfg.NVIDIA_CUDA_NUMS>0:
+        return f'cuda:{idx}' if 0<idx<app_cfg.NVIDIA_CUDA_NUMS else 'cuda'
 
     if allow_mps and app_cfg.MPS_NUMS>0:
         return "mps"
@@ -129,36 +144,39 @@ def whisper_device(device:str=None,is_cuda:bool=False,allow_mps=False):
 # 用于 transfomers 推理，返回 auto/cpu/cuda/mps
 # 如果明确指定了设备名如 cuda/cpu/mps 且可用，则返回该名，否则优先cuda/mps，保底 auto
 def transformers_device(device:str=None,is_cuda:bool=False):
-    device=device or settings.get('device_name','auto') or 'auto'
-    prefix=device.split(":")[0].lower()
-    if not is_cuda or prefix not in ['cuda','mps','metal','auto','vulkan']:
+    prefix,idx=_format_device(device)
+    if not is_cuda or prefix not in _DEVICES_LIST:
         return 'cpu'
 
-    if prefix in ['cuda','vulkan'] and app_cfg.NVIDIA_GPU_NUMS>0:
-        return device if prefix=='cuda' else 'cuda'
+    if prefix in ['cuda','vulkan'] and app_cfg.NVIDIA_CUDA_NUMS>0:
+        return f'cuda:{idx}' if 0<idx<app_cfg.NVIDIA_CUDA_NUMS else 'cuda'
 
     if prefix in ['mps','metal'] and app_cfg.MPS_NUMS>0:
         return "mps"
 
     return "auto"
 
+
 # 用于 audio.cpp 和 llamp.cpp whisper.cpp
 # return cuda/best/cpu/vulkan
 # 如果明确指定了设备名如 cuda/cpu/metal/vulkan 且可用，则返回该名，否则优先cuda/metal，其次vulkan，保底 best
 def cpp_device(device:str=None,is_cuda:bool=False):
-    device=device or settings.get('device_name','auto') or 'auto'
-    prefix=device.split(":")[0].lower()
-    if not is_cuda or prefix not in ['auto','cuda','mps','metal','vulkan','best']:
+    prefix,idx=_format_device(device)
+
+    # 如果设备指定错误 或 明确指定 cpu
+    if not is_cuda or prefix not in _DEVICES_LIST:
         return 'cpu'
 
+    # darwin上只要存在 metal就使用
+    if _os=='Darwin':
+        return "metal" if real_metal_exists() else "cpu"
+
+    # 如果明确指定 vulkan 并且存在 vulkan
+    if prefix=='vulkan' and real_vulkan_exists():
+        return f'{prefix}:{idx}' if 0 < idx < len(app_cfg.VULKAN_LIST) else 'vulkan'
+    # 其他情况存在 可用n卡则使用
     if real_cuda_exists():
-        return device if prefix=='cuda' else 'cuda'
-
-    if real_vulkan_exists():
-        return device if prefix=='vulkan' else 'vulkan'
-
-    if real_metal_exists():
-        return "metal"
+        return f'cuda:{idx}' if 0 < idx < app_cfg.NVIDIA_COUNT else 'cuda'
 
     return 'cpu'
 
@@ -174,7 +192,7 @@ def real_vulkan_exists():
         app_cfg.AUDIOCPP_REAL_VULKAN=False
 
 
-    app_cfg.AUDIOCPP_REAL_VULKAN=_is_support(backend="vulkan")
+    app_cfg.AUDIOCPP_REAL_VULKAN=is_support(backend="vulkan") is True
     return app_cfg.AUDIOCPP_REAL_VULKAN
 
 
@@ -183,10 +201,11 @@ def real_cuda_exists():
     if app_cfg.AUDIOCPP_REAL_CUDA is not None:
         return app_cfg.AUDIOCPP_REAL_CUDA
 
-    if _os=='Darwin' or not shutil.which("nvidia-smi"):
+    if _os=='Darwin' or app_cfg.NVIDIA_COUNT<1:
         app_cfg.AUDIOCPP_REAL_CUDA=False
-    else:
-        app_cfg.AUDIOCPP_REAL_CUDA=_is_support(backend="cuda")
+        return False
+
+    app_cfg.AUDIOCPP_REAL_CUDA=is_support(backend="cuda") is True
     return app_cfg.AUDIOCPP_REAL_CUDA
 
 def real_metal_exists():
@@ -196,58 +215,60 @@ def real_metal_exists():
     if _os!='Darwin':
         app_cfg.AUDIOCPP_REAL_METAL=False
     else:
-        app_cfg.AUDIOCPP_REAL_METAL=_is_support(backend="metal")
+        app_cfg.AUDIOCPP_REAL_METAL=is_support(backend="metal") is True
     return app_cfg.AUDIOCPP_REAL_METAL
 
-# 可能 audiocpp_cli 不存在 但 audiocpp_server 存在
-def _get_audio_bin(is_vulkan=False):
-    cli_name='audiocpp_cli.exe' if _os=='Windows' else 'audiocpp_cli'
-    server_name='audiocpp_server.exe' if _os=='Windows' else 'audiocpp_server'
-    # windows下 vulkan 默认放在 audio_cpp_vulkan 文件夹内
-    if is_vulkan and _os=='Windows' and Path(f'{ROOT_DIR}/audio_cpp_vulkan/{cli_name}').exists():
-        audio_cli_file=f'{ROOT_DIR}/audio_cpp_vulkan/{cli_name}'
-        audio_server_file=f'{ROOT_DIR}/audio_cpp_vulkan/{server_name}'
-    else:
-        audio_cli_file=f'{ROOT_DIR}/audio_cpp/{cli_name}'
-        audio_server_file=f'{ROOT_DIR}/audio_cpp/{server_name}'
 
+def get_audiobin(name="server"):
+    audio_bin=f'{ROOT_DIR}/audio_cpp/audiocpp_{name}'
+    if _os=='Windows':
+        audio_bin=f'{audio_bin}.exe'
+    if not Path(audio_bin).exists():
+        # Darwin Linux 允许使用 环境中 audiocpp
+        if _os=='Windows' or (not shutil.which('audiocpp_cli') and shutil.which('audiocpp_server')):
+            raise FileNotFoundError(f'No File: {audio_bin}')
+        audio_bin=f"audiocpp_{name}"
+    return audio_bin
 
-    if not Path(audio_cli_file).exists():
-        if Path(audio_server_file).exists():
-            return audio_server_file
-
-        if shutil.which('audiocpp_cli'):
-            return "audiocpp_cli"
-        if shutil.which('audiocpp_server'):
-            return "audiocpp_server"
-        return False
-    return audio_cli_file
-
-def _is_support(backend="vulkan"):
-    audio_cli_file=_get_audio_bin(is_vulkan=backend=="vulkan")
-    if not audio_cli_file:
-        return False
+# 判断 audiocpp_server 是否真的支持 cuda/vulkan, 虽然有n卡、cuda存在、能检测到vulkan设备，但未必能被audiocpp_server识别到，因此需判断
+def is_support(backend="vulkan"):
     try:
         proc = subprocess.run(
-            [audio_cli_file, "--list-devices", "--json"],
+            [get_audiobin(), "--list-devices", "--json"],
             capture_output=True,
             text=True,
             timeout=10,
             encoding="utf-8",
             errors="ignore",
         )
+        if proc.returncode!=0:
+            logger.error(f'检测 audio.cpp 支持的硬件设备时出错:{proc.returncode=},{proc.stderr=},{proc.stdout=}')
+            return proc.returncode
         for line in (proc.stdout or "").splitlines():
             line = line.strip()
-            if line.startswith("{") and '"devices"' in line:
-                data = json.loads(line)
-                for d in data.get("devices", []):
-                    if d.get("backend") == backend:
-                        return True
-                return False
+            if not line.startswith("{") or '"devices"' not in line:
+                continue
+            data = json.loads(line)
+            for d in data.get("devices", []):
+                if d.get("backend") == backend:
+                    return True
     except Exception as e:
-        logger.debug(f"audiocpp_cli --list-devices failed: {e}")
+        logger.error(f"audiocpp_cli --list-devices failed: {e}")
     return False
 
 # 是否存在 cuda mps vulkan 任意可用硬件
 def exists_hard():
-    return app_cfg.NVIDIA_GPU_NUMS > 0 or app_cfg.MPS_NUMS>0 or app_cfg.VULKAN_LIST
+    return app_cfg.NVIDIA_COUNT >0 or app_cfg.NVIDIA_CUDA_NUMS > 0  or app_cfg.MPS_NUMS>0 or app_cfg.VULKAN_LIST
+
+def _format_device(device=None):
+    device=device or settings.get('device_name','auto') or 'auto'
+    idx=0
+    prefix=device
+    if ':' in device:
+        prefix,idx=device.split(":",1)
+    prefix=prefix.lower()
+    try:
+        idx=int(idx) if str(idx).isnumeric() else 0
+    except ValueError:
+        idx=0
+    return prefix,idx

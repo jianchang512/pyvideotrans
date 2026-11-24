@@ -547,36 +547,36 @@ def check_and_down_ms(model_id, callback=None, local_dir=None, allow_patterns=No
 #             f.write_bytes(data)
 
 
-def down_audiocpp_bin(process_callback=None):
-    cli_name = "audiocpp_cli.exe" if _os == 'Windows' else 'audiocpp_cli'
-    p = Path(f'{ROOT_DIR}/audio_cpp/{cli_name}')
-
-    if p.exists() and (_os != 'Windows'  or Path(f'{ROOT_DIR}/audio_cpp_vulkan/{cli_name}').exists()):
-        return True
-
-    from videotrans.configure.constants import (
-        AUDIO_CPP_WIN_HF,
-        AUDIO_CPP_WIN_VULKAN_HF,
-        AUDIO_CPP_MAC_HF,
-        AUDIO_CPP_LINUX_VULKAN_HF,
-    )
-
-
-    # 仅 Windows cuda 版本区分 hf/ms 下载地址，其他统一从 github.com/0xShug0/audio.cpp 原始地址下载
-    urls = {
-        "Darwin": AUDIO_CPP_MAC_HF,
-        "Windows":  AUDIO_CPP_WIN_HF,
-        "Linux": AUDIO_CPP_LINUX_VULKAN_HF
-    }
-    if not p.exists():
-        down_zip(f'{ROOT_DIR}/audio_cpp', urls[_os], callback=process_callback)
-        # if _os == 'Linux': #并不能解决 GLIC 版本问题
-        #     _patch_linux_audiocpp_glibc(Path(f'{ROOT_DIR}/audio_cpp'))
-    # win上检测到 vulkan 设备后额外下载 vulkan 仅仅用于 vulkan，cpu运行仍然使用cuda版
-    if _os=='Windows' and app_cfg.AUDIOCPP_REAL_VULKAN and not Path(f'{ROOT_DIR}/audio_cpp_vulkan/{cli_name}').exists():
-         down_zip(f'{ROOT_DIR}/audio_cpp_vulkan', AUDIO_CPP_WIN_VULKAN_HF, callback=process_callback)
-    return True
-
+# def down_audiocpp_bin(process_callback=None):
+#     cli_name = "audiocpp_cli.exe" if _os == 'Windows' else 'audiocpp_cli'
+#     p = Path(f'{ROOT_DIR}/audio_cpp/{cli_name}')
+#
+#     if p.exists() and (_os != 'Windows'  or Path(f'{ROOT_DIR}/audio_cpp_vulkan/{cli_name}').exists()):
+#         return True
+#
+#     from videotrans.configure.constants import (
+#         AUDIO_CPP_WIN_HF,
+#         AUDIO_CPP_WIN_VULKAN_HF,
+#         AUDIO_CPP_MAC_HF,
+#         AUDIO_CPP_LINUX_VULKAN_HF,
+#     )
+#
+#
+#     # 仅 Windows cuda 版本区分 hf/ms 下载地址，其他统一从 github.com/0xShug0/audio.cpp 原始地址下载
+#     urls = {
+#         "Darwin": AUDIO_CPP_MAC_HF,
+#         "Windows":  AUDIO_CPP_WIN_HF,
+#         "Linux": AUDIO_CPP_LINUX_VULKAN_HF
+#     }
+#     if not p.exists():
+#         down_zip(f'{ROOT_DIR}/audio_cpp', urls[_os], callback=process_callback)
+#         # if _os == 'Linux': #并不能解决 GLIC 版本问题
+#         #     _patch_linux_audiocpp_glibc(Path(f'{ROOT_DIR}/audio_cpp'))
+#     # win上检测到 vulkan 设备后额外下载 vulkan 仅仅用于 vulkan，cpu运行仍然使用cuda版
+#     if _os=='Windows' and app_cfg.AUDIOCPP_REAL_VULKAN and not Path(f'{ROOT_DIR}/audio_cpp_vulkan/{cli_name}').exists():
+#          down_zip(f'{ROOT_DIR}/audio_cpp_vulkan', AUDIO_CPP_WIN_VULKAN_HF, callback=process_callback)
+#     return True
+#
 
 def down_llamacpp_bin(process_callback=None):
 

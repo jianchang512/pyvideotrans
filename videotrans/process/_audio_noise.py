@@ -11,14 +11,11 @@ from videotrans.util.gpus import cpp_device
 from videotrans.util.help_audiocpp import exec_audiocpp
 
 OS_TYPE=platform.system()
-AUDIO_CPP=f'{ROOT_DIR}/audio_cpp/audiocpp_cli{".exe" if OS_TYPE=="Windows" else ""}'
 MODEL_FILE=f'{ROOT_DIR}/models/zipenhancer.safetensors'
 
 def _remove_noise_audiocpp(*, input_file, output_file,logs_file=None,is_cuda=False,device_name="cpu"):
     # 如果 audio_cpp
-    from videotrans.util.help_down import down_audiocpp_bin,down_file_from_hf
-    _write_log(logs_file,"downloading audiocpp_cli...")
-    down_audiocpp_bin()
+    from videotrans.util.help_down import down_file_from_hf
     down_file_from_hf(f'{ROOT_DIR}/models', urls=[ZIPENHANCER_HF.replace('https://huggingface.co','')])
     _st = time.time()
 
@@ -31,7 +28,7 @@ def _remove_noise_audiocpp(*, input_file, output_file,logs_file=None,is_cuda=Fal
         device_list=["--backend",device_name]
 
     cmd=[
-        AUDIO_CPP,
+        "audiocpp_cli",
         "--task",
         "s2s",
         "--family",

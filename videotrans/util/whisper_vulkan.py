@@ -116,7 +116,7 @@ def should_use_whisper_vulkan(model_name: str) -> bool:
     Determine whether to use the pywhispercpp (Vulkan / GGML) drop-in engine
     instead of CTranslate2 faster-whisper.
     """
-    if app_cfg.NVIDIA_GPU_NUMS>0 or platform.system() == 'Darwin': return False
+    if app_cfg.NVIDIA_CUDA_NUMS>0 or platform.system() == 'Darwin': return False
 
     if not is_pywhispercpp_available():
         return False

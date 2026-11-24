@@ -51,6 +51,9 @@ class RecognMixin:
                     "model_name":settings.get('noise_model')
                 }
                 try:
+                    if kw.get('model_name')=='zipenhancer':
+                        from videotrans.util.help_audiocpp import download_audiocpp_check
+                        download_audiocpp_check(callback=self._process_callback)
                     from videotrans.process.prepare_audio import remove_noise
                     _rs = self._new_process(callback=remove_noise, title=title, is_cuda=self.cfg.is_cuda, kwargs=kw)
                     if _rs:
