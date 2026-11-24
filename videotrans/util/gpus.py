@@ -23,25 +23,9 @@ _DEVICES_LIST=['auto','cuda','mps','metal','vulkan','best']
 
 class AiLoaderThread(QThread):
     gpu_io = Signal(str)
-
     def run(self):
         try:
             check_hardware_availability()
-            devices=["auto"]
-            if config.app_cfg.NVIDIA_CUDA_NUMS>0:
-                devices.append("cuda")
-                if config.app_cfg.NVIDIA_CUDA_NUMS>1:
-                    for i in range(config.app_cfg.NVIDIA_CUDA_NUMS):
-                        devices.append(f"cuda:{i}")
-            if config.app_cfg.VULKAN_LIST:
-                for it in config.app_cfg.VULKAN_LIST:
-                    devices.append(f"vulkan:{it['index']}")
-            if config.app_cfg.MPS_NUMS:
-                devices.append("mps")
-                devices.append("metal")
-            devices.append("cpu")
-            config.ACCESS_DEVICES=devices
-            logger.debug(f'{config.ACCESS_DEVICES=}')
             self.gpu_io.emit("end")
         except Exception as e:
             err = traceback.format_exc()
@@ -82,7 +66,7 @@ def get_vulkan_devices() -> List[Dict[str, Any]]:
                 idx += 1
         logger.debug(f'检测到 Vulkan 可用信息:{devices}')
     except Exception as e:
-        logger.debug(f"vulkaninfo check failed: {e}")
+        logger.error(f"vulkaninfo check failed: {e}")
     return devices
 
 
@@ -99,30 +83,45 @@ def check_hardware_availability():
             logger.debug(f'Darwin: {app_cfg.MPS_NUMS=}')
         except Exception:
             pass
-        return app_cfg.MPS_NUMS
+    else:
+        # 先判断是否存在n卡
+        from pynvml import nvmlInit, nvmlDeviceGetCount, NVMLError
+        try:
+            nvmlInit()
+            app_cfg.NVIDIA_COUNT=nvmlDeviceGetCount()
+            logger.debug(f'检测到 nvidia 显卡 {app_cfg.NVIDIA_COUNT} 张')
+        except NVMLError:
+            # 无nvidia卡
+            logger.warning(f'检测到 nvidia 显卡 0 张')
+        except Exception:
+            pass
 
-    # 先判断是否存在n卡
-    from pynvml import nvmlInit, nvmlDeviceGetCount, NVMLError
-    try:
-        nvmlInit()
-        app_cfg.NVIDIA_COUNT=nvmlDeviceGetCount()
-        logger.debug(f'检测到 nvidia 显卡 {app_cfg.NVIDIA_COUNT} 张')
-    except NVMLError:
-        # 无nvidia卡
-        logger.warning(f'检测到 nvidia 显卡 0 张')
-    except Exception:
-        pass
+        try:
+            # 再判断是否torch中可用
+            if app_cfg.NVIDIA_COUNT>0:
+                import torch
+                app_cfg.NVIDIA_CUDA_NUMS=torch.cuda.device_count() if torch.cuda.is_available() else 0
+            logger.debug(f'检测到可用 NVIDIA CUDA 核: {app_cfg.NVIDIA_CUDA_NUMS}')
+        except Exception:
+            pass
 
-    try:
-        # 再判断是否torch中可用
-        if app_cfg.NVIDIA_COUNT>0:
-            import torch
-            app_cfg.NVIDIA_CUDA_NUMS=torch.cuda.device_count() if torch.cuda.is_available() else 0
-        logger.debug(f'检测到可用 NVIDIA CUDA 核: {app_cfg.NVIDIA_CUDA_NUMS}')
-    except Exception:
-        pass
+        app_cfg.VULKAN_LIST=get_vulkan_devices()
+    # 准备硬件选择数据用于高级选项
+    devices=["auto"]
+    if config.app_cfg.NVIDIA_CUDA_NUMS>0:
+        devices.append("cuda")
+        if config.app_cfg.NVIDIA_CUDA_NUMS>1:
+            for i in range(config.app_cfg.NVIDIA_CUDA_NUMS):
+                devices.append(f"cuda:{i}")
+    if config.app_cfg.VULKAN_LIST:
+        for it in config.app_cfg.VULKAN_LIST:
+            devices.append(f"vulkan:{it['index']}")
+    if config.app_cfg.MPS_NUMS:
+        devices.append("mps")
 
-    app_cfg.VULKAN_LIST=get_vulkan_devices()
+    devices.append("cpu")
+    config.ACCESS_DEVICES=devices
+    logger.debug(f'{config.ACCESS_DEVICES=}')
 
 
 # 用于 faster-whisper /openai-whisper 的设备名， cpu/cuda/mps

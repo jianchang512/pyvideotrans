@@ -230,8 +230,6 @@ def start_thread():
     
     #最少1个，最多4个，跟随 CPU GPU 进程最大数 1-> min(CPU和GPU进程最大值,4)
     task_nums = min(max(app_cfg.MAX_GPU_PROCESS,app_cfg.MAX_CPU_PROCESS,1),4)
-    
-    
     logger.debug(f'{CPU_NUMS=},{app_cfg.MAX_GPU_PROCESS=}, {app_cfg.MAX_CPU_PROCESS=}, {task_nums=} ')
 
     worker_config = {
