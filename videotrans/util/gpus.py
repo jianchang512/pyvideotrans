@@ -213,10 +213,7 @@ def real_metal_exists():
     if app_cfg.AUDIOCPP_REAL_METAL is not None:
         return app_cfg.AUDIOCPP_REAL_METAL
 
-    if _os!='Darwin':
-        app_cfg.AUDIOCPP_REAL_METAL=False
-    else:
-        app_cfg.AUDIOCPP_REAL_METAL=is_support(backend="metal") is True
+    app_cfg.AUDIOCPP_REAL_METAL=_os=='Darwin' and is_support(backend="metal") is True
     return app_cfg.AUDIOCPP_REAL_METAL
 
 

@@ -42,18 +42,9 @@ class FasterAll(BaseRecogn):
         return raws
 
     def _download(self):
-        if self.recogn_type == 0:
-            from videotrans.util.whisper_vulkan import should_use_whisper_vulkan, ensure_ggml_whisper_model
-            # 仅启用硬件加速并且 cuda 不可用，才考虑 vulkan
-            if self.is_cuda and app_cfg.NVIDIA_CUDA_NUMS<1 and should_use_whisper_vulkan(self.model_name):
-                ensure_ggml_whisper_model(self.model_name, callback=self._process_callback)
-                return
-            if not Path(f'{self.local_dir}/model.bin').exists():
-                if self.model_name in FASTER_MODELS_DICT:
-                    repo_id = FASTER_MODELS_DICT[self.model_name]
-                else:
-                    repo_id = self.model_name
-                check_and_down_hf(self.model_name,repo_id,self.local_dir,callback=self._process_callback)
+        if self.recogn_type == 0 and not Path(f'{self.local_dir}/model.bin').exists():
+            repo_id = FASTER_MODELS_DICT[self.model_name] if self.model_name in FASTER_MODELS_DICT else self.model_name
+            check_and_down_hf(self.model_name,repo_id,self.local_dir,callback=self._process_callback)
         elif self.recogn_type==1 and not Path(f'{ROOT_DIR}/models/{self.model_name}.pt').exists():
             import whisper            
             down_file_from_hf(f'{ROOT_DIR}/models',[whisper._MODELS[self.model_name]],callback=self._process_callback)
@@ -108,8 +99,6 @@ class FasterAll(BaseRecogn):
         
         subtitle_srt=f'{TEMP_ROOT}/faster-{datetime.datetime.now().strftime("%Y%m%d-%H_%M_%S")}.srt'
         device=whisper_device(is_cuda=self.is_cuda)
-        if self.is_cuda and not device.startswith('cuda') and platform.system()!='Darwin':
-            device="vulkan"
         kwargs = {
             "detect_language": self.detect_language,
             "model_name": self.model_name,

@@ -22,7 +22,7 @@ class CPPRecogn(BaseRecogn):
 
     def _download_cli(self):
         if  _os== 'Darwin':return
-        # windows上自动下载exe
+        # windows linux 上自动下载
         self.signal(text=f'Download whisper-cli')
         down_zip(f'{ROOT_DIR}', WHISPER_CPP_URL_HF if _os=='Windows' else WHISPER_CPP_LINUX_URL_HF, callback=self._process_callback)
 
@@ -32,6 +32,8 @@ class CPPRecogn(BaseRecogn):
         if _os=='Windows':
             cpp_path+='.exe'
         Path_cpp=Path(cpp_path)
+        if _os=='Darwin' and not Path_cpp.exists():
+            raise RuntimeError(f'Please install whisper.cpp and place the whisper-cli file in the {ROOT_DIR}/whisper-cpp directory')
         if not Path_cpp.is_file():
             self._download_cli()
 

@@ -294,20 +294,22 @@ def download_audiocpp_check(callback=None):
     p=Path(f'{ROOT_DIR}/audio_cpp/audiocpp_server{ext}')
     if p.exists():return
 
-    # Darwin Linux 允许使用 环境变量中的 audio.cpp 作为后备
-    if _os in ['Darwin','Linux']:
+    # Darwin 允许使用 环境变量中的 audio.cpp 作为后备
+    if _os == 'Darwin':
         if shutil.which("audiocpp_cli") and shutil.which("audiocpp_server"):
             logger.debug(f'{_os} 上存在环境中的 audiocpp_cli,直接使用')
             return
-        down_zip(str(p.parent), AUDIO_CPP_MAC_HF if _os=='Darwin' else AUDIO_CPP_LINUX_VULKAN_HF, callback=callback)
-        if _os=='Darwin':
-            app_cfg.AUDIOCPP_REAL_METAL=is_support(backend="metal",raise_ex=True) is True
-        else:
-            app_cfg.AUDIOCPP_REAL_VULKAN=is_support(backend="vulkan",raise_ex=True) is True
+        down_zip(str(p.parent), AUDIO_CPP_MAC_HF, callback=callback)
+        app_cfg.AUDIOCPP_REAL_METAL=is_support(backend="metal",raise_ex=True) is True
+        return
+
+    if _os=='Linux':
+        down_zip(str(p.parent), AUDIO_CPP_LINUX_VULKAN_HF, callback=callback)
+        app_cfg.AUDIOCPP_REAL_VULKAN=is_support(backend="vulkan",raise_ex=True) is True
         return
 
 
-    # 不存在n卡 但是 存在vulkan设备，下载vulkan版本，下载后需检测，若无法运行，需再次下载cuda版本
+    # Win 不存在n卡 但是 存在vulkan设备，下载vulkan版本，下载后需检测，若无法运行，需再次下载cuda版本
     if app_cfg.NVIDIA_COUNT==0 and app_cfg.VULKAN_LIST:
         down_zip(str(p.parent),AUDIO_CPP_WIN_VULKAN_HF,callback=callback)
 
@@ -363,16 +365,17 @@ def is_support(backend="vulkan",raise_ex=False):
             raise
     return False
 
-# 获取 二进制执行文件  audiocpp_bin  / audiocpp_server，绝对路径或 Darwin/Linux 中环境变量
+# 获取 二进制执行文件  audiocpp_bin  / audiocpp_server，绝对路径或 Darwin 中环境变量
 def get_audiobin(name="server"):
     audio_bin=f'{ROOT_DIR}/audio_cpp/audiocpp_{name}'
     if _os=='Windows':
         audio_bin=f'{audio_bin}.exe'
     if Path(audio_bin).exists(): return audio_bin
-    # Darwin Linux 允许使用 环境中 audiocpp
-    if _os=='Windows' or not ( shutil.which('audiocpp_cli') and shutil.which('audiocpp_server') ):
-        raise FileNotFoundError(f'No File: {audio_bin}')
-    return f"audiocpp_{name}"
+    # Darwin 允许使用 环境中 audiocpp
+    if _os=='Darwin' and shutil.which('audiocpp_cli') and shutil.which('audiocpp_server'):
+        return f'audiocpp_{name}'
+    raise FileNotFoundError(f'No File: {audio_bin}')
+
 # No retry for failures. When the acceleration fails due to the audio.cpp and Vulkan versions on Windows, fallback to CPU still has a high probability of failure
 def exec_audiocpp(cmd):
     cmd[0]=get_audiobin(name="cli")
