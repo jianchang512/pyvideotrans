@@ -189,8 +189,8 @@ class Audio_Server:
             # 子进程提前退出 → 立即失败
             if self.proc and self.proc.poll() is not None:
                 raise RuntimeError(
-                    f"Audio.cpp 进程异常退出 (code={self.proc.returncode})\n"
-                    f"日志: {self._log_path}\n--- 日志尾部 ---\n{_read_tail(self._log_path)}"
+                    f"Audio.cpp quit (code={self.proc.returncode})\n"
+                    f"Logs: {self._log_path}\n------\n{_read_tail(self._log_path)}"
                 )
             try:
                 r = requests.get(f"{self.api_endpoint}/health", timeout=2)
@@ -206,7 +206,6 @@ class Audio_Server:
     def start(self) -> bool:
         if self.is_activate():
             return True
-        from videotrans.util.gpus import get_audiobin
         exe = get_audiobin(name="server")
         exe_parent=f'{ROOT_DIR}/audio_cpp' if exe!="audiocpp_server" else ROOT_DIR
 
@@ -246,8 +245,8 @@ class Audio_Server:
 
         self.quit()
         raise RuntimeError(
-            f"Audio.cpp 启动超时 (cmd={cmd})\n"
-            f"日志: {log_path}\n--- 日志尾部 ---\n{_read_tail(log_path)}"
+            f"Audio.cpp starting timeout (cmd={cmd})\n"
+            f"Logs: {log_path}\n---  ---\n{_read_tail(log_path)}"
         )
 
 
@@ -301,29 +300,81 @@ def download_audiocpp_check(callback=None):
             logger.debug(f'{_os} 上存在环境中的 audiocpp_cli,直接使用')
             return
         down_zip(str(p.parent), AUDIO_CPP_MAC_HF if _os=='Darwin' else AUDIO_CPP_LINUX_VULKAN_HF, callback=callback)
+        if _os=='Darwin':
+            app_cfg.AUDIOCPP_REAL_METAL=is_support(backend="metal",raise_ex=True) is True
+        else:
+            app_cfg.AUDIOCPP_REAL_VULKAN=is_support(backend="vulkan",raise_ex=True) is True
         return
 
 
     # 不存在n卡 但是 存在vulkan设备，下载vulkan版本，下载后需检测，若无法运行，需再次下载cuda版本
     if app_cfg.NVIDIA_COUNT==0 and app_cfg.VULKAN_LIST:
         down_zip(str(p.parent),AUDIO_CPP_WIN_VULKAN_HF,callback=callback)
-        # 判断是否可运行
-        from videotrans.util.gpus import is_support
-        if p.exists() and is_support(backend="vulkan") in [True,False]:
-            return
+
         try:
+            # 判断是否可运行
+            app_cfg.AUDIOCPP_REAL_VULKAN=is_support(backend="vulkan",raise_ex=True) is True
+            return
+        except Exception:
+            logger.error(f'Windows vulkan版本 audiocpp 无法运行，尝试下载 CUDA+CPU 版本')
             # 不可用
-            app_cfg.AUDIOCPP_REAL_VULKAN=False
             shutil.rmtree(str(p.parent),ignore_errors=True)
-        except OSError:
-            pass
+
     #其他情况，或 vulkan 无法运行时，重新下载 cuda 版本
     down_zip(str(p.parent),AUDIO_CPP_WIN_HF,callback=callback)
+    app_cfg.AUDIOCPP_REAL_CUDA=is_support(backend="cuda",raise_ex=True) is True
     return
 
+
+# 判断 audiocpp_server 是否真的支持 cuda/vulkan, 虽然有n卡、cuda存在、能检测到vulkan设备，但未必能被audiocpp_server识别到，因此需判断
+def is_support(backend="vulkan",raise_ex=False):
+    try:
+        """
+        like 
+        {"schema_version":1,"devices":[{"backend":"cuda","registry":"CUDA","index":0,"name":"CUDA0","description":"Tesla T4","type":"gpu","pci_bus_id":"0000:00:04.0","memory":{"free_bytes":15527116800,"total_bytes":15637086208},"caps":{"async":true,"host_buffer":true,"buffer_from_host_ptr":false,"events":true}},{"backend":"cpu","registry":"CPU","index":0,"name":"CPU","description":"Intel(R) Xeon(R) CPU @ 2.00GHz","type":"cpu","pci_bus_id":null,"memory":{"free_bytes":11799359488,"total_bytes":13605818368},"caps":{"async":false,"host_buffer":false,"buffer_from_host_ptr":true,"events":false}}]}
+        """
+        proc = subprocess.run(
+            [get_audiobin(), "--list-devices", "--json"],
+            capture_output=True,
+            text=True,
+            check=raise_ex,
+            timeout=10,
+            encoding="utf-8",
+            errors="ignore",
+        )
+        if proc.returncode!=0:
+            logger.error(f'检测 audio.cpp 支持的 [{backend}] 硬件设备时出错:{proc.returncode=},{proc.stderr=},{proc.stdout=}')
+            return False
+        for line in (proc.stdout or "").splitlines():
+            line = line.strip()
+            if not line.startswith("{") or '"devices"' not in line:
+                continue
+            data = json.loads(line)
+            for d in data.get("devices", []):
+                if d.get("backend") == backend:
+                    return True
+    except subprocess.CalledProcessError as e:
+        logger.exception(f'check audiocpp_cli --list-devices error:{e}\n{e.stdout=}\n{e.stderr=}',exc_info=True)
+        if raise_ex:
+            raise RuntimeError(f'{e.stderr} {e.stdout}\n{e}')
+    except Exception as e:
+        logger.exception(f"audiocpp_cli --list-devices failed: {e}",exc_info=True)
+        if raise_ex:
+            raise
+    return False
+
+# 获取 二进制执行文件  audiocpp_bin  / audiocpp_server，绝对路径或 Darwin/Linux 中环境变量
+def get_audiobin(name="server"):
+    audio_bin=f'{ROOT_DIR}/audio_cpp/audiocpp_{name}'
+    if _os=='Windows':
+        audio_bin=f'{audio_bin}.exe'
+    if Path(audio_bin).exists(): return audio_bin
+    # Darwin Linux 允许使用 环境中 audiocpp
+    if _os=='Windows' or not ( shutil.which('audiocpp_cli') and shutil.which('audiocpp_server') ):
+        raise FileNotFoundError(f'No File: {audio_bin}')
+    return f"audiocpp_{name}"
 # No retry for failures. When the acceleration fails due to the audio.cpp and Vulkan versions on Windows, fallback to CPU still has a high probability of failure
 def exec_audiocpp(cmd):
-    from videotrans.util.gpus import get_audiobin
     cmd[0]=get_audiobin(name="cli")
     if "--threads" not in cmd:
         cmd.extend(["--threads", str(min(8,max(CPU_NUMS, 1))) ])

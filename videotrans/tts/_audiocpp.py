@@ -46,8 +46,7 @@ class AudiocppTTS(BaseTTS):
 
         self.model_path=gguf_file = f"{ROOT_DIR}/models/{self.gguf_obj.get('file')}"
 
-        if Path(gguf_file).exists():
-            return True
+        if Path(gguf_file).exists(): return True
 
         model_url = self.gguf_obj.get('url', '')
         down_file_from_hf(

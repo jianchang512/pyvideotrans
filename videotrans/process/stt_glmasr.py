@@ -4,17 +4,13 @@
 # 成功，第一个值存在需要的返回值，不需要时返回True，第二个值为None
 import re, json, traceback
 from pathlib import Path
-from typing import List, Tuple, Union
-from videotrans.util import gpus
 from videotrans.configure.config import logger
-from videotrans.util.gpus import transformers_device
 
 
 def glmasr_asr(
         cut_audio_list=None,
         logs_file=None,
         local_dir=None,
-        is_cuda=False,
         **kw
 ):
     quant=None
@@ -31,7 +27,7 @@ def glmasr_asr(
 
     model = GlmAsrForConditionalGeneration.from_pretrained(
         local_dir,
-        device_map=transformers_device(device=kw.get('device_name','auto'),is_cuda=is_cuda),
+        device_map=kw.get("device_name"),
         quantization_config=quant,
         dtype='auto'
     )

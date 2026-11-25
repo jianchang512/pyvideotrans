@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Union, Dict, List
 from videotrans.tts._base import BaseTTS
 from videotrans.configure.config import settings, logger, tr, ROOT_DIR, app_cfg, TEMP_DIR, CPU_NUMS
+from videotrans.util.gpus import whisper_device
 from videotrans.util.help_misc import vail_file
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
@@ -26,15 +27,17 @@ class ConfuciusTTS(BaseTTS):
         queue_tts_file = f'{TEMP_DIR}/{self.uuid}/confuciustts-{time.time()}.json'
         Path(queue_tts_file).write_text(json.dumps(self.queue_tts),encoding='utf-8')
         title="Confucius-TTS dubbing..."
+        device=whisper_device(is_cuda=self.is_cuda)
         kwargs = {
             "queue_tts_file":queue_tts_file,
             "language": self.language.split('-')[0],
             "logs_file": logs_file,
             "is_cuda": self.is_cuda,
+            "device_name":device,
             "is_redubb":self.is_redubb
         }
         from videotrans.process.confucius_tts import confucius_fun
-        self._new_process(callback=confucius_fun,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
+        self._new_process(callback=confucius_fun,title=title,kwargs=kwargs)
         if self.is_redubb:return
         self.signal(text=tr('Standardized dubbing segment processing'))
         all_task = []

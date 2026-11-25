@@ -41,7 +41,7 @@ class AudiocppRecogn(BaseRecogn):
         gguf_file = f"{ROOT_DIR}/models/{self.gguf_obj.get('file')}"
 
         if Path(gguf_file).exists(): return True
-        model_url = self.gguf_obj.get('url', '').replace('https://huggingface.co', '')
+        model_url = self.gguf_obj.get('url', '')
         down_file_from_hf(
             Path(gguf_file).parent.as_posix(),
             [model_url],

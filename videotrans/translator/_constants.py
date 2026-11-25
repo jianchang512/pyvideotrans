@@ -22,25 +22,27 @@ LOCALLLM_INDEX = 9
 
 OPENROUTER_INDEX = 10
 SILICONFLOW_INDEX = 11
-AI302_INDEX = 12
 
-BAILIAN_INDEX = 13
-ZIJIE_INDEX = 14
+BAILIAN_INDEX = 12
+ZIJIE_INDEX = 13
 
-XIAOMI_INDEX = 15
-MINIMAX_INDEX = 16
-CAMB_INDEX = 17
+XIAOMI_INDEX = 14
+MINIMAX_INDEX = 15
+CAMB_INDEX = 16
 
-DEEPL_INDEX = 18
-DEEPLX_INDEX = 19
-BAIDU_INDEX = 20
-ALI_INDEX = 21
+DEEPL_INDEX = 17
+DEEPLX_INDEX = 18
+BAIDU_INDEX = 19
+ALI_INDEX = 20
 
-LIBRE_INDEX = 22
-TENCENT_INDEX = 23
-TRANSAPI_INDEX = 24
+LIBRE_INDEX = 21
+TENCENT_INDEX = 22
+TRANSAPI_INDEX = 23
 
+
+AI302_INDEX = 24
 LITELLM_INDEX = 25
+
 API_ROUTE_INDEX = 26
 CHEAPERINFERENCE_INDEX = 27
 INFISTAR_INDEX = 28
@@ -136,10 +138,7 @@ ID_NAME_DICT = {
                                        key_name="siliconflow_key",
                                        win="siliconflow",
                                        imp="._siliconflow"),
-    AI302_INDEX: ChannelProvider("302.ai",
-                                 key_name="ai302_key",
-                                 win="ai302",
-                                 imp="._ai302"),
+
 
     BAILIAN_INDEX: ChannelProvider(tr('Ali-Bailian'),
                                   key_name="bailian_key",
@@ -191,6 +190,10 @@ ID_NAME_DICT = {
                                     key_name="transapi_url",
                                     win="transapi",
                                     imp="._transapi"),
+    AI302_INDEX: ChannelProvider("302.ai",
+                                 key_name="ai302_key",
+                                 win="ai302",
+                                 imp="._ai302"),
     LITELLM_INDEX: ChannelProvider("LiteLLM",
                                    key_name="litellm_key",
                                    win="litellm",

@@ -8,7 +8,6 @@ import traceback, json
 from typing import Tuple, Union
 from videotrans.configure.config import logger, ROOT_DIR, REDUBB_QUEUE_FILE, REDUBB_STATUS_FILE
 from ._utils import _write_log, convert_to_wav
-from ..util.gpus import transformers_device
 
 
 def qwen3tts_fun(
@@ -16,7 +15,6 @@ def qwen3tts_fun(
         language='Auto',  # 语言
         logs_file=None,
         prompt=None,
-        is_cuda=False,
         model_name='0.6B',
         is_redubb=False,  # 是否处于单视频校对配音流程
         **kw
@@ -34,7 +32,7 @@ def qwen3tts_fun(
     from qwen_tts import Qwen3TTSModel
     from videotrans.util.help_misc import vail_file
 
-    device_map = transformers_device(device=kw.get('device_name','auto'),is_cuda=is_cuda),
+    device_map = kw.get("device_name")
     CUSTOM_VOICE = {"Vivian", "Serena", "Uncle_fu", "Dylan", "Eric", "Ryan", "Aiden", "Ono_anna", "Sohee"}
 
     atten = None

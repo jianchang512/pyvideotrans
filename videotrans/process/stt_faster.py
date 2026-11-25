@@ -3,12 +3,9 @@
 # 失败：第一个值为False，则为失败，第二个值存储失败原因
 # 成功，第一个值存在需要的返回值，不需要时返回True，第二个值为None
 import json, traceback
-import platform
 from pathlib import Path
-
 from videotrans.configure._paths import TEMP_ROOT,ROOT_DIR
 from videotrans.configure.config import logger
-from videotrans.util.gpus import whisper_device, cpp_device
 
 
 def faster_whisper(
@@ -17,7 +14,6 @@ def faster_whisper(
         detect_language=None,
         model_name=None,
         logs_file=None,
-        is_cuda=False,
         no_speech_threshold=0.6,
         threshold=0.5,
         condition_on_previous_text=False,
@@ -40,34 +36,14 @@ def faster_whisper(
     import zhconv
     from videotrans.process._stt_utils import _write_log,_resegment2,_resegment
     from faster_whisper import WhisperModel
-    from videotrans.util.whisper_vulkan import PyWhisperCppModel
 
     raws = []
     if detect_language == 'fil':
         detect_language = 'tl'
-
-    device=whisper_device(device=kw.get('device_name', 'auto'),is_cuda=is_cuda)
-    if is_cuda and not device.startswith('cuda') and platform.system()!='Darwin':
-        device="vulkan"
+    device=kw.get("device_name")
 
     def _create_model(_compute_type):
-        nonlocal device
-        logger.debug(f'[faster_whisper] 加载模型{model_name}: {is_cuda=},running on {device},{_compute_type=}')
-        # 仅在 cuda 不可用，且 vulkan 时使用
-        if  device.startswith('vulkan'):
-            try:
-                logger.debug(f'[faster_whisper/vulkan]加载GGML模型 {model_name}: running on {device} ({is_cuda=})')
-                return PyWhisperCppModel(
-                    local_dir or model_name,
-                    compute_type=_compute_type,
-                    model_name=model_name,
-                )
-            except Exception as vulkan_err:
-                if not local_dir or not Path(f'{local_dir}/model.bin').exists():
-                    raise
-                device="cpu"
-                logger.warning(f'faster-whisper Vulkan (pywhispercpp) 加载失败，尝试回退 CTranslate2: {vulkan_err}')
-
+        logger.debug(f'[faster_whisper] 加载模型{model_name}: running on {device},{_compute_type=}')
         try:
 
             return WhisperModel(
@@ -91,7 +67,7 @@ def faster_whisper(
                 return _create_model('int8')
             # 保底 float32
             if _compute_type != 'float32':
-                logger.warning(f'faster-whisper  加载模型失败，更改为 [float32] 类型后重试, {is_cuda=}')
+                logger.warning(f'faster-whisper  加载模型失败，更改为 [float32] 类型后重试')
                 return _create_model('float32')
             raise
 
@@ -102,7 +78,7 @@ def faster_whisper(
         model = _create_model(compute_type)
     except Exception as e:
         error = traceback.format_exc()
-        logger.error(f'[faster_whisper][{is_cuda=}]语音转录加载模型失败:{local_dir=}\n{error}')
+        logger.error(f'[faster_whisper]语音转录加载模型失败:{local_dir=}\n{error}')
         return False, f'{e},{error}'
     # 禁止重新按 字级时间戳 断句，直接使用 模型返回的句子结果
     no_resegment=Path(f'{ROOT_DIR}/no_resegment.txt').exists()

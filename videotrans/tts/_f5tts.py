@@ -4,6 +4,7 @@ import sys,json,time,os
 from videotrans.tts._base import BaseTTS
 from videotrans.configure.config import ROOT_DIR, app_cfg, logger, tr, TEMP_DIR, CPU_NUMS
 from videotrans.configure.excepts import DubbingSrtError
+from videotrans.util.gpus import whisper_device
 from videotrans.util.help_misc import vail_file
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
@@ -45,17 +46,19 @@ class F5TTSBuilt(BaseTTS):
         queue_tts_file = f'{TEMP_DIR}/{self.uuid}/f5tts-{time.time()}.json'
         Path(queue_tts_file).write_text(json.dumps(self.queue_tts),encoding='utf-8')
         title="F5-TTS dubbing..."
+        device=whisper_device(is_cuda=self.is_cuda,allow_mps=True)
         kwargs = {
             "queue_tts_file":queue_tts_file,
             "language": self.language.split('-')[0],
             "logs_file": logs_file,
             "is_cuda": self.is_cuda,
             "speed":self.get_speed(),
+            "device_name":device,
             "is_redubb":self.is_redubb
         }
 
         from videotrans.process.f5_tts import f5tts_fun
-        self._new_process(callback=f5tts_fun,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
+        self._new_process(callback=f5tts_fun,title=title,kwargs=kwargs)
         if self.is_redubb:return
 
         self.signal(text=tr('Standardized dubbing segment processing'))

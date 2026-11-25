@@ -17,6 +17,7 @@ from videotrans.configure.config import app_cfg, logger, settings,ROOT_DIR
 import traceback
 from PySide6.QtCore import QThread, Signal
 from videotrans.configure import config
+from videotrans.util.help_audiocpp import is_support
 
 _os=platform.system()
 _DEVICES_LIST=['auto','cuda','mps','metal','vulkan','best']
@@ -219,48 +220,7 @@ def real_metal_exists():
     return app_cfg.AUDIOCPP_REAL_METAL
 
 
-def get_audiobin(name="server"):
-    audio_bin=f'{ROOT_DIR}/audio_cpp/audiocpp_{name}'
-    if _os=='Windows':
-        audio_bin=f'{audio_bin}.exe'
-    if not Path(audio_bin).exists():
-        # Darwin Linux 允许使用 环境中 audiocpp
-        if _os=='Windows' or (not shutil.which('audiocpp_cli') and shutil.which('audiocpp_server')):
-            raise FileNotFoundError(f'No File: {audio_bin}')
-        audio_bin=f"audiocpp_{name}"
-    return audio_bin
 
-# 判断 audiocpp_server 是否真的支持 cuda/vulkan, 虽然有n卡、cuda存在、能检测到vulkan设备，但未必能被audiocpp_server识别到，因此需判断
-def is_support(backend="vulkan"):
-    try:
-        """
-        like 
-        {"schema_version":1,"devices":[{"backend":"cuda","registry":"CUDA","index":0,"name":"CUDA0","description":"Tesla T4","type":"gpu","pci_bus_id":"0000:00:04.0","memory":{"free_bytes":15527116800,"total_bytes":15637086208},"caps":{"async":true,"host_buffer":true,"buffer_from_host_ptr":false,"events":true}},{"backend":"cpu","registry":"CPU","index":0,"name":"CPU","description":"Intel(R) Xeon(R) CPU @ 2.00GHz","type":"cpu","pci_bus_id":null,"memory":{"free_bytes":11799359488,"total_bytes":13605818368},"caps":{"async":false,"host_buffer":false,"buffer_from_host_ptr":true,"events":false}}]}
-
-
-        """
-        proc = subprocess.run(
-            [get_audiobin(), "--list-devices", "--json"],
-            capture_output=True,
-            text=True,
-            timeout=10,
-            encoding="utf-8",
-            errors="ignore",
-        )
-        if proc.returncode!=0:
-            logger.error(f'检测 audio.cpp 支持的 [{backend}] 硬件设备时出错:{proc.returncode=},{proc.stderr=},{proc.stdout=}')
-            return proc.returncode
-        for line in (proc.stdout or "").splitlines():
-            line = line.strip()
-            if not line.startswith("{") or '"devices"' not in line:
-                continue
-            data = json.loads(line)
-            for d in data.get("devices", []):
-                if d.get("backend") == backend:
-                    return True
-    except Exception as e:
-        logger.error(f"audiocpp_cli --list-devices failed: {e}")
-    return False
 
 # 是否存在 cuda mps vulkan 任意可用硬件
 def exists_hard():

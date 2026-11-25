@@ -6,14 +6,12 @@ import json, traceback
 from pathlib import Path
 from videotrans.configure.config import logger as vt_logger
 from videotrans.process._stt_utils import _write_log
-from videotrans.util.gpus import transformers_device
 
 
 def ark_asr(
         cut_audio_list=None,
         logs_file=None,
         local_dir=None,
-        is_cuda=False,
         **kw
 ):
     import torch
@@ -23,7 +21,7 @@ def ark_asr(
         processor = AutoProcessor.from_pretrained(local_dir, trust_remote_code=True)
         tokenizer = AutoTokenizer.from_pretrained(local_dir, trust_remote_code=True)
         _mdargs={
-            "device_map":transformers_device(device=kw.get('device_name','auto'),is_cuda=is_cuda),
+            "device_map":kw.get("device_name"),
             "trust_remote_code":True,
             "dtype":"auto"
         }

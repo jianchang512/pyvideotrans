@@ -10,6 +10,7 @@ from videotrans.configure.config import tr, ROOT_DIR, settings, logger, CPU_NUMS
 from videotrans.configure.constants import PUNC_RESTORE_HF
 from videotrans.configure.excepts import SpeechToTextError
 from videotrans.recognition import run as run_recogn,  FASTER_WHISPER
+from videotrans.util.gpus import whisper_device
 from videotrans.util.help_ffmpeg import conver_to_16k, runffmpeg, cut_from_audio
 from videotrans.util.help_misc import vail_file, is_connect_hf
 from videotrans.util.help_srt import get_subtitle_from_srt, delete_punc
@@ -53,9 +54,11 @@ class RecognMixin:
                 try:
                     if kw.get('model_name')=='zipenhancer':
                         from videotrans.util.help_audiocpp import download_audiocpp_check
+                        from videotrans.util.gpus import cpp_device
                         download_audiocpp_check(callback=self._process_callback)
+                        kw['device_name']=cpp_device(is_cuda=self.cfg.is_cuda)
                     from videotrans.process.prepare_audio import remove_noise
-                    _rs = self._new_process(callback=remove_noise, title=title, is_cuda=self.cfg.is_cuda, kwargs=kw)
+                    _rs = self._new_process(callback=remove_noise, title=title,  kwargs=kw)
                     if _rs:
                         self.clone_ref = _remove_noise_wav
                         self.cfg.source_wav = _remove_noise_wav
@@ -95,8 +98,8 @@ class RecognMixin:
                 text_dict_file=f'{self.cfg.cache_folder}/text_dict_file_{time.time()}.json'
                 Path(text_dict_file).write_text(json.dumps(text_dict),encoding="utf-8")
                 kw = {"text_dict_file": text_dict_file, "is_cuda": self.cfg.is_cuda}
-                _rs = self._new_process(callback=fix_punc, title=tr("Restoring punct"), is_cuda=self.cfg.is_cuda,
-                                        kwargs=kw)
+                kw['device_name']=whisper_device(is_cuda=self.cfg.is_cuda)
+                _rs = self._new_process(callback=fix_punc, title=tr("Restoring punct"),  kwargs=kw)
                 if _rs:
                     text_dict_obj=json.loads(Path(text_dict_file).read_text(encoding='utf-8'))
                     for it in self.source_srt_list:

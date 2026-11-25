@@ -1,8 +1,6 @@
 # ToDo 将 whisper.cpp 移动到此
-import os
 import re
 import subprocess,platform
-import sys
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -12,8 +10,8 @@ from videotrans.configure.config import tr, settings, logger, CPU_NUMS
 from videotrans.configure.constants import WHISPER_CPP_URL_HF, WHISPER_CPP_LINUX_URL_HF,WHISPERCPP_MODEL_URL_HF
 from videotrans.configure.excepts import SpeechToTextError
 from videotrans.recognition._base import BaseRecogn
-from videotrans.util._srt_parse import get_subtitle_from_srt, ms_to_time_string
-from videotrans.util.gpus import cpp_device
+from videotrans.util._srt_parse import get_subtitle_from_srt
+from videotrans.util.gpus import whisper_device
 from videotrans.util.help_down import down_zip
 
 
@@ -45,35 +43,7 @@ class CPPRecogn(BaseRecogn):
                 [url],
                 self._process_callback)
 
-        device = cpp_device(device=settings.get('device_name', 'auto'),is_cuda=self.is_cuda)
-
-        if not Path_cpp.is_file():
-            from videotrans.util.whisper_vulkan import is_pywhispercpp_available, PyWhisperCppModel
-            if is_pywhispercpp_available():
-                self.signal(text=tr("Transcription in progress, please wait"))
-                _lang = self.detect_language.split('-')[0]
-                prompt = settings.get(f'initial_prompt_{self.detect_language.replace("-","_")}')
-                model = PyWhisperCppModel(
-                    f'{ROOT_DIR}/models/{self.model_name}'
-                )
-                segments, _ = model.transcribe(
-                    self.audio_file,
-                    language=None if _lang.lower() == 'auto' else _lang,
-                    initial_prompt=prompt or None,
-                    no_speech_threshold=float(settings.get('no_speech_threshold', 0.6)),
-                )
-                srt_lines = []
-                for idx, seg in enumerate(segments, 1):
-                    start_ms = int(seg.start * 1000)
-                    end_ms = int(seg.end * 1000)
-                    text = seg.text.strip()
-                    if not text:
-                        continue
-                    srt_lines.append(f"{idx}\n{ms_to_time_string(ms=start_ms)} --> {ms_to_time_string(ms=end_ms)}\n{text}\n")
-                _sub_srt = f"{self.cache_folder}/cpp_srt.srt"
-                Path(_sub_srt).write_text("\n".join(srt_lines), encoding="utf-8")
-                return get_subtitle_from_srt(_sub_srt, is_file=True)
-            raise SpeechToTextError(tr('download whisper.cpp or make binary',f'{ROOT_DIR}/whisper-cpp'))
+        device = whisper_device(is_cuda=self.is_cuda)
 
         txt_file = ROOT_DIR + '/pyvideotrans_cpp.txt'
 

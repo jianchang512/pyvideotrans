@@ -4,9 +4,7 @@
 # 成功，第一个值存在需要的返回值，不需要时返回True，第二个值为None
 import json, traceback
 from pathlib import Path
-from typing import List, Tuple, Union
 from videotrans.configure.config import logger, ROOT_DIR
-from videotrans.util.gpus import whisper_device
 
 
 def funasr_mlt(
@@ -14,7 +12,6 @@ def funasr_mlt(
         detect_language=None,
         model_name=None,
         logs_file=None,
-        is_cuda=False,
         hotword=None,
         **kw
 ):
@@ -23,8 +20,7 @@ def funasr_mlt(
     from modelscope.pipelines import pipeline
     from modelscope.utils.constant import Tasks
 
-    device=whisper_device(device=kw.get('device_name','auto'),is_cuda=is_cuda),
-
+    device=kw.get("device_name")
 
     msg = f'Load {model_name} running on {device}'
     _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))

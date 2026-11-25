@@ -15,7 +15,7 @@ from videotrans.recognition import run
 from videotrans.task._base import BaseTask
 from videotrans.task.taskcfg import TaskCfgSTT
 from videotrans.translator import LLM_CONCERT_DICT
-
+from videotrans.util.gpus import whisper_device
 
 """
 对应 语音转录 面板
@@ -133,8 +133,10 @@ class SpeechToText(BaseTask):
                 }
                 if kw.get('model_name')=='zipenhancer':
                     from videotrans.util.help_audiocpp import download_audiocpp_check
+                    from videotrans.util.gpus import cpp_device
                     download_audiocpp_check(callback=self._process_callback)
-                _rs = self._new_process(callback=remove_noise, title=title, is_cuda=self.cfg.is_cuda, kwargs=kw)
+                    kw['device_name']=cpp_device(is_cuda=self.cfg.is_cuda)
+                _rs = self._new_process(callback=remove_noise, title=title,  kwargs=kw)
                 if _rs:
                     self.cfg.shibie_audio = _noise_wav
                 self.signal(text='remove noise end')
@@ -168,6 +170,7 @@ class SpeechToText(BaseTask):
                 text_dict_file = f'{self.cfg.cache_folder}/text_dict_file_{time.time()}.json'
                 Path(text_dict_file).write_text(json.dumps(text_dict), encoding="utf-8")
                 kw = {"text_dict_file": text_dict_file, "is_cuda": self.cfg.is_cuda}
+                kw['device_name']=whisper_device(is_cuda=self.cfg.is_cuda)
                 _rs = self._new_process(callback=fix_punc, title=tr("Restoring punct"), kwargs=kw)
                 if _rs:
                     text_dict_obj = json.loads(Path(text_dict_file).read_text(encoding='utf-8'))

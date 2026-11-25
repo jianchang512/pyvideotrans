@@ -62,7 +62,9 @@ class SeparateWorker(QThread):
             kw={"input_file":self.file,"vocal_file":self.vocal,"instr_file":self.instr_file,"uvr_models":settings.get('uvr_models')}
             if kw["uvr_models"] in ['mel_band_roformer','bs_roformer']:
                 from videotrans.util.help_audiocpp import download_audiocpp_check
+                from videotrans.util.gpus import cpp_device
                 download_audiocpp_check(callback=self._process_callback)
+                kw['device_name']=cpp_device(is_cuda=True)
             future=GlobalProcessManager.submit_task_cpu(
                         vocal_bgm,
                         **kw

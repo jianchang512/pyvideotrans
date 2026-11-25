@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 from videotrans.configure._i18n import tr
 from videotrans.configure.config import logger, ROOT_DIR, app_cfg, TEMP_DIR, CPU_NUMS
+from videotrans.util.gpus import transformers_device
 from videotrans.util.help_misc import vail_file, is_connect_hf
 from videotrans.tts._base import BaseTTS
 from pathlib import Path
@@ -30,7 +31,9 @@ class OmniVoice(BaseTTS):
         queue_tts_file = f'{TEMP_DIR}/{self.uuid}/omnivoice-{time.time()}.json'
         Path(queue_tts_file).write_text(json.dumps(self.queue_tts),encoding='utf-8')
         title="OmniVoice-TTS dubbing..."
+        device=transformers_device(is_cuda=self.is_cuda)
         kwargs = {
+            "device_name":device,
             "queue_tts_file":queue_tts_file,
             "logs_file": logs_file,
             "is_cuda": self.is_cuda,
@@ -39,7 +42,7 @@ class OmniVoice(BaseTTS):
             "language":self.language.split('-')[0] if self.language!='auto' else None
         }
         from videotrans.process.omnivoice_tts import omnivoice_fun
-        self._new_process(callback=omnivoice_fun,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
+        self._new_process(callback=omnivoice_fun,title=title,kwargs=kwargs)
         if self.is_redubb:return
 
         self.signal(text=tr('Standardized dubbing segment processing'))

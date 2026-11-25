@@ -1,3 +1,4 @@
+import platform
 import time, json,datetime
 from pathlib import Path
 from dataclasses import dataclass
@@ -8,6 +9,7 @@ from videotrans.configure.config import settings, ROOT_DIR, logger, app_cfg
 from videotrans.configure import config
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
+from videotrans.util.gpus import whisper_device
 
 from videotrans.util.help_down import check_and_down_hf,down_file_from_hf
 from videotrans.util.help_srt import get_subtitle_from_srt
@@ -68,7 +70,7 @@ class FasterAll(BaseRecogn):
         _max_speech = min(int(float(settings.get('max_speech_duration_s', 6)) * 1000), 25000)
         if _max_speech<=_min_speech:
             _max_speech=_min_speech+1000
-
+        device=whisper_device(is_cuda=self.is_cuda)
         kwargs = {
             "prompt": settings.get(f'initial_prompt_{self.detect_language.replace("-","_")}'),
             "detect_language": self.detect_language,
@@ -80,7 +82,7 @@ class FasterAll(BaseRecogn):
             "audio_file": self.audio_file,
             "jianfan": self.jianfan,
             "uuid":self.uuid,
-            
+            "device_name":device,
             "audio_duration":audio_duration,
             "temperature":settings.get('temperature'),
             "compression_ratio_threshold":float(settings.get('compression_ratio_threshold',2.4)),
@@ -88,7 +90,7 @@ class FasterAll(BaseRecogn):
             "min_speech_ms":_min_speech
         }
         from videotrans.process.stt_openai import openai_whisper
-        raws=self._new_process(callback=openai_whisper,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
+        raws=self._new_process(callback=openai_whisper,title=title,kwargs=kwargs)
         return raws
 
 
@@ -105,6 +107,9 @@ class FasterAll(BaseRecogn):
 
         
         subtitle_srt=f'{TEMP_ROOT}/faster-{datetime.datetime.now().strftime("%Y%m%d-%H_%M_%S")}.srt'
+        device=whisper_device(is_cuda=self.is_cuda)
+        if self.is_cuda and not device.startswith('cuda') and platform.system()!='Darwin':
+            device="vulkan"
         kwargs = {
             "detect_language": self.detect_language,
             "model_name": self.model_name,
@@ -129,6 +134,7 @@ class FasterAll(BaseRecogn):
             "min_speech_ms":_min_speech,
             "min_silence_duration_ms":max(int(settings.get('min_silence_duration_ms', 600)), 100),
             "uuid":self.uuid,
+            "device_name":device,
             "subtitle_srt":subtitle_srt
         }
         if self.recogn2pass:
@@ -139,7 +145,7 @@ class FasterAll(BaseRecogn):
                 kwargs['recogn2_max_speech']+=200
         try:
             from videotrans.process.stt_faster import  faster_whisper
-            raws=self._new_process(callback=faster_whisper,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
+            raws=self._new_process(callback=faster_whisper,title=title,kwargs=kwargs)
             return raws
         except SttTimeoutError:
             if not Path(subtitle_srt).exists():

@@ -4,7 +4,6 @@ from videotrans.configure.config import ROOT_DIR, logger, app_cfg
 from pathlib import Path
 from collections import defaultdict
 
-from videotrans.util.gpus import whisper_device
 
 """
 
@@ -118,12 +117,9 @@ def _diarize_and_write(subtitles_file, diarizations, speak_file):
     return False, "0 speakers"
 
 
-def cam_speakers(*, input_file, subtitles_file: str, speak_file: str, num_speakers=-1, is_cuda=False,  device_index=0,**kw):
+def cam_speakers(*, input_file, subtitles_file: str, speak_file: str, num_speakers=-1, **kw):
     from modelscope.pipelines import pipeline
-    #device=kw.get('device_name','auto')
-    device=whisper_device(device=kw.get('device_name','auto'),is_cuda=is_cuda)
-    # if device=='auto':
-    #     device = f"cuda:{device_index}" if is_cuda else "cpu"
+    device=kw.get("device_name")
     _st = time.time()
     logger.debug(f'开始说话人分离:使用阿里cam++模型')
 
@@ -187,7 +183,7 @@ def _hook_hf():
     huggingface_hub.file_download.hf_hub_download = patched_hf_hub_download
 
 
-def pyannote_speakers(*, input_file, subtitles_file: str, speak_file: str, num_speakers=-1, is_cuda=False,**kw):
+def pyannote_speakers(*, input_file, subtitles_file: str, speak_file: str, num_speakers=-1,**kw):
     _hook_hf()
     import torch, pyannote.audio, torchaudio
     torch.serialization.add_safe_globals([
@@ -200,12 +196,8 @@ def pyannote_speakers(*, input_file, subtitles_file: str, speak_file: str, num_s
 
     def _get_diariz():
         pipeline = Pipeline.from_pretrained(f"{ROOT_DIR}/models/models--pyannote--speaker-diarization-3.1/config.yaml")
-        # _device_name=kw.get('device_name','auto')
-        device=whisper_device(device=kw.get('device_name','auto'),is_cuda=is_cuda)
+        device=kw.get('device_name')
         pipeline.to(torch.device(device))
-        # if _device_name!='auto':
-        # elif is_cuda:
-        #     pipeline.to(torch.device(f"cuda:{device_index}"))
 
         waveform, sample_rate = torchaudio.load(input_file)
         if num_speakers > 0:

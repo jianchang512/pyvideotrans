@@ -3,13 +3,8 @@
 # 失败：第一个值为False，则为失败，第二个值存储失败原因
 # 成功，第一个值存在需要的返回值，不需要时返回True，第二个值为None
 import json, traceback
-import re
 from pathlib import Path
-from typing import List
-
-
 from videotrans.configure.config import logger,tr
-from videotrans.util.gpus import transformers_device
 
 
 def qwen3asr_fun(
@@ -21,9 +16,7 @@ def qwen3asr_fun(
         min_speech_ms=3000,
         model_name=None,
         detect_language=None,
-        is_cuda=False,
         force_align=False,  # 是否需要对齐时间戳:只有明确指定属于这些语言中的某个 ["zh","en","ja",'ko','yue','fr','es','it','de','pt','ru'] 才支持
-        hotword=None,
         **kw
 ):
     import torch
@@ -31,7 +24,7 @@ def qwen3asr_fun(
     from transformers import AutoProcessor, AutoModelForMultimodalLM,AutoModelForTokenClassification
 
     try:
-        device=transformers_device(device=kw.get('device_name','auto'),is_cuda=is_cuda)
+        device=kw.get("device_name")
         batch_size=2
         srts = [item for item in json.loads(Path(cut_audio_list).read_text(encoding='utf-8'))]
         if not force_align:

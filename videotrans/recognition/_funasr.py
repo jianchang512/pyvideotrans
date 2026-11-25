@@ -7,6 +7,7 @@ from videotrans.configure import config
 from videotrans.configure.config import settings,ROOT_DIR
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
+from videotrans.util.gpus import whisper_device
 from videotrans.util.help_down import check_and_down_ms,check_and_down_hf
 from videotrans.util.help_misc import is_connect_hf
 
@@ -55,17 +56,19 @@ class FunasrRecogn(BaseRecogn):
             Path(cut_audio_list_file).write_text( json.dumps( [ asdict(item) for item in self.cut_audio() ] ),encoding='utf-8')
         else:
             cut_audio_list_file=None
+        device=whisper_device(is_cuda=self.is_cuda)
         kwars = {
             "cut_audio_list":   cut_audio_list_file,
             "detect_language": self.detect_language,
             "model_name": self.model_name,
             "logs_file": logs_file,
             "is_cuda": self.is_cuda,
+            "device_name":device,
             "audio_file": self.audio_file,
             "max_speakers": self.max_speakers,
             "cache_folder": self.cache_folder,
             "hotword":settings.get('hotwords'),
 
         }
-        raws=self._new_process(callback=paraformer if self.model_name == 'paraformer-zh' else funasr_mlt,title=f'STT use {self.model_name}',is_cuda=self.is_cuda,kwargs=kwars)
+        raws=self._new_process(callback=paraformer if self.model_name == 'paraformer-zh' else funasr_mlt,title=f'STT use {self.model_name}',kwargs=kwars)
         return raws

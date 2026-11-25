@@ -4,11 +4,9 @@
 # 成功，第一个值存在需要的返回值，不需要时返回True，第二个值为None
 import json, traceback
 from pathlib import Path
-from typing import List, Tuple, Union
 
 from videotrans.configure._paths import TEMP_ROOT
 from videotrans.configure.config import logger, ROOT_DIR
-from videotrans.util.gpus import whisper_device
 
 
 def openai_whisper(
@@ -17,7 +15,6 @@ def openai_whisper(
         detect_language=None,
         model_name=None,
         logs_file=None,
-        is_cuda=False,
         no_speech_threshold=0.5,
         condition_on_previous_text=False,
         audio_file=None,
@@ -30,7 +27,7 @@ def openai_whisper(
 ):
     import whisper,zhconv
     from videotrans.process._stt_utils import _write_log, _resegment
-    device= whisper_device(device=kw.get('device_name','auto'),is_cuda=is_cuda)
+    device= kw.get("device_name")
 
     if not Path(f'{ROOT_DIR}/models/{model_name}.pt').exists():
         msg = f'Model {model_name} will be automatically downloaded'

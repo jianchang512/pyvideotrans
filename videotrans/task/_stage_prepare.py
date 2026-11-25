@@ -236,9 +236,11 @@ class PrepareMixin:
         try:
             if uvr_models in ['mel_band_roformer','bs_roformer']:
                 from videotrans.util.help_audiocpp import download_audiocpp_check
+                from videotrans.util.gpus import cpp_device
                 download_audiocpp_check(callback=self._process_callback)
+                kw['device_name']=cpp_device(is_cuda=self.cfg.is_cuda)
 
-            rs = self._new_process(callback=vocal_bgm, title=title, is_cuda=False, kwargs=kw)
+            rs = self._new_process(callback=vocal_bgm, title=title, kwargs=kw)
             if rs and vail_file(self.cfg.vocal) and vail_file(self.cfg.instrument):
                 cmd = [
                     "-y",

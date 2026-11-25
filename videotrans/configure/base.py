@@ -231,12 +231,13 @@ class BaseCon:
                     return
                 self.signal(text=_tmp.get('text', ''), type=_tmp.get('type', 'logs'))
             except Exception:
+                pass
                 # 可能日志文件读取出错，可忽略
-                logger.warning(f'读取进程间临时文件出错，可能已清理，可忽略:{logs_file}')
+                # logger.warning(f'读取进程间临时文件出错，可能已清理，可忽略:{logs_file}')
             time.sleep(1)
 
     # 使用新进程执行任务
-    def _new_process(self, callback=None, title="", is_cuda=False, kwargs=None):
+    def _new_process(self, callback=None, title="",  kwargs=None):
         _st = time.time()
         from .excepts import VideoTransError,SttTimeoutError
         from concurrent.futures.process import BrokenProcessPool
@@ -251,13 +252,15 @@ class BaseCon:
         try:
             Path(logs_file).touch()
             threading.Thread(target=self._signal_of_process, args=(logs_file,status_dict), daemon=True).start()
-            kwargs['is_cuda']=is_cuda
-            kwargs['device_name'] = str(settings.get('device_name', 'auto') or 'auto')
+            # 没有明确指定时才使用自动获取
+            if not kwargs.get('device_name'):
+                kwargs['device_name'] = "cpu"
+
             logger.debug(f'新进程任务 参数:{kwargs=}')
             future = GlobalProcessManager.submit_task_cpu(
                 callback,
                 **kwargs
-            ) if not is_cuda else GlobalProcessManager.submit_task_gpu(
+            ) if not kwargs.get('is_cuda') else GlobalProcessManager.submit_task_gpu(
                 callback,
                 **kwargs
             )

@@ -7,19 +7,16 @@ from pathlib import Path
 
 from videotrans.configure.constants import DENOISE_URL_HF, ZIPENHANCER_HF
 from videotrans.process._utils import _write_log
-from videotrans.util.gpus import cpp_device
 from videotrans.util.help_audiocpp import exec_audiocpp
 
 OS_TYPE=platform.system()
 MODEL_FILE=f'{ROOT_DIR}/models/zipenhancer.safetensors'
 
-def _remove_noise_audiocpp(*, input_file, output_file,logs_file=None,is_cuda=False,device_name="cpu"):
+def _remove_noise_audiocpp(*, input_file, output_file,logs_file=None,device_name="cpu"):
     # 如果 audio_cpp
     from videotrans.util.help_down import down_file_from_hf
     down_file_from_hf(f'{ROOT_DIR}/models', urls=[ZIPENHANCER_HF.replace('https://huggingface.co','')])
     _st = time.time()
-
-    device_name=cpp_device(device=device_name,is_cuda=is_cuda)
 
     if ":" in device_name:
         name,dev_index=device_name.split(":",1)
@@ -58,7 +55,7 @@ def _remove_noise_audiocpp(*, input_file, output_file,logs_file=None,is_cuda=Fal
 
 def remove_noise(*, input_file, output_file,logs_file=None,model_name='dpdfnet2.onnx', **kw):
     if model_name=='zipenhancer':
-        return _remove_noise_audiocpp(input_file=input_file, output_file=output_file,logs_file=logs_file,is_cuda=kw.get('is_cuda',False),device_name=kw.get('device_name','cpu'))
+        return _remove_noise_audiocpp(input_file=input_file, output_file=output_file,logs_file=logs_file,device_name=kw.get('device_name'))
 
     from videotrans.util._ffmpeg_runner import runffmpeg
     from videotrans.util.help_down import down_file_from_hf

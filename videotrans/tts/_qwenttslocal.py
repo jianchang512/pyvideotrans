@@ -8,6 +8,7 @@ from videotrans import translator
 from videotrans.configure._i18n import tr
 from videotrans.configure.config import ROOT_DIR, params, defaulelang, TEMP_DIR, CPU_NUMS
 from videotrans.tts._base import BaseTTS
+from videotrans.util.gpus import transformers_device
 from videotrans.util.help_misc import vail_file, is_connect_hf
 
 
@@ -63,8 +64,9 @@ class QwenttsLocal(BaseTTS):
         queue_tts_file = f'{TEMP_DIR}/{self.uuid}/queuetts-{time.time()}.json'
         Path(queue_tts_file).write_text(json.dumps(self.queue_tts),encoding='utf-8')
         title="Qwen3-TTS dubbing..."
-
+        device=transformers_device(is_cuda=self.is_cuda)
         kwargs = {
+            "device_name":device,
             "queue_tts_file":queue_tts_file,
             "language": _MAIN_LANGUAGE.get(self.language,'auto').capitalize(),
             "logs_file": logs_file,
@@ -74,7 +76,7 @@ class QwenttsLocal(BaseTTS):
             "is_redubb":self.is_redubb
         }
         from videotrans.process.qwen_tts import qwen3tts_fun
-        self._new_process(callback=qwen3tts_fun,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
+        self._new_process(callback=qwen3tts_fun,title=title,kwargs=kwargs)
 
         if self.is_redubb:return
         self.signal(text=tr('Standardized dubbing segment processing'))

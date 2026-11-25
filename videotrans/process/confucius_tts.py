@@ -8,14 +8,12 @@ import traceback, json
 from typing import Tuple, Union
 from videotrans.configure.config import logger,ROOT_DIR,REDUBB_QUEUE_FILE,REDUBB_STATUS_FILE
 from ._utils import _write_log,convert_to_wav
-from ..util.gpus import whisper_device
 
 
 def confucius_fun(
         queue_tts_file=None,# 配音数据存在 json文件下，根据文件路径获取
         language='zh',#语言
         logs_file=None,
-        is_cuda=False,
         is_redubb=False,#是否处于单视频校对配音流程
         **kw
 )->Tuple[bool,Union[str,None]]:
@@ -24,14 +22,11 @@ def confucius_fun(
     from videotrans.confuciustts.cli.inference import ConfuciusTTS
 
     try:
-        # device=kw.get('device_name','auto')
-        device=whisper_device(device=kw.get('device_name','auto'),is_cuda=is_cuda)
-        # if device == 'auto':
-        #     device=f'cuda:{device_index}' if is_cuda else 'cpu'
+        device=kw.get('device_name')
         model = ConfuciusTTS(
             device=device
         )
-        logger.debug(f'Confucius-TTS 本地内置渠道，{is_cuda=},running on {model.device}')
+        logger.debug(f'Confucius-TTS 本地内置渠道， running on {model.device}')
         if is_redubb:
             queue_tts_file=REDUBB_QUEUE_FILE
         # 循环，用于轮询重新配音数据，非重新配音时，第一轮直接返回

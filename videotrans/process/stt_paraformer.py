@@ -4,18 +4,12 @@
 # 成功，第一个值存在需要的返回值，不需要时返回True，第二个值为None
 import json, traceback
 from pathlib import Path
-from typing import List, Tuple, Union
-
 from videotrans.configure.config import logger,ROOT_DIR
-from videotrans.util.gpus import whisper_device
 
 
 def paraformer(
-        cut_audio_list=None,
-        detect_language=None,
         model_name=None,
         logs_file=None,
-        is_cuda=False,
         audio_file=None,
         max_speakers=-1,
         cache_folder=None,
@@ -26,7 +20,7 @@ def paraformer(
     from modelscope.utils.constant import Tasks
     from videotrans.util._srt_parse import ms_to_time_string
     from videotrans.process._stt_utils import _write_log
-    device=whisper_device(device=kw.get('device_name','auto'),is_cuda=is_cuda),
+    device=kw.get("device_name")
     msg = f'Load {model_name} running on {device}'
     _write_log(logs_file, json.dumps({"type": "logs", "text":msg}))
     logger.debug(f'阿里FunASR渠道使用 {msg}')
