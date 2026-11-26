@@ -8,6 +8,8 @@ from videotrans.configure.config import logger, ROOT_DIR
 from videotrans.translator._base import BaseTrans
 import torch
 
+from videotrans.util.gpus import transformers_device
+
 
 def _get_free_port() -> int:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -113,7 +115,7 @@ class HYMT2(BaseTrans):
         # Load model
         self.hy.hymt2_model = AutoModelForCausalLM.from_pretrained(
             self.local_dir,
-            device_map='auto' if self.is_cuda else 'cpu',
+            device_map=transformers_device(is_cuda=self.is_cuda),
             dtype='auto',
             trust_remote_code=True,
         )

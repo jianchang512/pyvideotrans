@@ -7,14 +7,12 @@
 # transformers 保底 auto，其他cpu
 # audio.cpp 需最终执行一次 --list-devices 确定能检测到设备方可视为可用
 
-import json
 import platform
 import re
 import shutil
 import subprocess
-from typing import Dict, List, Any
-from pathlib import Path
-from videotrans.configure.config import app_cfg, logger, settings,ROOT_DIR
+from typing import Dict
+from videotrans.configure.config import app_cfg, logger
 import traceback
 from PySide6.QtCore import QThread, Signal
 from videotrans.configure import config
@@ -36,10 +34,10 @@ class AiLoaderThread(QThread):
 
 def get_vulkan_devices() -> Dict[str, str]:
     """Return list of available non-CPU Vulkan compute devices in ggml_vulkan order."""
+    devices: Dict[str, str] = {}
     if _os=='Darwin' or not shutil.which("vulkaninfo"):
         logger.warning('无可用 vulkan 设备')
-        return []
-    devices: Dict[str, str] = {}
+        return devices
     try:
         proc = subprocess.run(
             ["vulkaninfo", "--summary"],
@@ -49,19 +47,19 @@ def get_vulkan_devices() -> Dict[str, str]:
             encoding="utf-8",
             errors="ignore",
         )
-        out = proc.stdout or ""
+        if not proc.stdout:
+            return devices
+
         idx = 0
-        for block in re.split(r"\bGPU\d*?:",out):
+        for block in re.split(r"\bGPU\d*?:",proc.stdout):
             if "deviceType" in block and "PHYSICAL_DEVICE_TYPE_CPU" not in block:
-                name = f"Vulkan:{idx}"
+                name = f"vulkan:{idx}"
                 for line in block.splitlines():
                     if "deviceName" in line and "=" in line:
-                        name = line.split("=", 1)[1].strip()
+                        name = line.split("=", 1)[1].strip()+f':vulkan{idx}'
                         break
-                _order=f':{idx}' if idx>0 else ''
-                devices[f'{name}{_order}']=f'vulkan:{idx}'
+                devices[name]=f'vulkan:{idx}'
                 idx += 1
-        logger.debug(f'检测到 Vulkan 可用信息:{devices}')
     except Exception as e:
         logger.error(f"vulkaninfo check failed: {e}")
     return devices
@@ -89,10 +87,7 @@ def check_hardware_availability():
             nvmlInit()
             app_cfg.NVIDIA_COUNT=nvmlDeviceGetCount()
             logger.debug(f'检测到 nvidia 显卡 {app_cfg.NVIDIA_COUNT} 张')
-        except NVMLError:
-            # 无nvidia卡
-            logger.warning(f'检测到 nvidia 显卡 0 张')
-        except Exception:
+        except (NVMLError,Exception):
             pass
 
         try:
@@ -102,23 +97,17 @@ def check_hardware_availability():
                 for i in range(app_cfg.NVIDIA_CUDA_NUMS):
                     try:
                         _info=torch.cuda.get_device_properties(i)
-
-                        _order=f':{i}' if i>0 else ''
-                        _name=f'{_info.name}{_order}({_info.total_memory/1024/1024/1024:.2f}G)'
+                        _name=f'{_info.name}:cuda{i}({_info.total_memory/1024/1024/1024:.2f}G)'
                         devices[_name]=f'cuda:{i}'
                     except Exception:
                         devices[f'cuda:{i}']=f'cuda:{i}'
-            logger.debug(f'检测到可用 NVIDIA CUDA 核: {app_cfg.NVIDIA_CUDA_NUMS}')
         except Exception:
             pass
+        logger.debug(f'检测到 NVIDIA卡 {app_cfg.NVIDIA_COUNT}张， CUDA核: {app_cfg.NVIDIA_CUDA_NUMS}')
 
         app_cfg.VULKAN_LIST=get_vulkan_devices()
-    # 准备硬件选择数据用于高级选项
-
-
     if app_cfg.VULKAN_LIST:
         devices.update(app_cfg.VULKAN_LIST)
-
 
     devices.update({"CPU":"cpu"})
     config.ACCESS_DEVICES=devices
