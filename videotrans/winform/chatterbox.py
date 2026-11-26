@@ -41,10 +41,11 @@ def openwin():
             return show_error(tr("No reference audio {} exists",file))
         winobj.test.setText(tr('Testing...'))
         from videotrans import tts
+        import time
         wk = ListenVoice(parent=winobj, queue_tts=[{
             "text":  LISTEN_TEXT.get('en'),
             "role": rolename,
-            "filename": config.TEMP_DIR + f"/test-chatterbox.wav",
+            "filename": config.TEMP_DIR + f"/{time.time()}-chatterbox.wav",
             "tts_type": tts.CHATTERBOX_TTS}], language="en",
             tts_type=tts.CHATTERBOX_TTS)
         wk.uito.connect(feed)
