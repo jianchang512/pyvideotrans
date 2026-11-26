@@ -61,6 +61,8 @@ class ChatterBoxTTS(BaseTTS):
                 if app_cfg.exit_soft or (self.is_redubb and Path(REDUBB_STATUS_FILE).exists()):
                     return True
                 if vail_file(item['filename']):
+                    # 配音文件已存在（如来自配音缓存）也计为成功，否则全部字幕都来自缓存时会报配音失败
+                    ok += 1
                     continue
                 ref_wav = None
                 try:
