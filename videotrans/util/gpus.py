@@ -58,7 +58,8 @@ def get_vulkan_devices() -> Dict[str, str]:
                     if "deviceName" in line and "=" in line:
                         name = line.split("=", 1)[1].strip()
                         break
-                devices[f'{name}:{idx}']=f'vulkan:{idx}'
+                _order=f':{idx}' if idx>0 else ''
+                devices[f'{name}{_order}']=f'vulkan:{idx}'
                 idx += 1
         logger.debug(f'检测到 Vulkan 可用信息:{devices}')
     except Exception as e:
@@ -101,7 +102,9 @@ def check_hardware_availability():
                 for i in range(app_cfg.NVIDIA_CUDA_NUMS):
                     try:
                         _info=torch.cuda.get_device_properties(i)
-                        _name=f'{_info.name}:0',f'{_info.total_memory/1024/1024/1024:.2f}G'
+
+                        _order=f':{i}' if i>0 else ''
+                        _name=f'{_info.name}{_order}({_info.total_memory/1024/1024/1024:.2f}G)'
                         devices[_name]=f'cuda:{i}'
                     except Exception:
                         devices[f'cuda:{i}']=f'cuda:{i}'
