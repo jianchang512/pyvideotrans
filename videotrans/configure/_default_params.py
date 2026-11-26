@@ -390,6 +390,14 @@ _default["teamorouter"] = {
     "teamorouter_model": TEAMOROUTER_MODELS.split(',')[0],
     "teamorouter_max_token": 16384,
 }
+from videotrans.configure.constants import ONOMEO_MODELS
+
+_default["onomeo"] = {
+    # onomeo.com
+    "onomeo_key": "",
+    "onomeo_model": ONOMEO_MODELS.split(',')[0],
+    "onomeo_max_token": 8192,
+}
 
 
 # todo: 根据 name 返回配置dict???

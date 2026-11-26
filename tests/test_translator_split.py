@@ -188,6 +188,11 @@ class TestTranslatorIndexConstants:
         assert TEAMOROUTER_INDEX == 40
         assert TEAMOROUTER_INDEX in AI_TRANS_CHANNELS
         assert ID_NAME_DICT[TEAMOROUTER_INDEX].key_name == "teamorouter_key"
+    
+    def test_onomeo_index(self):
+        from videotrans.translator import ONOMEO_INDEX, AI_TRANS_CHANNELS
+        assert ONOMEO_INDEX == 41
+        assert ONOMEO_INDEX in AI_TRANS_CHANNELS
 
     def test_infistar_index(self):
         from videotrans.translator import INFISTAR_INDEX, AI_TRANS_CHANNELS

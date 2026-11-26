@@ -42,6 +42,7 @@ MENU_CFG_TRANS = [
     ("openllm", 'OpenLLM', None),
     ("aigrow", 'AIGROW', None),
     ("teamorouter", 'TeamoRouter', None),
+    ("onomeo", 'onomeo', None),
 
     ("deepl", "DeepL API", None),
     ("deeplx", "DeepLX API", None),
