@@ -209,16 +209,12 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_3.addStretch(1)
 
+        self.horizontalLayout_3.addWidget(self.is_cuda)
         self.horizontalLayout_3.addWidget(self.startbtn)
         self.horizontalLayout_3.addWidget(self.retrybtn)
         self.horizontalLayout_3.addStretch(1)
         self.verticalLayout_3.addLayout(self.horizontalLayout_3)
 
-        accelerate_layout=QtWidgets.QHBoxLayout()
-        accelerate_layout.addStretch()
-        accelerate_layout.addWidget(self.is_cuda)
-        accelerate_layout.addStretch()
-        self.verticalLayout_3.addLayout(accelerate_layout)
         self.verticalLayout_3.addWidget(self.output_dir)
 
         self.scroll_area = QtWidgets.QScrollArea(self.layoutWidget)
