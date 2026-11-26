@@ -97,7 +97,7 @@ class AppSettings:
 
     @staticmethod
     def _models_dict():
-        from videotrans.configure.constants import CLOUDGPU_MODELS, STANDARDCOMPUTE_MODELS, UBERLLM_MODELS, REQUESTY_MODELS, TRUSTEDROUTER_MODELS, OPENLLM_MODELS, AIGROW_MODELS
+        from videotrans.configure.constants import CLOUDGPU_MODELS, STANDARDCOMPUTE_MODELS, UBERLLM_MODELS, REQUESTY_MODELS, TRUSTEDROUTER_MODELS, OPENLLM_MODELS, AIGROW_MODELS, ONOMEO_MODELS
 
         # 存储用于在设置界面手动填写的、用于供选择当前使用的n个模型，一般用于文本生成模型
         return {
@@ -128,6 +128,7 @@ class AppSettings:
             "trustedrouter_model": TRUSTEDROUTER_MODELS,
             "openllm_model": OPENLLM_MODELS,
             "aigrow_model": AIGROW_MODELS,
+            "onomeo_model": ONOMEO_MODELS,
             "worldrouter_model": WORLDROUTER_MODELS,
             "xiaomi_model": XIAOMI_MODELS,
             "zhipuai_model": ZHIPUAI_MODELS,
