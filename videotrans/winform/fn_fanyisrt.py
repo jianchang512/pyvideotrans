@@ -288,13 +288,6 @@ def openwin():
         else:
             settings['aisendsrt'] = False
 
-    def check_cuda(state):
-        # 选中如果无效，则取消
-        if state and not exists_hard():
-            winobj.is_cuda.setChecked(False)
-            winobj.is_cuda.setDisabled(True)
-            show_error(tr('nocuda'))
-        return True
 
     winobj = get_cls(Path(__file__).stem)()
 
@@ -338,8 +331,6 @@ def openwin():
         winobj.aisendsrt.toggled.connect(checkbox_state_changed)
         winobj.save_source.setChecked(params.get("trans_save_source",False))
         winobj.is_cuda.setChecked(params.get("trans_is_cuda",False))
-        winobj.is_cuda.toggled.connect(check_cuda)
-        # QTimer.singleShot(5,lambda :set_device_list(winobj,'trans_is_cuda'))
 
     _bind()
     return winobj

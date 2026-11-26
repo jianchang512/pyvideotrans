@@ -214,17 +214,12 @@ class WinActionCheckMixin:
 
         self.cfg['rephrase'] = self.main.rephrase.isChecked()
         self.cfg['is_cuda'] = self.main.is_cuda.isChecked()
-        # if self.cfg['is_cuda']:
-        #     settings['device_name'] = self.main.device_combo.itemData(self.main.device_combo.currentIndex())
 
         self.cfg['remove_silent_mid'] = False
         self.cfg['align_sub_audio'] = True
         if not self.cfg['voice_autorate'] and not self.cfg['video_autorate']:
             self.cfg['remove_silent_mid'] = self.main.remove_silent_mid.isChecked()
             self.cfg['align_sub_audio'] = self.main.align_sub_audio.isChecked()
-        if self.cuda_isok() is not True:
-            self.main.startbtn.setDisabled(False)
-            return
 
         if self.main.app_mode == 'biaozhun' and not self.cfg.get('target_language_code') and self.cfg['subtitle_type'] > 0:
             self.main.startbtn.setDisabled(False)

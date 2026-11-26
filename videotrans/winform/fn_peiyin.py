@@ -207,9 +207,6 @@ def openwin():
         video_list:List[InputFile] = [format_video(it, None) for it in winobj.hecheng_importbtn.filelist]
         uuid_list = [obj['uuid'] for obj in video_list]
         is_cuda=winobj.is_cuda.isChecked()
-        # if is_cuda:
-        #     config.settings['device_name'] = winobj.device_combo.itemData(winobj.device_combo.currentIndex())
-        #     config.settings.save()
 
         for it in video_list:
             app_cfg.rm_uuid(it['uuid'])
@@ -353,13 +350,6 @@ def openwin():
     def check_voice_autorate(state):
         winobj.remove_silent_mid.setVisible(not state)
 
-    def check_cuda(state):
-        # 选中如果无效，则取消
-        if state and not exists_hard():
-            winobj.is_cuda.setChecked(False)
-            winobj.is_cuda.setDisabled(True)
-        return True
-
     def set_tts_language_tips(model_name):
         support_languages=get_audiocpp_rolelist(model_name).get('support_languages')
         if support_languages:
@@ -406,12 +396,10 @@ def openwin():
         winobj.tts_type.currentIndexChanged.connect(tts_type_change)
         winobj.voice_autorate.toggled.connect(check_voice_autorate)
         winobj.loglabel.clicked.connect(show_detail_error)
-        winobj.is_cuda.toggled.connect(check_cuda)
 
         tts_type_change(last_tts_type)
         winobj.hecheng_role.setCurrentIndex(int(params.get("dubb_role", 0)))
 
-        # QTimer.singleShot(5,lambda :set_device_list(winobj,'dubb_is_cuda'))
 
 
     _bind()

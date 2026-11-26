@@ -198,12 +198,6 @@ class Ui_MainWindow(object):
         self.is_cuda.setObjectName("is_cuda")
         self.is_cuda.setToolTip(tr('cudatips'))
 
-        # self.device_combo = QtWidgets.QComboBox(self.layoutWidget)
-        # self.device_combo.setMinimumSize(QtCore.QSize(180, 30))
-        # self.device_combo.setObjectName("device_combo")
-        # self.device_combo.setToolTip(tr('device_name_notice'))
-        # self.device_combo.setVisible(False)
-
         self.startbtn = QtWidgets.QPushButton(self.layoutWidget)
         self.startbtn.setMinimumSize(QtCore.QSize(160, 40))
         self.startbtn.setObjectName("startbtn")
@@ -223,7 +217,6 @@ class Ui_MainWindow(object):
         accelerate_layout=QtWidgets.QHBoxLayout()
         accelerate_layout.addStretch()
         accelerate_layout.addWidget(self.is_cuda)
-        # accelerate_layout.addWidget(self.device_combo)
         accelerate_layout.addStretch()
         self.verticalLayout_3.addLayout(accelerate_layout)
         self.verticalLayout_3.addWidget(self.output_dir)

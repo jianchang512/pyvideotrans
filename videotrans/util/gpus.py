@@ -115,8 +115,10 @@ def check_hardware_availability():
             for i in range(config.app_cfg.NVIDIA_CUDA_NUMS):
                 devices.append(f"cuda:{i}")
     if config.app_cfg.VULKAN_LIST:
-        for it in config.app_cfg.VULKAN_LIST:
-            devices.append(f"vulkan:{it['index']}")
+        devices.append(f"vulkan:")
+        if len(config.app_cfg.VULKAN_LIST)>1:
+            for it in config.app_cfg.VULKAN_LIST:
+                devices.append(f"vulkan:{it['index']}")
     if config.app_cfg.MPS_NUMS:
         devices.append("mps")
 
@@ -178,7 +180,8 @@ def cpp_device(device:str=None,is_cuda:bool=False):
     # 其他情况存在 可用n卡则使用
     if real_cuda_exists():
         return f'cuda:{idx}' if 0 < idx < app_cfg.NVIDIA_COUNT else 'cuda'
-
+    # 存在 vulkan
+    if real_vulkan_exists():return 'vulkan'
     return 'cpu'
 
 

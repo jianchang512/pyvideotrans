@@ -184,9 +184,6 @@ def openwin():
         uuid = video_obj['uuid']
         app_cfg.rm_uuid(uuid)
         is_cuda=winobj.is_cuda.isChecked()
-        # if is_cuda:
-        #     config.settings['device_name'] = winobj.device_combo.itemData(winobj.device_combo.currentIndex())
-        #     config.settings.save()
         cfg = {
             "voice_role": default_role,  # Default role
             "cache_folder": config.TEMP_DIR + f'/{uuid}',
@@ -343,14 +340,6 @@ def openwin():
     def check_voice_autorate(state):
         winobj.remove_silent_mid.setVisible(not state)
 
-    def check_cuda(state):
-        # 选中如果无效，则取消
-        if state and not exists_hard():
-            winobj.is_cuda.setChecked(False)
-            winobj.is_cuda.setDisabled(True)
-            show_error(tr('nocuda'))
-        return True
-
     def set_tts_language_tips(model_name):
         support_languages=get_audiocpp_rolelist(model_name).get('support_languages')
         if support_languages:
@@ -379,7 +368,6 @@ def openwin():
         winobj.hecheng_language.addItems(getlangnamelist(last_tts_type))
         winobj.hecheng_language.setCurrentIndex(int(params.get("dubb_source_language", 0)))
 
-        winobj.is_cuda.toggled.connect(check_cuda)
         winobj.hecheng_importbtn.clicked.connect(hecheng_import_fun)
         winobj.hecheng_startbtn.clicked.connect(hecheng_start_fun)
         winobj.hecheng_stop.clicked.connect(stop_tts)
@@ -394,7 +382,6 @@ def openwin():
         tts_type_change(last_tts_type)
 
         winobj.hecheng_role.setCurrentIndex(int(params.get("dubb_role", 0)))
-        # QTimer.singleShot(5,lambda :set_device_list(winobj,'dubb_is_cuda'))
 
     _bind()
     return winobj
