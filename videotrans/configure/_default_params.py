@@ -382,6 +382,14 @@ _default["aigrow"] = {
     "aigrow_max_token": 16384,
 }
 
+from videotrans.configure.constants import TEAMOROUTER_MODELS
+
+_default["teamorouter"] = {
+    # teamorouter.com
+    "teamorouter_key": "",
+    "teamorouter_model": TEAMOROUTER_MODELS.split(',')[0],
+    "teamorouter_max_token": 16384,
+}
 from videotrans.configure.constants import ONOMEO_MODELS
 
 _default["onomeo"] = {

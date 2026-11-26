@@ -183,9 +183,15 @@ class TestTranslatorIndexConstants:
         assert AIGROW_INDEX == 39
         assert AIGROW_INDEX in AI_TRANS_CHANNELS
 
+    def test_teamorouter_index(self):
+        from videotrans.translator import TEAMOROUTER_INDEX, AI_TRANS_CHANNELS, ID_NAME_DICT
+        assert TEAMOROUTER_INDEX == 40
+        assert TEAMOROUTER_INDEX in AI_TRANS_CHANNELS
+        assert ID_NAME_DICT[TEAMOROUTER_INDEX].key_name == "teamorouter_key"
+    
     def test_onomeo_index(self):
         from videotrans.translator import ONOMEO_INDEX, AI_TRANS_CHANNELS
-        assert ONOMEO_INDEX == 40
+        assert ONOMEO_INDEX == 41
         assert ONOMEO_INDEX in AI_TRANS_CHANNELS
 
     def test_infistar_index(self):
