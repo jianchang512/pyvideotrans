@@ -19,7 +19,6 @@ overrides = [
     { name = "google-cloud-storage", specifier = "==3.12.0" },
     { name = "gradio", specifier = ">=6.8.0" },
     { name = "huggingface-hub", specifier = "==1.10.0" },
-    { name = "pythonnet", marker = "sys_platform == 'win32'" },
     { name = "safetensors", specifier = "==0.8.0" },
     { name = "torch", marker = "sys_platform != 'darwin' and sys_platform != 'linux' and sys_platform != 'win32'", specifier = "==2.7.1" },
     { name = "torch", marker = "sys_platform == 'darwin'", specifier = "==2.7.1", index = "https://download.pytorch.org/whl/cpu" },
@@ -773,18 +772,6 @@ wheels = [
 ]
 
 [[package]]
-name = "clr-loader"
-version = "0.3.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "cffi" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/e4/46/7eea92b6aa2d68af78e049cbecec5f757f1aad44ecdecdc16bbad7eead51/clr_loader-0.3.1.tar.gz", hash = "sha256:2e073e9aaf49d1ae2f56ecba27987ad5fb68be4bcd9dd34a5bed8f0e4e128366", size = 86805, upload-time = "2026-04-18T17:49:44.287Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/5e/da/ec1a6e36624000b6df0dd61183c42342ee5814c073315e802cadaad04d2f/clr_loader-0.3.1-py3-none-any.whl", hash = "sha256:cbad189de20d202a7d621956b0fc38049e13c9bf7ca2923441eff725cd121aa1", size = 55730, upload-time = "2026-04-18T17:49:42.99Z" },
-]
-
-[[package]]
 name = "colorama"
 version = "0.4.6"
 source = { registry = "https://pypi.org/simple" }
@@ -1409,14 +1396,6 @@ version = "4.43.1"
 source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/43/bc/6051ee22b88c5d9d39ea68e8e2422d3036d9b52ac2afc559f7397d59bc64/fonttools-4.43.1.tar.gz", hash = "sha256:17dbc2eeafb38d5d0e865dcce16e313c58265a6d2d20081c435f84dc5a9d8212", size = 3372820, upload-time = "2023-10-06T11:19:11.099Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f3/71/aadd0fb29ef6b57d57c10c7856082eed686942ff2977a5bb09aba79c62a8/fonttools-4.43.1-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:bf11e2cca121df35e295bd34b309046c29476ee739753bc6bc9d5050de319273", size = 2737763, upload-time = "2023-10-06T11:17:00.487Z" },
-    { url = "https://files.pythonhosted.org/packages/12/20/dd3ee8dd2bc4e6bfbcd3ad4d1d79e9dba0dcc287989380ae8b520b19b4a4/fonttools-4.43.1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:10b3922875ffcba636674f406f9ab9a559564fdbaa253d66222019d569db869c", size = 2243202, upload-time = "2023-10-06T11:17:04.024Z" },
-    { url = "https://files.pythonhosted.org/packages/2c/a5/f42178366869268683907c166e3c99251f03022b23404bb61cdb3131fe60/fonttools-4.43.1-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:9f727c3e3d08fd25352ed76cc3cb61486f8ed3f46109edf39e5a60fc9fecf6ca", size = 4482485, upload-time = "2023-10-06T11:17:06.66Z" },
-    { url = "https://files.pythonhosted.org/packages/ac/ed/9a33eca5e2cc35dc1fea0a968509c653db9a99a5979656ae57c6c019d66b/fonttools-4.43.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:ad0b3f6342cfa14be996971ea2b28b125ad681c6277c4cd0fbdb50340220dfb6", size = 4534041, upload-time = "2023-10-06T11:17:10.468Z" },
-    { url = "https://files.pythonhosted.org/packages/b2/0f/3b9001bad0d0ba5021f60ee80e47cfa16f071333c646ce07df0afe8f0be3/fonttools-4.43.1-cp310-cp310-musllinux_1_1_aarch64.whl", hash = "sha256:3b7ad05b2beeebafb86aa01982e9768d61c2232f16470f9d0d8e385798e37184", size = 4464736, upload-time = "2023-10-06T11:17:13.013Z" },
-    { url = "https://files.pythonhosted.org/packages/ad/b1/7f1e7456787675bc9825597fc42c2c96b1d185046bd8635f870571fe8682/fonttools-4.43.1-cp310-cp310-musllinux_1_1_x86_64.whl", hash = "sha256:4c54466f642d2116686268c3e5f35ebb10e49b0d48d41a847f0e171c785f7ac7", size = 4525608, upload-time = "2023-10-06T11:17:16.34Z" },
-    { url = "https://files.pythonhosted.org/packages/4e/97/22751b5461ed64c6531754f7d7d42d7146694671ce8d085c21c34ca79386/fonttools-4.43.1-cp310-cp310-win32.whl", hash = "sha256:1e09da7e8519e336239fbd375156488a4c4945f11c4c5792ee086dd84f784d02", size = 2094097, upload-time = "2023-10-06T11:17:19.906Z" },
-    { url = "https://files.pythonhosted.org/packages/08/65/8c3c09f2fa948b0a4dabecccb5edaa1d97f0d564f00f638ba0a7c4561274/fonttools-4.43.1-cp310-cp310-win_amd64.whl", hash = "sha256:1cf9e974f63b1080b1d2686180fc1fbfd3bfcfa3e1128695b5de337eb9075cef", size = 2141137, upload-time = "2023-10-06T11:17:23.618Z" },
     { url = "https://files.pythonhosted.org/packages/f9/0e/ddbc258122eb82c99f1cfa05b42654ebc4c40be7c9ff6e4c80980fc8d052/fonttools-4.43.1-py3-none-any.whl", hash = "sha256:4f88cae635bfe4bbbdc29d479a297bb525a94889184bb69fa9560c2d4834ddb9", size = 1035615, upload-time = "2023-10-06T11:19:07.653Z" },
 ]
 
@@ -2949,6 +2928,15 @@ wheels = [
 ]
 
 [[package]]
+name = "nvidia-ml-py"
+version = "13.615.71"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/fd/30/b25216758be3d3e2834825d8193609e2d71c770a8bd7984438c058c90268/nvidia_ml_py-13.615.71.tar.gz", hash = "sha256:bebe4e48f51b1dc75028c0815cb7bfa14a31a5bb80be70c9d980c6036953fc3d", size = 57485, upload-time = "2026-09-25T15:15:28.226Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/53/a1/1681dfa1c904d4e3e72e51b55a0ff012d50b766843ef832d584abe2113c6/nvidia_ml_py-13.615.71-py3-none-any.whl", hash = "sha256:959bf4adf6fe1308e4bd739e722236b0d1ec8392e2cefad33ff70c311380b9b6", size = 58132, upload-time = "2026-09-25T15:15:26.54Z" },
+]
+
+[[package]]
 name = "nvidia-nccl-cu12"
 version = "2.26.2"
 source = { registry = "https://pypi.org/simple" }
@@ -4089,19 +4077,6 @@ wheels = [
 ]
 
 [[package]]
-name = "pythonnet"
-version = "3.1.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "clr-loader" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/05/57/da1992e44663b71365c6e842c8d7fa453d4ec45fb99a68cfee5b7e944d3c/pythonnet-3.1.0.tar.gz", hash = "sha256:7b34c382905d10a371509ffafd64cae0416305c28817738a9cd138336f4e9991", size = 250599, upload-time = "2026-05-23T20:30:21.578Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/ac/4b/52414f442624d2589f5374a48c08d5ae94f24bea67fc13a20a752884e5b7/pythonnet-3.1.0-cp310.cp311.cp312.cp313.cp314-none-any.whl", hash = "sha256:698dd88edc198819ad63b624a6ebe76208c7b46e4fe13626f65e484f0358d6ba", size = 217578, upload-time = "2026-05-23T20:30:19.527Z" },
-    { url = "https://files.pythonhosted.org/packages/db/67/031124fdcb937c266a3265118525bbf6dc13b8c79786d6a7290aecb6e7bb/pythonnet-3.1.0-cp310.cp311.cp312.cp313.cp314-none-win32.win_amd64.whl", hash = "sha256:7bdd4de03df3547a48122a3989265c8b31d5be0d19dadffa009eec7df8085e0b", size = 1644898, upload-time = "2026-05-23T20:30:16.213Z" },
-]
-
-[[package]]
 name = "pytorch-lightning"
 version = "2.6.1"
 source = { registry = "https://pypi.org/simple" }
@@ -4326,6 +4301,7 @@ dependencies = [
     { name = "norbert" },
     { name = "numba" },
     { name = "numpy" },
+    { name = "nvidia-ml-py" },
     { name = "oauthlib" },
     { name = "omegaconf" },
     { name = "omnivoice" },
@@ -4379,11 +4355,9 @@ dependencies = [
     { name = "pyside6-essentials" },
     { name = "pysoundfile" },
     { name = "python-dateutil" },
-    { name = "pythonnet", marker = "sys_platform == 'win32'" },
     { name = "pytorch-wpe" },
     { name = "pytsmod" },
     { name = "pytz" },
-    { name = "pywhispercpp" },
     { name = "pyyaml" },
     { name = "pyzstd" },
     { name = "qdarkstyle" },
@@ -4610,6 +4584,7 @@ requires-dist = [
     { name = "norbert", specifier = "==0.2.1" },
     { name = "numba", specifier = "==0.61.2" },
     { name = "numpy", specifier = "==1.26.0" },
+    { name = "nvidia-ml-py", specifier = ">=13.615.71" },
     { name = "oauthlib", specifier = "==3.2.2" },
     { name = "omegaconf", specifier = "==2.3.0" },
     { name = "omnivoice" },
@@ -4663,11 +4638,9 @@ requires-dist = [
     { name = "pyside6-essentials", specifier = "==6.9.2" },
     { name = "pysoundfile", specifier = "==0.9.0.post1" },
     { name = "python-dateutil", specifier = "==2.9.0.post0" },
-    { name = "pythonnet" },
     { name = "pytorch-wpe", specifier = "==0.0.1" },
     { name = "pytsmod", specifier = ">=0.3.8" },
     { name = "pytz", specifier = "==2025.2" },
-    { name = "pywhispercpp", specifier = ">=1.5.1" },
     { name = "pyyaml", specifier = "==6.0.3" },
     { name = "pyzstd", specifier = "==0.16.1" },
     { name = "qdarkstyle", specifier = "==3.2.3" },
@@ -4739,27 +4712,6 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [{ name = "pytest" }]
 lint = [{ name = "ruff" }]
-
-[[package]]
-name = "pywhispercpp"
-version = "1.5.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "numpy" },
-    { name = "platformdirs" },
-    { name = "requests" },
-    { name = "tqdm" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/9f/35/610787a277e177e6b7983277a35a2969c0876b46c0d889bc6a0c4b4ac4a7/pywhispercpp-1.5.1.tar.gz", hash = "sha256:5df897e5dd9d9f16804fc937bd85b9f5880a0b29a55f8843585e0e03d76195e5", size = 9756087, upload-time = "2026-08-22T01:41:54.549Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/9e/e2/e0fea516ad9ea9da0245ddc492ab1c586b4b317b31aad9422f926aeb78aa/pywhispercpp-1.5.1-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:73fb97fec02769e63313240abe339f62c5616354cb0adcc79f991a9342de728b", size = 4177475, upload-time = "2026-08-22T01:40:03.962Z" },
-    { url = "https://files.pythonhosted.org/packages/1a/8b/553ff688b60daac2ad5ae9cef128b30e75e08d96b39b53b5476e4a49385e/pywhispercpp-1.5.1-cp310-cp310-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:951089b6710bf38cba2e5a6ba2d1a7f9fd27819c981a028f1a66583759aa11be", size = 4178342, upload-time = "2026-08-22T01:40:05.751Z" },
-    { url = "https://files.pythonhosted.org/packages/fb/08/6efb2c8e1aadf23d5b49f35dbc41ee05ff0e223454c0b42eaa4d88ca4083/pywhispercpp-1.5.1-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:9b2f6187ad8d3d49565fe5e0acc60060126cc8c2ac6feedbad75d1bc46c16f74", size = 4672417, upload-time = "2026-08-22T01:40:07.566Z" },
-    { url = "https://files.pythonhosted.org/packages/ba/ee/269ad483e0415e90198450f4f1d86774ca45756409978fef5e3c6cfa7045/pywhispercpp-1.5.1-cp310-cp310-musllinux_1_2_aarch64.whl", hash = "sha256:26a937670b64427f2dbd310f29981f60c1f8ba9152a6ca435733c70446862995", size = 4960293, upload-time = "2026-08-22T01:40:09.26Z" },
-    { url = "https://files.pythonhosted.org/packages/7b/f9/0973de97be5118b702a4f1a3428b87110dcae3c2113a600cb6b994bf5a18/pywhispercpp-1.5.1-cp310-cp310-musllinux_1_2_x86_64.whl", hash = "sha256:798dcf6da94435a0c2bbd513fcac2026d950217bfaa79376c5904c0b36cb0731", size = 5450393, upload-time = "2026-08-22T01:40:11.177Z" },
-    { url = "https://files.pythonhosted.org/packages/a3/8e/619a40ff64622a3cd6c3060ada56f715db4cc6483ad692f74de1c3161f06/pywhispercpp-1.5.1-cp310-cp310-win32.whl", hash = "sha256:20c008550314d1ab69c92c7e68c75e01e4e2f0c66e5c4458c3d80783f75222f9", size = 1207737, upload-time = "2026-08-22T01:40:12.938Z" },
-    { url = "https://files.pythonhosted.org/packages/04/d1/d4d164e67d81ea0b3b245e7ac3eb1bdb3de51e70b7e0f6eaeed105d1706d/pywhispercpp-1.5.1-cp310-cp310-win_amd64.whl", hash = "sha256:2b07bfe9d161546e4d9e1379b8f8b4cf53b6217f0dc03f37c00646e8906fbf71", size = 1374425, upload-time = "2026-08-22T01:40:14.405Z" },
-]
 
 [[package]]
 name = "pywin32-ctypes"

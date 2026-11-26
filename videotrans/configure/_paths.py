@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+import platform
 import sys
 import tempfile
 from pathlib import Path
@@ -22,6 +23,7 @@ IPC_STATUS_FILE=f'{TEMP_ROOT}/exit.pid'
 
 Path(f"{ROOT_DIR}/models").mkdir(parents=True, exist_ok=True)
 Path(f"{ROOT_DIR}/logs").mkdir(parents=True, exist_ok=True)
+Path(f"{TEMP_ROOT}").mkdir(parents=True, exist_ok=True)
 Path(f"{TRANSLATE_CACHE}").mkdir(parents=True, exist_ok=True)
 Path(f"{DUBBING_CACHE}").mkdir(parents=True, exist_ok=True)
 
@@ -84,7 +86,7 @@ def _set_env():
     if Path(f'{ROOT_DIR}/netoffline.txt').is_file():
         os.environ['HF_HUB_OFFLINE'] = '1'
 
-    if sys.platform == 'win32' and IS_FROZEN:
+    if platform.system() == 'Windows' and IS_FROZEN:
         os.environ['PATH'] = f'{ROOT_DIR}/_internal/torch/lib;' + os.environ.get("PATH", "")
     os.environ['PATH'] = ROOT_DIR + os.pathsep + f'{ROOT_DIR}/ffmpeg' + os.pathsep + f'{ROOT_DIR}/ffmpeg/sox' + os.pathsep + os.environ.get(
         "PATH", "")

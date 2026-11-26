@@ -7,33 +7,11 @@ from videotrans import tts
 from videotrans.configure.config import tr, app_cfg
 from videotrans.configure import constants
 from videotrans.configure.constants import LISTEN_TEXT
+from videotrans.util.gpus import exists_hard
 from videotrans.util.help_misc import open_url, show_error
 
 
 class WinActionBaseMiscMixin:
-
-    def check_cuda(self, state):
-        res = state
-        if platform.system() == 'Darwin':
-            self.cfg['is_cuda'] = False
-            return
-        if state and app_cfg.NVIDIA_GPU_NUMS == 0:
-            show_error(tr('nocuda'))
-            self.main.is_cuda.setChecked(False)
-            self.main.is_cuda.setDisabled(True)
-            res = False
-        self.cfg['is_cuda'] = res
-
-    def device_change(self, index):
-        if index<0:return
-        from videotrans.configure.config import settings
-        val = self.main.device_combo.itemData(index)
-        settings['device_name'] = val
-        settings.save()
-        if val == 'cpu':
-            self.main.is_cuda.setChecked(False)
-        elif str(val).startswith(('vulkan', 'cuda')):
-            self.main.is_cuda.setChecked(True)
 
     def check_voice_autorate(self, state):
         if state:
@@ -50,18 +28,6 @@ class WinActionBaseMiscMixin:
         elif not self.main.voice_autorate.isChecked():
             self.main.remove_silent_mid.setVisible(True)
             self.main.align_sub_audio.setVisible(True)
-
-    def cuda_isok(self):
-        if not self.main.is_cuda.isChecked() or platform.system() == 'Darwin':
-            self.cfg['is_cuda'] = False
-            return True
-
-        if app_cfg.NVIDIA_GPU_NUMS == 0:
-            self.cfg['is_cuda'] = False
-            show_error(tr("nocuda"))
-            return False
-        self.cfg['is_cuda'] = True
-        return True
 
     def listen_voice_fun(self):
         from videotrans import translator

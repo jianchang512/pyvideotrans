@@ -117,14 +117,7 @@ class Ui_fn_fanyisrt(QtWidgets.QWidget,_Bottom_btn_layout):
 
         self.is_cuda = QtWidgets.QCheckBox()
         self.is_cuda.setText(tr("Enable CUDA?"))
-        self.device_combo = QtWidgets.QComboBox()
-        self.device_combo.setObjectName("device_combo")
-        self.device_combo.setToolTip(tr('device_name_notice'))
-        self.device_combo.setVisible(False)
-        if platform.system() == 'Darwin':
-            self.is_cuda.setVisible(False)
-            self.is_cuda.setChecked(False)
-        
+
         self.aisendsrt = QtWidgets.QCheckBox()
         self.aisendsrt.setText(tr("Send SRT"))
         self.aisendsrt.setToolTip(
@@ -147,7 +140,7 @@ class Ui_fn_fanyisrt(QtWidgets.QWidget,_Bottom_btn_layout):
         self.horizontalLayout_new = QtWidgets.QHBoxLayout()
         self.horizontalLayout_new.addWidget(self.aisendsrt)
         self.horizontalLayout_new.addWidget(self.is_cuda)
-        self.horizontalLayout_new.addWidget(self.device_combo)
+        # self.horizontalLayout_new.addWidget(self.device_combo)
 
         self.horizontalLayout_new.addWidget(self.label_614)
         self.horizontalLayout_new.addWidget(self.fanyi_proxy)

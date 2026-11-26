@@ -7,22 +7,25 @@ from pathlib import Path
 
 from videotrans.configure.constants import DENOISE_URL_HF, ZIPENHANCER_HF
 from videotrans.process._utils import _write_log
-from videotrans.util.help_misc import exec_audiocpp
+from videotrans.util.help_audiocpp import exec_audiocpp
 
 OS_TYPE=platform.system()
-AUDIO_CPP=f'{ROOT_DIR}/audio_cpp/audiocpp_cli{".exe" if OS_TYPE=="Windows" else ""}'
 MODEL_FILE=f'{ROOT_DIR}/models/zipenhancer.safetensors'
 
-def _remove_noise_audiocpp(*, input_file, output_file,logs_file=None,is_cuda=False):
+def _remove_noise_audiocpp(*, input_file, output_file,logs_file=None,device_name="cpu"):
     # 如果 audio_cpp
-    from videotrans.util.help_down import down_audiocpp_bin,down_file_from_hf
-    _write_log(logs_file,"downloading audiocpp_cli...")
-    down_audiocpp_bin()
+    from videotrans.util.help_down import down_file_from_hf
     down_file_from_hf(f'{ROOT_DIR}/models', urls=[ZIPENHANCER_HF.replace('https://huggingface.co','')])
     _st = time.time()
 
+    if ":" in device_name:
+        name,dev_index=device_name.split(":",1)
+        device_list=["--backend",name,"--device",str(dev_index)]
+    else:
+        device_list=["--backend",device_name]
+
     cmd=[
-        AUDIO_CPP,
+        "audiocpp_cli",
         "--task",
         "s2s",
         "--family",
@@ -31,13 +34,14 @@ def _remove_noise_audiocpp(*, input_file, output_file,logs_file=None,is_cuda=Fal
         MODEL_FILE,
         "--load-option",
         "utility=zipenhancer",
-        "--backend",
-        "best" if is_cuda else "cpu",
-        "--audio",
+    ]
+    cmd.extend(device_list)
+
+    cmd.extend(["--audio",
         input_file,
         "--out",
         Path(output_file).as_posix()
-    ]
+    ])
 
     try:
         _write_log(logs_file,"starting dense ...")
@@ -51,7 +55,7 @@ def _remove_noise_audiocpp(*, input_file, output_file,logs_file=None,is_cuda=Fal
 
 def remove_noise(*, input_file, output_file,logs_file=None,model_name='dpdfnet2.onnx', **kw):
     if model_name=='zipenhancer':
-        return _remove_noise_audiocpp(input_file=input_file, output_file=output_file,logs_file=logs_file,is_cuda=kw.get('is_cuda',False))
+        return _remove_noise_audiocpp(input_file=input_file, output_file=output_file,logs_file=logs_file,device_name=kw.get('device_name'))
 
     from videotrans.util._ffmpeg_runner import runffmpeg
     from videotrans.util.help_down import down_file_from_hf
@@ -62,7 +66,7 @@ def remove_noise(*, input_file, output_file,logs_file=None,model_name='dpdfnet2.
     _st = time.time()
     logger.debug(f'开始降噪，使用模型 {model_name}')
     _write_log(logs_file,f"downloading {model_name}...")
-    down_file_from_hf(f'{ROOT_DIR}/models/onnx', urls=[DENOISE_URL_HF.replace('https://huggingface.co','').replace('{}',model_name)])
+    down_file_from_hf(f'{ROOT_DIR}/models/onnx', urls=[DENOISE_URL_HF.replace('{}',model_name)])
 
 
     def load_audio(filename: str):

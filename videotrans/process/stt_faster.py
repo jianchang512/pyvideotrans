@@ -4,11 +4,8 @@
 # 成功，第一个值存在需要的返回值，不需要时返回True，第二个值为None
 import json, traceback
 from pathlib import Path
-from typing import List, Tuple, Union
-
 from videotrans.configure._paths import TEMP_ROOT,ROOT_DIR
 from videotrans.configure.config import logger
-
 
 
 def faster_whisper(
@@ -17,7 +14,6 @@ def faster_whisper(
         detect_language=None,
         model_name=None,
         logs_file=None,
-        is_cuda=False,
         no_speech_threshold=0.6,
         threshold=0.5,
         condition_on_previous_text=False,
@@ -39,40 +35,20 @@ def faster_whisper(
 ):
     import zhconv
     from videotrans.process._stt_utils import _write_log,_resegment2,_resegment
-    from videotrans.util._srt_parse import ms_to_time_string
-    from faster_whisper import WhisperModel, BatchedInferencePipeline
-    from videotrans.util.whisper_vulkan import should_use_whisper_vulkan, PyWhisperCppModel
+    from faster_whisper import WhisperModel
 
     raws = []
     if detect_language == 'fil':
         detect_language = 'tl'
-    raw_device = kw.get('raw_device_name') or kw.get('device_name', 'auto')
-    device = raw_device
-    if device == 'auto':
-        device = "cuda" if is_cuda else 'cpu'
+    device=kw.get("device_name")
+
     def _create_model(_compute_type):
-        logger.debug(f'[faster_whisper] 加载模型{model_name}: {is_cuda=},{raw_device=}, running on {device},{_compute_type=}')
-        # Only switch to Vulkan when hardware acceleration is explicitly specified
-        if  should_use_whisper_vulkan(model_name, device_name=raw_device,is_cuda=is_cuda):
-            try:
-                logger.debug(f'[faster_whisper/vulkan]加载GGML模型 {model_name}: running on {raw_device} ({is_cuda=})')
-                return PyWhisperCppModel(
-                    local_dir or model_name,
-                    device=raw_device,
-                    compute_type=_compute_type,
-                    model_name=model_name,
-                    is_cuda=is_cuda,
-                )
-            except Exception as vulkan_err:
-                if not local_dir or not Path(f'{local_dir}/model.bin').exists():
-                    raise
-                logger.warning(f'faster-whisper Vulkan (pywhispercpp) 加载失败，尝试回退 CTranslate2: {vulkan_err}')
-        ct2_device = "cuda" if (is_cuda and str(device).startswith("vulkan")) else device
+        logger.debug(f'[faster_whisper] 加载模型{model_name}: running on {device},{_compute_type=}')
         try:
 
             return WhisperModel(
                 local_dir,
-                device=ct2_device,
+                device=device,
                 compute_type=_compute_type
             )            
         except Exception as e:
@@ -80,18 +56,18 @@ def faster_whisper(
                 raise
             # 对数据类型问题引发的错误重试
             # cuda下先尝试使用 float16
-            if is_cuda and _compute_type != 'float16':
+            if device.startswith('cuda') and _compute_type != 'float16':
                 logger.warning(f'faster-whisper CUDA下 加载模型失败，更改为 [float16] 类型后重试{e}')
                 return _create_model('float16')
 
 
             # 如果cpu并且非 int8,先尝试 int8
-            if not is_cuda and _compute_type != 'int8':
+            if device.startswith('cpu') and _compute_type != 'int8':
                 logger.warning(f'faster-whisper CPU下 加载模型失败，更改为 [int8] 类型后重试{e}')
                 return _create_model('int8')
             # 保底 float32
             if _compute_type != 'float32':
-                logger.warning(f'faster-whisper  加载模型失败，更改为 [float32] 类型后重试, {is_cuda=}')
+                logger.warning(f'faster-whisper  加载模型失败，更改为 [float32] 类型后重试')
                 return _create_model('float32')
             raise
 
@@ -102,7 +78,7 @@ def faster_whisper(
         model = _create_model(compute_type)
     except Exception as e:
         error = traceback.format_exc()
-        logger.error(f'[faster_whisper][{is_cuda=}]语音转录加载模型失败:{local_dir=}\n{error}')
+        logger.error(f'[faster_whisper]语音转录加载模型失败:{local_dir=}\n{error}')
         return False, f'{e},{error}'
     # 禁止重新按 字级时间戳 断句，直接使用 模型返回的句子结果
     no_resegment=Path(f'{ROOT_DIR}/no_resegment.txt').exists()

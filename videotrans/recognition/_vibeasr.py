@@ -14,6 +14,7 @@ from videotrans.process.vad import get_speech_timestamp_silero
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
 from videotrans.util._srt_parse import ms_to_time_string
+from videotrans.util.gpus import transformers_device
 from videotrans.util.help_down import check_and_down_hf
 
 
@@ -41,8 +42,9 @@ class VibeasrRecogn(BaseRecogn):
         # 不使用 VibeVoice-ASR 内部自动断句，因中文下会生成十几秒到几十秒的超长断句
         cut_audio_list_file = f'{config.TEMP_DIR}/{self.uuid}/cut_audio_list_{time.time()}.json'
         Path(cut_audio_list_file).write_text(json.dumps([ asdict(item) for item in self.cut_audio()]),encoding='utf-8')
-
+        device=transformers_device(is_cuda=self.is_cuda)
         kwargs = {
+            "device_name":device,
             "cut_audio_list": cut_audio_list_file,
             "logs_file": logs_file,
             "model_name": self.model_name,
@@ -51,7 +53,7 @@ class VibeasrRecogn(BaseRecogn):
             "detect_language":self.detect_language
         }
         from videotrans.process.stt_vibeasr import videasr_fun
-        jsdata = self._new_process(callback=videasr_fun, title=title, is_cuda=self.is_cuda, kwargs=kwargs)
+        jsdata = self._new_process(callback=videasr_fun, title=title,  kwargs=kwargs)
         return jsdata
 
 

@@ -5,7 +5,7 @@ from pathlib import Path
 
 from videotrans.configure._i18n import tr
 from videotrans.configure._paths import REDUBB_STATUS_FILE, REDUBB_QUEUE_FILE
-from videotrans.configure.constants import VITS_URL_MS, VITS_URL_HF
+from videotrans.configure.constants import VITS_URL_HF
 from videotrans.configure.excepts import DubbingSrtError
 from videotrans.configure.config import ROOT_DIR, app_cfg, logger,settings
 from videotrans.tts._base import BaseTTS
@@ -123,7 +123,7 @@ class VitsCNEN(BaseTTS):
         if not Path(f'{self.local_dir}/zh_en/model.onnx').exists():
             from videotrans.util.help_down import down_zip
             down_zip(f"{ROOT_DIR}/models",
-                           VITS_URL_MS  if not is_connect_hf() else VITS_URL_HF,
+                           VITS_URL_HF,
                            self._process_callback)
         return True
 

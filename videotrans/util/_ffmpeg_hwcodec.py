@@ -70,7 +70,7 @@ def get_video_codec(compat=None,force=False) -> str:
             "-t", "1", "-i", str(test_input_file),
             "-c:v", encoder_to_test, "-f", "mp4", str(output_file)
         ]
-        creationflags = subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0
+        creationflags = subprocess.CREATE_NO_WINDOW if platform.system() == 'Windows' else 0
 
         logger.debug(f"正在测试编码器是否可用: {encoder_to_test}...")
         success = False

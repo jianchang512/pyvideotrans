@@ -19,6 +19,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 download_lock = threading.Lock()
 max_retries = 10  # 最大重试次数
 retry_delay = 5  # 失败后等待几秒重试
+_os=platform.system()
 
 """解析URL获取纯净文件名 (去除 ?query)"""
 
@@ -295,6 +296,11 @@ def down_zip(local_dir, zip_url, callback=None) -> bool:
     from videotrans.configure.excepts import DownloadModelsError
     import requests
     proxy = None
+    if not zip_url.startswith('https:'):
+        from .help_misc import is_connect_hf
+        is_connect_hf()
+        endpoint = os.environ.get('HF_ENDPOINT')
+        zip_url=f'{endpoint}{zip_url}'
     # modelscope.cn 阿里魔塔不使用代理
     if 'modelscope.cn' not in zip_url:
         proxy = {"https": app_cfg.proxy} if app_cfg.proxy else None
@@ -380,6 +386,7 @@ def down_zip(local_dir, zip_url, callback=None) -> bool:
                 top_dirs = {m.name.split('/')[0] for m in members if m.name and not m.name.startswith('.')}
                 tf.extractall(path=local_dir)
                 # 若归档内有单一顶层目录（如 audio-v0.9.4-bin-ubuntu-x64-vulkan-portable），将其内容平铺到 local_dir
+                """
                 if len(top_dirs) == 1:
                     top_dir = Path(local_dir) / next(iter(top_dirs))
                     if top_dir.is_dir() and top_dir != Path(local_dir):
@@ -392,6 +399,7 @@ def down_zip(local_dir, zip_url, callback=None) -> bool:
                                     dest.unlink()
                             shutil.move(str(item), str(dest))
                         shutil.rmtree(top_dir, ignore_errors=True)
+                """
         else:
             with zipfile.ZipFile(temp_zip_path, 'r') as zf:
                 zf.extractall(path=local_dir)
@@ -494,90 +502,8 @@ def check_and_down_ms(model_id, callback=None, local_dir=None, allow_patterns=No
         ms_sd._download_file_lists = _orig_download_file_lists
     return True
 
-
-# 下载 audio_cpp
-def _patch_linux_audiocpp_glibc(audio_cpp_dir: Path):
-    """Patch Linux audio.cpp portable binaries that reference GLIBC_2.43 math symbols to work on older glibc."""
-    import struct
-    import subprocess
-
-    def _elf_hash(name: bytes) -> int:
-        h = 0
-        for b in name:
-            h = ((h << 4) + b) & 0xFFFFFFFF
-            g = h & 0xF0000000
-            if g:
-                h ^= g >> 24
-            h &= ~g & 0xFFFFFFFF
-        return h
-
-    old_ver = b"GLIBC_2.43\x00"
-    new_ver = b"GLIBC_2.27\x00"
-    old_hash = struct.pack("<I", _elf_hash(b"GLIBC_2.43"))
-    new_hash = struct.pack("<I", _elf_hash(b"GLIBC_2.27"))
-
-    for f in audio_cpp_dir.iterdir():
-        if not f.is_file() or f.is_symlink():
-            continue
-        if f.name in ("audiocpp_cli", "audiocpp_server"):
-            try:
-                f.chmod(f.stat().st_mode | 0o755)
-            except OSError:
-                pass
-        try:
-            data = f.read_bytes()
-        except OSError:
-            continue
-        if not data.startswith(b"\x7fELF"):
-            continue
-        if shutil.which("patchelf"):
-            for sym in ("log10f", "atan2f", "acosf", "sqrtf"):
-                subprocess.run(["patchelf", "--clear-symbol-version", sym, str(f)], check=False, capture_output=True)
-            data = f.read_bytes()
-        if old_ver in data:
-            data = data.replace(old_ver, new_ver).replace(old_hash, new_hash)
-            f.write_bytes(data)
-
-
-def down_audiocpp_bin(process_callback=None):
-    _os = platform.system()
-    cli_name = "audiocpp_cli.exe" if _os == 'Windows' else 'audiocpp_cli'
-    p = Path(f'{ROOT_DIR}/audio_cpp/{cli_name}')
-
-    if p.exists() and (_os != 'Windows'  or Path(f'{ROOT_DIR}/audio_cpp_vulkan/{cli_name}').exists()):
-        return True
-
-    from videotrans.configure.constants import (
-        AUDIO_CPP_WIN_MS,
-        AUDIO_CPP_WIN_HF,
-        AUDIO_CPP_MAC_HF,
-        AUDIO_CPP_WIN_VULKAN_HF,
-        AUDIO_CPP_LINUX_VULKAN_HF,
-    )
-
-
-    # 仅 Windows cuda 版本区分 hf/ms 下载地址，其他统一从 github.com/0xShug0/audio.cpp 原始地址下载
-    urls = {
-        "Darwin": {"ms": AUDIO_CPP_MAC_HF, "hf": AUDIO_CPP_MAC_HF},
-        "Windows": {
-            "ms":  AUDIO_CPP_WIN_MS,
-            "hf": AUDIO_CPP_WIN_HF,
-        },
-        "Linux": {"ms": AUDIO_CPP_LINUX_VULKAN_HF, "hf": AUDIO_CPP_LINUX_VULKAN_HF},
-    }
-    from .help_misc import is_connect_hf
-    if not p.exists():
-        down_zip(f'{ROOT_DIR}/audio_cpp', urls[_os]['ms'] if _os =='Windows' and not is_connect_hf()  else urls[_os]['hf'], callback=process_callback)
-        if _os == 'Linux':
-            _patch_linux_audiocpp_glibc(Path(f'{ROOT_DIR}/audio_cpp'))
-    # win上额外下载vulkan 仅仅用于vulkan，cpu运行仍然使用cuda版
-    if _os=='Windows' and not Path(f'{ROOT_DIR}/audio_cpp_vulkan/{cli_name}').exists():
-         down_zip(f'{ROOT_DIR}/audio_cpp_vulkan', AUDIO_CPP_WIN_VULKAN_HF, callback=process_callback)
-    return True
-
-
 def down_llamacpp_bin(process_callback=None):
-    _os = platform.system()
+
     srv_name = "llama-server.exe" if _os == 'Windows' else 'llama-server'
     p = Path(f'{ROOT_DIR}/llama_cpp/{srv_name}')
     if p.exists():
@@ -586,15 +512,17 @@ def down_llamacpp_bin(process_callback=None):
     from videotrans.configure.constants import (
         LLAMA_CPP_LINUX_VULKAN_HF,
         LLAMA_CPP_WIN_VULKAN_HF,
+        LLAMA_CPP_MAC_HF,
     )
     urls = {
         "Windows": LLAMA_CPP_WIN_VULKAN_HF,
         "Linux": LLAMA_CPP_LINUX_VULKAN_HF,
+        "Darwin":LLAMA_CPP_MAC_HF
     }
     if _os not in urls:
         return False
     down_zip(f'{ROOT_DIR}/llama_cpp', urls[_os], callback=process_callback)
-    if _os == 'Linux':
+    if _os in ['Linux','Darwin']:
         for f in Path(f'{ROOT_DIR}/llama_cpp').iterdir():
             if f.is_file() and not f.is_symlink() and f.name.startswith(('llama', 'ggml')):
                 try:

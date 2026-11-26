@@ -4,8 +4,6 @@
 # 成功，第一个值存在需要的返回值，不需要时返回True，第二个值为None
 import re, json, traceback
 from pathlib import Path
-from typing import List, Tuple, Union
-from videotrans.util import gpus
 from videotrans.configure.config import logger
 
 
@@ -29,7 +27,7 @@ def glmasr_asr(
 
     model = GlmAsrForConditionalGeneration.from_pretrained(
         local_dir,
-        device_map=kw.get('device_name','auto'),
+        device_map=kw.get("device_name"),
         quantization_config=quant,
         dtype='auto'
     )

@@ -32,7 +32,7 @@ def qwen3tts_fun(
     from qwen_tts import Qwen3TTSModel
     from videotrans.util.help_misc import vail_file
 
-    device_map = kw.get('device_name', 'auto')
+    device_map = kw.get("device_name")
     CUSTOM_VOICE = {"Vivian", "Serena", "Uncle_fu", "Dylan", "Eric", "Ryan", "Aiden", "Ono_anna", "Sohee"}
 
     atten = None

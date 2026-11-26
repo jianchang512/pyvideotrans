@@ -3,11 +3,7 @@
 # 失败：第一个值为False，则为失败，第二个值存储失败原因
 # 成功，第一个值存在需要的返回值，不需要时返回True，第二个值为None
 import json, traceback
-import re
 from pathlib import Path
-from typing import List
-
-
 from videotrans.configure.config import logger,tr
 
 
@@ -21,7 +17,6 @@ def qwen3asr_fun(
         model_name=None,
         detect_language=None,
         force_align=False,  # 是否需要对齐时间戳:只有明确指定属于这些语言中的某个 ["zh","en","ja",'ko','yue','fr','es','it','de','pt','ru'] 才支持
-        hotword=None,
         **kw
 ):
     import torch
@@ -29,11 +24,12 @@ def qwen3asr_fun(
     from transformers import AutoProcessor, AutoModelForMultimodalLM,AutoModelForTokenClassification
 
     try:
+        device=kw.get("device_name")
         batch_size=2
         srts = [item for item in json.loads(Path(cut_audio_list).read_text(encoding='utf-8'))]
         if not force_align:
             processor = AutoProcessor.from_pretrained(local_dir)
-            model = AutoModelForMultimodalLM.from_pretrained(local_dir, device_map=kw.get('device_name', 'auto'))
+            model = AutoModelForMultimodalLM.from_pretrained(local_dir, device_map=device)
             msg = f'Load {model_name} running on {model.device}'
             _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
             logger.debug(f'QwenASR:{local_dir}，{msg}，{detect_language=}')
@@ -67,11 +63,11 @@ def qwen3asr_fun(
         }]
         language = None
         asr_processor = AutoProcessor.from_pretrained(local_dir)
-        asr_model = AutoModelForMultimodalLM.from_pretrained(local_dir, device_map=kw.get('device_name', 'auto'))
+        asr_model = AutoModelForMultimodalLM.from_pretrained(local_dir, device_map=device)
 
         aligner_processor = AutoProcessor.from_pretrained(local_dir_align)
         aligner_model = AutoModelForTokenClassification.from_pretrained(
-    local_dir_align, dtype='auto', device_map=kw.get('device_name', 'auto'))
+    local_dir_align, dtype='auto', device_map=device)
         msg = f'Load {model_name} running on {asr_model.device}'
         _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))
         logger.debug(f'QwenASR:{local_dir}，{msg}，{detect_language=}, {force_align=}')

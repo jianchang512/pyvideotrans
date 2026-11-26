@@ -15,6 +15,9 @@ Usage examples:
   uv run cli.py --task vtv --name "E:/movies/clip.mp4" --source_language_code zh-cn --target_language_code en --voice_role "en-US-GuyNeural" --cuda
 """
 
+# TODO:  字典统一使用 videotrans/language/*.json
+
+
 import asyncio
 import multiprocessing
 import sys
@@ -559,8 +562,8 @@ def main() -> int:
     app_cfg.exec_mode = 'cli'
 
     # Get GPU info
-    from videotrans.util.gpus import getset_gpu
-    getset_gpu()
+    from videotrans.util.gpus import check_hardware_availability
+    check_hardware_availability()
 
     # Build common params
     common_params = build_common_params(args, output_dir=args.output_dir)
@@ -585,6 +588,9 @@ def main() -> int:
     except Exception as e:
         print(tr('failed', str(e)), file=sys.stderr)
         return 1
+    finally:
+        from videotrans.task.clean_life import safe_quit
+        safe_quit()
 
 
 if __name__ == "__main__":

@@ -4,7 +4,6 @@
 # 成功，第一个值存在需要的返回值，不需要时返回True，第二个值为None
 import json, traceback
 from pathlib import Path
-from typing import List, Tuple, Union
 from videotrans.configure.config import logger
 from videotrans.process._stt_utils import _write_log
 
@@ -31,7 +30,7 @@ def mosstrans_asr(
         local_dir,
         trust_remote_code=True,
         dtype="auto",
-        device_map=kw.get('device_name','auto')
+        device_map=kw.get("device_name"),
     )
     model.eval()
     processor = AutoProcessor.from_pretrained(local_dir, trust_remote_code=True)

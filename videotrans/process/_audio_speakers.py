@@ -4,6 +4,7 @@ from videotrans.configure.config import ROOT_DIR, logger, app_cfg
 from pathlib import Path
 from collections import defaultdict
 
+
 """
 
 subtitles:List[List[start:int,end:int]]=[[0, 4580], [4580, 7860], [8260, 10520], [10520, 11880], [12200, 13260], [14020, 14140], [14460, 15660], [15660, 19640], [19640, 24040], [24040, 24880], [25100, 28600], [28720, 29260], [29260, 33220], [33220, 36540], [36540, 39460], [39460, 43420], [43420, 46400], [46400, 49420], [49420, 53840], [53840, 56480], [56480, 57020]]
@@ -116,11 +117,9 @@ def _diarize_and_write(subtitles_file, diarizations, speak_file):
     return False, "0 speakers"
 
 
-def cam_speakers(*, input_file, subtitles_file: str, speak_file: str, num_speakers=-1, is_cuda=False,  device_index=0,**kw):
+def cam_speakers(*, input_file, subtitles_file: str, speak_file: str, num_speakers=-1, **kw):
     from modelscope.pipelines import pipeline
-    device=kw.get('device_name','auto')
-    if device=='auto':
-        device = f"cuda:{device_index}" if is_cuda else "cpu"
+    device=kw.get("device_name")
     _st = time.time()
     logger.debug(f'开始说话人分离:使用阿里cam++模型')
 
@@ -184,8 +183,7 @@ def _hook_hf():
     huggingface_hub.file_download.hf_hub_download = patched_hf_hub_download
 
 
-def pyannote_speakers(*, input_file, subtitles_file: str, speak_file: str, num_speakers=-1, is_cuda=False,
-                     device_index=0,**kw):
+def pyannote_speakers(*, input_file, subtitles_file: str, speak_file: str, num_speakers=-1,**kw):
     _hook_hf()
     import torch, pyannote.audio, torchaudio
     torch.serialization.add_safe_globals([
@@ -198,11 +196,8 @@ def pyannote_speakers(*, input_file, subtitles_file: str, speak_file: str, num_s
 
     def _get_diariz():
         pipeline = Pipeline.from_pretrained(f"{ROOT_DIR}/models/models--pyannote--speaker-diarization-3.1/config.yaml")
-        _device_name=kw.get('device_name','auto')
-        if _device_name!='auto':
-            pipeline.to(torch.device(_device_name))
-        elif is_cuda:
-            pipeline.to(torch.device(f"cuda:{device_index}"))
+        device=kw.get('device_name')
+        pipeline.to(torch.device(device))
 
         waveform, sample_rate = torchaudio.load(input_file)
         if num_speakers > 0:

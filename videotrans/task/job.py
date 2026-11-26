@@ -1,12 +1,12 @@
-import traceback,os
+import traceback
 from queue import Empty
 
 from PySide6.QtCore import QThread
 
-from videotrans.configure.config import tr, settings, app_cfg, logger
+from videotrans.configure.config import tr, settings, app_cfg, logger, CPU_NUMS
 from videotrans.configure.excepts import get_msg_from_except
 
-from videotrans.util import gpus
+from videotrans.util.gpus import exists_hard
 from videotrans.util.tools import get_recogn_type,get_tanslate_type,get_tts_type,send_notification
 
 
@@ -204,13 +204,11 @@ class WorkerTaskDone(BaseWorker):
         trk.task_done()
 
 def start_thread():
-    gpus.getset_gpu()
-    cpu_count = max(int(os.cpu_count()),1)
 
     # 不存在时固定为1，存在可用显卡时，进一步判断应该启动几个GPU进程,  1->min(CPU核数,8)
-    if app_cfg.NVIDIA_GPU_NUMS > 0:
+    if exists_hard():
         try:
-            app_cfg.MAX_GPU_PROCESS =  min(cpu_count,8,max(1,int(float(settings.get('process_max_gpu', 0))) ))
+            app_cfg.MAX_GPU_PROCESS =  min(CPU_NUMS,8,max(1,int(float(settings.get('process_max_gpu', 0))) ))
         except (TypeError,ValueError):
             app_cfg.MAX_GPU_PROCESS = 1
 
@@ -222,19 +220,17 @@ def start_thread():
         app_cfg.MAX_CPU_PROCESS = 0
     if app_cfg.MAX_CPU_PROCESS > 0:
         # 最小1个
-        app_cfg.MAX_CPU_PROCESS=int(min(app_cfg.MAX_CPU_PROCESS, 8, cpu_count))
+        app_cfg.MAX_CPU_PROCESS=int(min(app_cfg.MAX_CPU_PROCESS, 8, CPU_NUMS))
     else:
         import psutil
         mem = psutil.virtual_memory()
         # 最多8个进程,最小1个
         _max=max( int( (mem.available / (1024 ** 3)) // 4 ),1)
-        app_cfg.MAX_CPU_PROCESS=int(min( _max , 8, cpu_count))
+        app_cfg.MAX_CPU_PROCESS=int(min( _max , 8, CPU_NUMS))
     
     #最少1个，最多4个，跟随 CPU GPU 进程最大数 1-> min(CPU和GPU进程最大值,4)
     task_nums = min(max(app_cfg.MAX_GPU_PROCESS,app_cfg.MAX_CPU_PROCESS,1),4)
-    
-    
-    logger.debug(f'{cpu_count=},{app_cfg.MAX_GPU_PROCESS=}, {app_cfg.MAX_CPU_PROCESS=}, {task_nums=} ')
+    logger.debug(f'{CPU_NUMS=},{app_cfg.MAX_GPU_PROCESS=}, {app_cfg.MAX_CPU_PROCESS=}, {task_nums=} ')
 
     worker_config = {
         WorkerPrepare: task_nums,  # 准备工作

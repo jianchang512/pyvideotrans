@@ -10,6 +10,7 @@ from videotrans.configure.config import logger,ROOT_DIR,REDUBB_QUEUE_FILE,REDUBB
 from ._utils import _write_log,convert_to_wav
 
 # ----- 绕过 f5tts overrides 的严格类型检查 -----
+
 try:
     import overrides
     def _dummy_overrides(*args, **kwargs):
@@ -74,14 +75,11 @@ def f5tts_fun(
         language='zh',#语言
         logs_file=None,
         speed=1.0,
-        is_cuda=False,
-        device_index=0, # gpu索引
         is_redubb=False,#是否处于单视频校对配音流程
         **kw
 )->Tuple[bool,Union[str,None]]:
     from videotrans.util.help_role import get_f5tts_role
     from videotrans.util.help_misc import vail_file
-    from videotrans.util import gpus
     import random
 
     seed=random.randint(0, 65536)
@@ -90,10 +88,7 @@ def f5tts_fun(
     if not cfg:
         return False,f"[F5-TTS] may not support {language}"
 
-    device=kw.get('device_name','auto')
-    if device =='auto':
-        device=f'cuda:{device_index}' if is_cuda else gpus.mps_or_cpu()
-
+    device=kw.get("device_name")
     local_dir=f'{ROOT_DIR}/models/models--'+cfg['repid'].replace('/','--')
     f5tts = _F5TTS(
         yaml_path=f"{ROOT_DIR}/videotrans/voicejson/{cfg['config']}",
@@ -102,7 +97,7 @@ def f5tts_fun(
         vocoder_local_path=f'{ROOT_DIR}/models/models--charactr--vocos-mel-24khz',
         device=device
     )
-    logger.debug(f'F5-TTS 本地内置渠道使用 {cfg["model_name"]} 模型,{is_cuda=}, running on {f5tts.device}')
+    logger.debug(f'F5-TTS 本地内置渠道使用 {cfg["model_name"]} 模型, running on {f5tts.device}')
     try:
         if is_redubb:
             queue_tts_file=REDUBB_QUEUE_FILE

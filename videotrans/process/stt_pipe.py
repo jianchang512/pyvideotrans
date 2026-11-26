@@ -8,7 +8,6 @@ from videotrans.configure.config import logger
 from videotrans.process._stt_utils import _write_log
 
 
-
 def pipe_asr(
         prompt=None,
         cut_audio_list=None,
@@ -34,7 +33,7 @@ def pipe_asr(
             task="automatic-speech-recognition",
             model=local_dir,
             batch_size=4,
-            device_map=kw.get('device_name','auto'),
+            device_map=kw.get("device_name"),
             dtype='auto'
         )
         msg = f"running on {p.model.device}"

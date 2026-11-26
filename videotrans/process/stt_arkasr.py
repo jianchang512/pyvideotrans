@@ -21,7 +21,7 @@ def ark_asr(
         processor = AutoProcessor.from_pretrained(local_dir, trust_remote_code=True)
         tokenizer = AutoTokenizer.from_pretrained(local_dir, trust_remote_code=True)
         _mdargs={
-            "device_map":kw.get('device_name','auto'),
+            "device_map":kw.get("device_name"),
             "trust_remote_code":True,
             "dtype":"auto"
         }

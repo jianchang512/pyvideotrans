@@ -38,8 +38,6 @@ class BaseRecogn(BaseCon):
     # 识别 api地址
     api_url: str = field(default='')
     api_key: str = field(default='')
-    # 设备类型 cpu cuda
-    device: str = field( default='cpu')
     # 标点符号
     flag: List[str] = field( default_factory=list)
     # 存放返回的字幕列表
@@ -65,7 +63,6 @@ class BaseRecogn(BaseCon):
 
     def __post_init__(self):
         super().__post_init__()
-        self.device = 'cuda' if self.is_cuda else 'cpu'
         if self.asr_wait is None:
             self.asr_wait = float(settings.get('asr_wait', 0) or 0)
         # 常见标点

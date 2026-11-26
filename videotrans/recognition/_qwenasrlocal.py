@@ -14,6 +14,7 @@ from videotrans.process.vad import get_speech_timestamp_silero
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
 from videotrans.util._srt_parse import ms_to_time_string
+from videotrans.util.gpus import transformers_device
 from videotrans.util.help_down import check_and_down_ms, check_and_down_hf
 from videotrans.util.help_misc import is_connect_hf
 
@@ -74,7 +75,7 @@ class QwenasrlocalRecogn(BaseRecogn):
         _min_speech = max(int(float(settings.get('min_speech_duration_ms', 1000))), 1000)
         # 最长片段不得大于25s,并且不得小于 _min_speech
         _max_speech = max(min(int(float(settings.get('max_speech_duration_s', 6)) * 1000), 25000), _min_speech + 1000)
-
+        device=transformers_device(is_cuda=self.is_cuda)
         kwargs = {
             "cut_audio_list": cut_audio_list_file,
             "logs_file": logs_file,
@@ -84,11 +85,12 @@ class QwenasrlocalRecogn(BaseRecogn):
             "hotword":settings.get('hotwords'),
             "min_speech_ms":_min_speech,
             "max_speech_ms":_max_speech,
+            "device_name":device,
             "force_align":self.detect_language in align_language,
             "detect_language":self.detect_language.split('-')[0] if self.detect_language not in ['auto',"",None] else None
         }
         from videotrans.process.stt_qwen import qwen3asr_fun
-        jsdata = self._new_process(callback=qwen3asr_fun, title=title, is_cuda=self.is_cuda, kwargs=kwargs)
+        jsdata = self._new_process(callback=qwen3asr_fun, title=title,  kwargs=kwargs)
         return jsdata
 
     def _cut(self,cut_audio_list_file):

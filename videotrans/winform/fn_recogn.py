@@ -1,8 +1,9 @@
-from PySide6.QtCore import QTimer
+import platform
 
 
 def openwin():
-    from videotrans.winform import set_device_list
+    # from videotrans.winform import set_device_list
+    from videotrans.util.gpus import exists_hard
     from videotrans.translator import LANGNAME_DICT,LLM_CONCERT_DICT
     from videotrans.winform import get_cls
     from videotrans.util.help_misc import  show_error
@@ -84,7 +85,7 @@ def openwin():
         winobj.nums_diariz.setDisabled(state)
         winobj.spk_insert.setDisabled(state)
         winobj.shibie_stop.setDisabled(not state)
-        winobj.device_combo.setDisabled(state)
+        # winobj.device_combo.setDisabled(state)
 
     def shibie_start_fun():
         nonlocal  uuid_list
@@ -98,8 +99,6 @@ def openwin():
             return
 
         is_cuda = winobj.is_cuda.isChecked()
-        if is_cuda and check_cuda(is_cuda) is not True:
-            return show_error(tr("nocudnn"))
         # 待识别音视频文件列表
         files = winobj.shibie_dropbtn.filelist
         if not files or len(files) < 1:
@@ -131,8 +130,6 @@ def openwin():
         winobj.label_shibie10.setText('')
         winobj.shibie_text.clear()
         stt_rephrase = winobj.rephrase.isChecked()
-        if is_cuda:
-            settings['device_name'] = winobj.device_combo.itemData(winobj.device_combo.currentIndex())
         settings.save()
         from videotrans.util.help_ffmpeg import format_video
         try:
@@ -187,16 +184,8 @@ def openwin():
             from videotrans.configure.excepts import get_msg_from_except
             show_error(get_msg_from_except(e))
 
-    def check_cuda(state):
-        # 选中如果无效，则取消
-        if state and app_cfg.NVIDIA_GPU_NUMS == 0:
-            winobj.is_cuda.setChecked(False)
-            winobj.is_cuda.setDisabled(True)
-            show_error(tr('nocuda'))
-        return True
-
     def show_xxl_select():
-        if sys.platform != 'win32':
+        if platform.system() != 'Windows':
             show_error(
                 tr("faster-whisper-xxl.exe is only available on Windows"))
             return False
@@ -280,7 +269,6 @@ def openwin():
 
         winobj.shibie_startbtn.clicked.connect(shibie_start_fun)
         winobj.shibie_stop.clicked.connect(stop_recogn)
-        winobj.is_cuda.toggled.connect(check_cuda)
 
         default_lang = int(params.get('stt_source_language', 0))
         winobj.shibie_language.setCurrentIndex(default_lang)
@@ -304,7 +292,7 @@ def openwin():
         winobj.loglabel.clicked.connect(show_detail_error)
         winobj.shibie_model.currentIndexChanged.connect(model_type_change)
         # Postpone the execution to ensure the accelerator has completed its acquisition
-        QTimer.singleShot(5,lambda :set_device_list(winobj,'stt_cuda'))
+        # QTimer.singleShot(5,lambda :set_device_list(winobj,'stt_cuda'))
 
     _bind()
     return winobj

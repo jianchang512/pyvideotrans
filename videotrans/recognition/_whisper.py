@@ -1,13 +1,15 @@
+import platform
 import time, json,datetime
 from pathlib import Path
 from dataclasses import dataclass
 from typing import Union, List
 
 from videotrans.configure._paths import TEMP_ROOT
-from videotrans.configure.config import settings, ROOT_DIR, logger
+from videotrans.configure.config import settings, ROOT_DIR, logger, app_cfg
 from videotrans.configure import config
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
+from videotrans.util.gpus import whisper_device
 
 from videotrans.util.help_down import check_and_down_hf,down_file_from_hf
 from videotrans.util.help_srt import get_subtitle_from_srt
@@ -40,17 +42,9 @@ class FasterAll(BaseRecogn):
         return raws
 
     def _download(self):
-        if self.recogn_type == 0:
-            from videotrans.util.whisper_vulkan import should_use_whisper_vulkan, ensure_ggml_whisper_model
-            if should_use_whisper_vulkan(self.model_name,is_cuda=self.is_cuda):
-                ensure_ggml_whisper_model(self.model_name, callback=self._process_callback)
-                return
-            if not Path(f'{self.local_dir}/model.bin').exists():
-                if self.model_name in FASTER_MODELS_DICT:
-                    repo_id = FASTER_MODELS_DICT[self.model_name]
-                else:
-                    repo_id = self.model_name
-                check_and_down_hf(self.model_name,repo_id,self.local_dir,callback=self._process_callback)
+        if self.recogn_type == 0 and not Path(f'{self.local_dir}/model.bin').exists():
+            repo_id = FASTER_MODELS_DICT[self.model_name] if self.model_name in FASTER_MODELS_DICT else self.model_name
+            check_and_down_hf(self.model_name,repo_id,self.local_dir,callback=self._process_callback)
         elif self.recogn_type==1 and not Path(f'{ROOT_DIR}/models/{self.model_name}.pt').exists():
             import whisper            
             down_file_from_hf(f'{ROOT_DIR}/models',[whisper._MODELS[self.model_name]],callback=self._process_callback)
@@ -67,7 +61,7 @@ class FasterAll(BaseRecogn):
         _max_speech = min(int(float(settings.get('max_speech_duration_s', 6)) * 1000), 25000)
         if _max_speech<=_min_speech:
             _max_speech=_min_speech+1000
-
+        device=whisper_device(is_cuda=self.is_cuda)
         kwargs = {
             "prompt": settings.get(f'initial_prompt_{self.detect_language.replace("-","_")}'),
             "detect_language": self.detect_language,
@@ -79,7 +73,7 @@ class FasterAll(BaseRecogn):
             "audio_file": self.audio_file,
             "jianfan": self.jianfan,
             "uuid":self.uuid,
-            
+            "device_name":device,
             "audio_duration":audio_duration,
             "temperature":settings.get('temperature'),
             "compression_ratio_threshold":float(settings.get('compression_ratio_threshold',2.4)),
@@ -87,7 +81,7 @@ class FasterAll(BaseRecogn):
             "min_speech_ms":_min_speech
         }
         from videotrans.process.stt_openai import openai_whisper
-        raws=self._new_process(callback=openai_whisper,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
+        raws=self._new_process(callback=openai_whisper,title=title,kwargs=kwargs)
         return raws
 
 
@@ -104,6 +98,7 @@ class FasterAll(BaseRecogn):
 
         
         subtitle_srt=f'{TEMP_ROOT}/faster-{datetime.datetime.now().strftime("%Y%m%d-%H_%M_%S")}.srt'
+        device=whisper_device(is_cuda=self.is_cuda)
         kwargs = {
             "detect_language": self.detect_language,
             "model_name": self.model_name,
@@ -128,6 +123,7 @@ class FasterAll(BaseRecogn):
             "min_speech_ms":_min_speech,
             "min_silence_duration_ms":max(int(settings.get('min_silence_duration_ms', 600)), 100),
             "uuid":self.uuid,
+            "device_name":device,
             "subtitle_srt":subtitle_srt
         }
         if self.recogn2pass:
@@ -138,7 +134,7 @@ class FasterAll(BaseRecogn):
                 kwargs['recogn2_max_speech']+=200
         try:
             from videotrans.process.stt_faster import  faster_whisper
-            raws=self._new_process(callback=faster_whisper,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
+            raws=self._new_process(callback=faster_whisper,title=title,kwargs=kwargs)
             return raws
         except SttTimeoutError:
             if not Path(subtitle_srt).exists():

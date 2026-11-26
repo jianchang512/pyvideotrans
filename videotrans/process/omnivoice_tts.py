@@ -25,7 +25,7 @@ def omnivoice_fun(
 
     model = OmniVoice.from_pretrained(
         f'{ROOT_DIR}/models/models--k2-fsa--OmniVoice',
-        device_map=kw.get('device_name','auto'),
+        device_map=kw.get("device_name"),
         dtype='auto'
     )
     logger.debug(f'OmniVoice-TTS本地内置渠道，running on {model.device}')

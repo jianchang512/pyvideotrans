@@ -24,7 +24,7 @@ def videasr_fun(
     raws=[]
     try:
         processor = AutoProcessor.from_pretrained(local_dir)
-        model = VibeVoiceAsrForConditionalGeneration.from_pretrained(local_dir, device_map=kw.get('device_name', 'auto'))
+        model = VibeVoiceAsrForConditionalGeneration.from_pretrained(local_dir, device_map=kw.get("device_name"))
         
         srts = [item for item in json.loads(Path(cut_audio_list).read_text(encoding='utf-8'))]
 

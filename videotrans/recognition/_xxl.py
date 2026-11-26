@@ -1,4 +1,5 @@
 import os,re
+import platform
 import subprocess
 import sys,shutil
 from dataclasses import dataclass
@@ -12,7 +13,7 @@ from videotrans.util._srt_parse import get_subtitle_from_srt
 from videotrans.configure.constants import FASTER_MODELS_DICT
 from videotrans.util.help_down import check_and_down_hf
 
-
+_os=platform.system()
 
 @dataclass(repr=False)
 class XXLRecogn(BaseRecogn):
@@ -67,7 +68,7 @@ class XXLRecogn(BaseRecogn):
     
     def _exec(self)->Union[List[SrtItem], None]:
         # 从输出读取，而非直接生成srt文件，因后者和pyinstaller打包后冲突报错
-        if sys.platform != 'win32': raise SpeechToTextError('This channel is only available on Windows systems.')
+        if _os != 'Windows': raise SpeechToTextError('This channel is only available on Windows systems.')
         xxl_path = settings.get('Faster_Whisper_XXL', 'Faster_Whisper_XXL.exe')
         max_s=int(float(settings.get('max_speech_duration_s', 5)))
         min_ms = max(int(float(settings.get('min_speech_duration_ms', 1000))), 500)
@@ -121,7 +122,7 @@ class XXLRecogn(BaseRecogn):
                 encoding='utf-8', 
                 errors='replace', 
                 shell=False,
-                creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0,
+                creationflags=subprocess.CREATE_NO_WINDOW if _os == 'Windows' else 0,
                 cwd=self.cache_folder,
                 env=env,                    
                 stdin=subprocess.DEVNULL

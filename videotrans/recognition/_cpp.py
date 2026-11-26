@@ -1,92 +1,59 @@
 # ToDo 将 whisper.cpp 移动到此
-import os
 import re
-import subprocess
-import sys
+import subprocess,platform
 from dataclasses import dataclass
 from pathlib import Path
 
 from videotrans.configure import constants
 from videotrans.configure._paths import ROOT_DIR
-from videotrans.configure.config import tr, settings, logger
-from videotrans.configure.constants import WHISPER_CPP_URL_MS, WHISPER_CPP_URL_HF, WHISPERCPP_MODEL_URL_MS, \
-    WHISPERCPP_MODEL_URL_HF
+from videotrans.configure.config import tr, settings, logger, CPU_NUMS
+from videotrans.configure.constants import WHISPER_CPP_URL_HF, WHISPER_CPP_LINUX_URL_HF,WHISPERCPP_MODEL_URL_HF
 from videotrans.configure.excepts import SpeechToTextError
 from videotrans.recognition._base import BaseRecogn
-from videotrans.util._srt_parse import get_subtitle_from_srt, ms_to_time_string
+from videotrans.util._srt_parse import get_subtitle_from_srt
+from videotrans.util.gpus import whisper_device
 from videotrans.util.help_down import down_zip
-from videotrans.util.help_misc import is_connect_hf
 
+
+_os=platform.system()
 
 @dataclass(repr=False)
 class CPPRecogn(BaseRecogn):
 
-    def _win_download_cli(self):
-        # windows上自动下载exe
-        self.signal(text=f'Download whisper-cli.exe ')
-        down_zip(f'{ROOT_DIR}', WHISPER_CPP_URL_MS  if is_connect_hf() is False else WHISPER_CPP_URL_HF, callback=self._process_callback)
+    def _download_cli(self):
+        if  _os== 'Darwin':return
+        # windows linux 上自动下载
+        self.signal(text=f'Download whisper-cli')
+        down_zip(f'{ROOT_DIR}', WHISPER_CPP_URL_HF if _os=='Windows' else WHISPER_CPP_LINUX_URL_HF, callback=self._process_callback)
 
 
     def _exec(self):
         cpp_path=f'{ROOT_DIR}/whisper-cpp/whisper-cli'#whisper-cli.exe | whisper-cli
-        if sys.platform=='win32':
+        if _os=='Windows':
             cpp_path+='.exe'
         Path_cpp=Path(cpp_path)
-        if not Path_cpp.is_file() and sys.platform=='win32':
-            self._win_download_cli()
+        if _os=='Darwin' and not Path_cpp.exists():
+            raise RuntimeError(f'Please install whisper.cpp and place the whisper-cli file in the {ROOT_DIR}/whisper-cpp directory')
+        if not Path_cpp.is_file():
+            self._download_cli()
 
         if not Path(f'{ROOT_DIR}/models/{self.model_name}').is_file():
             from videotrans.util import help_down
-            if not is_connect_hf():
-                url=WHISPERCPP_MODEL_URL_MS.replace('{}',self.model_name)
-            else:
-                url=WHISPERCPP_MODEL_URL_HF.replace('{}',self.model_name)
+            url=WHISPERCPP_MODEL_URL_HF.replace('{}',self.model_name)
             help_down.down_file_from_hf(
                 f"{ROOT_DIR}/models",
                 [url],
                 self._process_callback)
 
-        from videotrans.util.gpus import get_vulkan_device_index, is_vulkan_available
-        dev_pref = str(settings.get('device_name', 'auto')).strip().lower()
-        use_gpu = (dev_pref != 'cpu') and (bool(self.is_cuda) or dev_pref.startswith('vulkan') or is_vulkan_available())
-        vk_idx = get_vulkan_device_index(dev_pref) if use_gpu else 0
-
-        if not Path_cpp.is_file():
-            from videotrans.util.whisper_vulkan import is_pywhispercpp_available, PyWhisperCppModel
-            if is_pywhispercpp_available():
-                self.signal(text=tr("Transcription in progress, please wait"))
-                _lang = self.detect_language.split('-')[0]
-                prompt = settings.get(f'initial_prompt_{self.detect_language.replace("-","_")}')
-                model = PyWhisperCppModel(
-                    f'{ROOT_DIR}/models/{self.model_name}',
-                    device="vulkan" if use_gpu else "cpu",
-                    device_index=vk_idx,
-                )
-                segments, _ = model.transcribe(
-                    self.audio_file,
-                    language=None if _lang.lower() == 'auto' else _lang,
-                    initial_prompt=prompt or None,
-                    no_speech_threshold=float(settings.get('no_speech_threshold', 0.6)),
-                )
-                srt_lines = []
-                for idx, seg in enumerate(segments, 1):
-                    start_ms = int(seg.start * 1000)
-                    end_ms = int(seg.end * 1000)
-                    text = seg.text.strip()
-                    if not text:
-                        continue
-                    srt_lines.append(f"{idx}\n{ms_to_time_string(ms=start_ms)} --> {ms_to_time_string(ms=end_ms)}\n{text}\n")
-                _sub_srt = f"{self.cache_folder}/cpp_srt.srt"
-                Path(_sub_srt).write_text("\n".join(srt_lines), encoding="utf-8")
-                return get_subtitle_from_srt(_sub_srt, is_file=True)
-            raise SpeechToTextError(tr('download whisper.cpp or make binary',f'{ROOT_DIR}/whisper-cpp'))
+        device = whisper_device(is_cuda=self.is_cuda)
 
         txt_file = ROOT_DIR + '/pyvideotrans_cpp.txt'
 
-        n_threads = str(max(min(4, int(os.cpu_count() or 4) - 1), 1))
+        n_threads = str(max(min(4, CPU_NUMS - 1), 1))
         cmd = [
             cpp_path,
-            "-t" if use_gpu else "-p", n_threads,
+            "-t" if device.startswith("cuda") else "-p",
+            n_threads,
             "-f",
             self.audio_file,
             "-osrt",
@@ -94,9 +61,7 @@ class CPPRecogn(BaseRecogn):
             "-pp",
             "-np"
         ]
-        if use_gpu:
-            cmd.extend(["-dev", str(vk_idx)])
-        else:
+        if device.startswith("cpu"):
             cmd.append("-ng")
         _lang=self.detect_language.split('-')[0]
         cmd += ["-l", _lang]
@@ -128,7 +93,7 @@ class CPPRecogn(BaseRecogn):
                 text=True,
                 encoding='utf-8',
                 errors='replace',
-                creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0,
+                creationflags=subprocess.CREATE_NO_WINDOW if _os == 'Windows' else 0,
                 cwd=f'{self.cache_folder}',
                 bufsize=1  # 开启行缓冲，确保逐行实时输出
             )

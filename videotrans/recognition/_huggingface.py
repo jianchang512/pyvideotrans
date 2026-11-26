@@ -12,6 +12,7 @@ from videotrans.configure.excepts import SpeechToTextError
 
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
+from videotrans.util.gpus import transformers_device
 from videotrans.util.help_down import check_and_down_hf
 
 
@@ -43,6 +44,7 @@ class HuggingfaceRecogn(BaseRecogn):
         logs_file = f'{config.TEMP_DIR}/{self.uuid}/huggingface-pipeasr-{self.detect_language}-{time.time()}.log'
         cut_audio_list_file = f'{config.TEMP_DIR}/{self.uuid}/cut_audio_list_{time.time()}.json'
         Path(cut_audio_list_file).write_text(json.dumps([ asdict(item) for item in self.cut_audio()]),encoding='utf-8')
+        device=transformers_device(is_cuda=self.is_cuda)
         kwargs = {
             "cut_audio_list": cut_audio_list_file,
             "prompt": settings.get(
@@ -53,6 +55,7 @@ class HuggingfaceRecogn(BaseRecogn):
             "is_cuda": self.is_cuda,
             "audio_file": None,
             "local_dir": self.local_dir,
+            "device_name":device
         }
         from videotrans.process.stt_pipe import  pipe_asr
         from videotrans.process.stt_glmasr import glmasr_asr
@@ -66,8 +69,9 @@ class HuggingfaceRecogn(BaseRecogn):
             "ibm-granite/granite-speech-4.1-2b":granite_asr,
             "nvidia/nemotron-3.5-asr-streaming-0.6b":nemotron_asr
         }
+
         
-        raws=self._new_process(callback=func_dict.get(self.model_name,pipe_asr),title=title,is_cuda=self.is_cuda,kwargs=kwargs)
+        raws=self._new_process(callback=func_dict.get(self.model_name,pipe_asr),title=title,kwargs=kwargs)
         return raws
 
   

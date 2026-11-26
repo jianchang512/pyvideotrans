@@ -40,7 +40,7 @@ try:
 except ImportError:
     HAS_RUBBERBAND = False
 
-from videotrans.configure.config import ROOT_DIR, tr, settings, logger
+from videotrans.configure.config import ROOT_DIR, tr, settings, logger, CPU_NUMS
 from videotrans.configure import config
 from videotrans.util import tools
 from concurrent.futures import ProcessPoolExecutor
@@ -513,7 +513,7 @@ class SpeedRate:
     def _execute_audio_speedup_rubberband(self):
         if len(self.audio_data) < 1: return
         all_task = []
-        _wok = min(12, len(self.audio_data), max(os.cpu_count() - 1, 1))
+        _wok = min(12, len(self.audio_data), max(CPU_NUMS, 1))
         logger.debug(f"[音频加速] 使用{_wok}个进程，处理 {len(self.audio_data)} 个配音片段")
         with ProcessPoolExecutor(max_workers=int(_wok)) as pool:
             for i, d in enumerate(self.audio_data):
@@ -540,7 +540,7 @@ class SpeedRate:
 
         all_task = []
         processed_clips = []
-        _wok = min(12, len(data), max(os.cpu_count() - 1, 1))
+        _wok = min(12, len(data), max(CPU_NUMS, 1))
         logger.debug(f'[视频慢速] 使用{_wok}个进程处理 {len(data)} 个视频片段')
         with ProcessPoolExecutor(max_workers=int(_wok)) as pool:
             for i, d in enumerate(data):

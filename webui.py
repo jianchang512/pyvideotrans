@@ -34,16 +34,15 @@ from videotrans.webui_i18n import tr  # noqa: E402
 # ---------------------------------------------------------------------------
 # 初始化 videotrans 环境
 # ---------------------------------------------------------------------------
-from videotrans.configure import config, constants  # noqa: E402
+from videotrans.configure import config  # noqa: E402
 
 config.init_run()
 
 from videotrans.configure.config import ROOT_DIR, TEMP_DIR, app_cfg, params, settings
-from videotrans.configure.constants import FASTER_MODELS_DICT, DEEPGRAM_ASR_MODELS, OPENAI_WHISPER_MODELS, \
-    FUN_ASR_MODELS, DEFAULT_STYLE
+from videotrans.configure.constants import FASTER_MODELS_DICT,  DEFAULT_STYLE
 from videotrans import recognition, translator, tts
 from videotrans.util import tools
-from videotrans.util.gpus import getset_gpu, get_device_choices, is_vulkan_available
+from videotrans.util.gpus import check_hardware_availability, exists_hard
 from videotrans.util.help_role import role_menu
 
 # ---------------------------------------------------------------------------
@@ -1172,21 +1171,10 @@ def build_ui():
                                     label=tr("Background Audio Volume"),
                                 )
 
-                        _dev_choices = get_device_choices()
-                        _saved_dev = str(_user_settings.get("device_name", settings.get("device_name", "auto")) or "auto")
-                        _valid_dev_vals = [val for _, val in _dev_choices]
-                        if _saved_dev not in _valid_dev_vals:
-                            _dev_choices.append((_saved_dev, _saved_dev))
                         with gr.Row():
                             cuda_accel = gr.Checkbox(
                                 label=tr("Enable accelerator"),
-                                value=bool(_user_params.get("is_cuda", is_vulkan_available() or getset_gpu() > 0)) and _saved_dev != "cpu",
-                            )
-                            device_choice = gr.Dropdown(
-                                choices=_dev_choices,
-                                value=_saved_dev,
-                                label=tr("Compute Device"),
-                                interactive=True,
+                                value=bool(_user_params.get("is_cuda", exists_hard())),
                             )
                         channel_warning = gr.Markdown("", visible=False)
 
@@ -1304,21 +1292,6 @@ def build_ui():
                     outputs=[voice_role],
                 )
 
-                def on_device_change(dev_val, cuda_val):
-                    _user_settings["device_name"] = dev_val
-                    _save_settings(_user_settings)
-                    if dev_val == "cpu":
-                        return gr.update(value=False)
-                    if str(dev_val).startswith(("vulkan", "cuda")):
-                        return gr.update(value=True)
-                    return gr.update(value=cuda_val)
-
-                device_choice.change(
-                    fn=on_device_change,
-                    inputs=[device_choice, cuda_accel],
-                    outputs=[cuda_accel],
-                )
-
                 # 执行翻译
                 _BTN_RUNNING = gr.update(value=tr("Processing..."), interactive=False)
                 _BTN_IDLE = gr.update(value=tr("Start"), interactive=True)
@@ -1381,7 +1354,7 @@ def build_ui():
                         app_cfg.exit_soft = False
                         app_cfg.exec_mode = "cli"
 
-                        getset_gpu()
+
                         _file_obj = tools.format_video(
                             Path(file_path).absolute().as_posix()
                         )
@@ -1597,7 +1570,6 @@ def build_ui():
                         loop_bgm,
                         backaudio_volume,
                         cuda_accel,
-                        device_choice,
                     ],
                     outputs=[log_output, video_preview, result_files, start_btn],
                 )
@@ -1625,6 +1597,8 @@ if __name__ == "__main__":
             "--share", action="store_true", help="Create a public Gradio link"
         )
         args = parser.parse_args()
+        print(f'Checking hardware availabiliting...')
+        check_hardware_availability()
         app = build_ui()
         app.launch(
             server_name=args.host,
@@ -1646,3 +1620,6 @@ if __name__ == "__main__":
         import traceback
         traceback.print_exc()
         print(tr("\nLaunch failed: {}", e))
+    finally:
+        from videotrans.task.clean_life import safe_quit
+        safe_quit()

@@ -13,8 +13,6 @@ def get_model_by_type(recogn_type: int) -> List[str]:
         return constants.DEEPGRAM_ASR_MODELS.split(',')
     if recogn_type == Whisper_CPP:
         return constants.WHISPER_CPP_MODELS.split(',')
-    if recogn_type == WHISPER_NET:
-        return constants.WHISPER_NET_MODELS.split(',')
     if recogn_type == QWENASR:
         return constants.QWEN_ASR_LOCAL_MODELS.split(',')
     if recogn_type == QWEN3ASR:
@@ -128,35 +126,6 @@ def run(*,
 
     """
     if app_cfg.exit_soft or (uuid and uuid in app_cfg.stoped_uuid_set): return
-    # No longer automatically routing to audio.cpp, we need to consider Windows compatibility and MacOS
-    """
-    from videotrans.util.gpus import should_use_vulkan
-    if should_use_vulkan(is_cuda=bool(is_cuda)):
-        if recogn_type == OPENAI_WHISPER:
-            logger.debug(f'[ASR/Vulkan] Routing OPENAI_WHISPER -> FASTER_WHISPER ({model_name}) on Vulkan')
-            recogn_type = FASTER_WHISPER
-        elif recogn_type == QWENASR:
-            logger.debug('[ASR/Vulkan] Routing QWENASR -> AUDIOCPP_API (qwen3_asr) on Vulkan')
-            recogn_type = AUDIOCPP_API
-            model_name = "qwen3_asr"
-        elif recogn_type == FUNASR_CN and model_name in ("Fun-ASR-Nano-2512", "SenseVoiceSmall", None, ""):
-            target_model = "sense_asr" if model_name == "SenseVoiceSmall" else "fun_asr_nano"
-            logger.debug(f'[ASR/Vulkan] Routing FUNASR_CN ({model_name}) -> AUDIOCPP_API ({target_model}) on Vulkan')
-            recogn_type = AUDIOCPP_API
-            model_name = target_model
-        elif recogn_type == NEMOTRON_ASR:
-            logger.debug('[ASR/Vulkan] Routing NEMOTRON_ASR -> AUDIOCPP_API (nemotron_asr) on Vulkan')
-            recogn_type = AUDIOCPP_API
-            model_name = "nemotron_asr"
-        elif recogn_type == MOSS_DIARIZE:
-            logger.debug('[ASR/Vulkan] Routing MOSS_DIARIZE -> AUDIOCPP_API (moss_transcribe_diarize) on Vulkan')
-            recogn_type = AUDIOCPP_API
-            model_name = "moss_transcribe_diarize"
-        elif recogn_type == VIBEVOICE_ASR:
-            logger.debug('[ASR/Vulkan] Routing VIBEVOICE_ASR -> AUDIOCPP_API (vibevoice_asr) on Vulkan')
-            recogn_type = AUDIOCPP_API
-            model_name = "vibevoice_asr"
-    """
     kwargs = {
         "detect_language": detect_language.lower() if detect_language else "",
         "audio_file": audio_file,

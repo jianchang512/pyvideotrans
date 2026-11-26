@@ -17,8 +17,9 @@ import unicodedata
 from videotrans import VERSION
 from videotrans.configure.config import tr, app_cfg, logger, ROOT_DIR, defaulelang, push_queue,os_language,IPC_STATUS_FILE
 from videotrans.task.taskcfg import SignMsg
+from videotrans.util.gpus import real_vulkan_exists
 
-
+_os=platform.system()
 
 def show_popup(title, text):
     from PySide6.QtGui import QIcon
@@ -374,7 +375,7 @@ def set_proxy(set_val=''):
         if not http_proxy.startswith("http") and not http_proxy.startswith('sock'):
             http_proxy = f"http://{http_proxy}"
         return http_proxy
-    if sys.platform != 'win32':
+    if _os != 'Windows':
         return None
     try:
         import winreg
@@ -438,7 +439,7 @@ def check_new_version():
         import requests
         # 纯静态文件，仅返回版本信息字符串
         # 只获取当前软件版本号数字和操作系统类型(win32/macos/linux)
-        url = f"https://pyvideotrans.com/version.json?version={VERSION}&os={sys.platform}&language={os_language}"
+        url = f"https://pyvideotrans.com/version.json?version={VERSION}&os={_os}&language={os_language}"
         res = requests.get(url)
         res.raise_for_status()
         d = res.json()
@@ -605,105 +606,3 @@ def is_dir_not_empty(dir_path: str) -> bool:
             return next(it, None) is not None
     except Exception:
         return False
-
-def _audiocpp_cmd_uses_gpu(cmd) -> bool:
-    for i in range(len(cmd) - 1):
-        if cmd[i] == "--backend":
-            return str(cmd[i + 1]).strip().lower() != "cpu"
-    return False
-
-
-def _audiocpp_cmd_to_cpu(cmd) -> list:
-    out = []
-    skip_next = False
-    for i, tok in enumerate(cmd):
-        if skip_next:
-            skip_next = False
-            continue
-        if tok == "--backend" and i + 1 < len(cmd):
-            out.extend(["--backend", "cpu"])
-            skip_next = True
-        elif tok == "--device" and i + 1 < len(cmd):
-            skip_next = True
-        else:
-            out.append(tok)
-    return out
-
-
- # When using AMD/Intel on Windows with Vulkan acceleration, download the Vulkan version of audio.cpp separately to the `audio_cpp_vulkan` folder. For CPU and CUDA acceleration, use version 12.4 of CUDA. Actual testing has revealed that if users encounter issues with Vulkan, there's a high probability that switching back to CPU will still fail
-def _run_audiocpp_proc(cmd):
-    cwd=f"{ROOT_DIR}/audio_cpp"
-    # win 上 vulkan 版本可能下载失败
-    if sys.platform=='win32' and 'vulkan' in cmd:
-        if Path(f"{ROOT_DIR}/audio_cpp_vulkan/audiocpp_cli.exe").exists():
-            cmd[0]=f"{ROOT_DIR}/audio_cpp_vulkan/audiocpp_cli.exe"
-            cwd=f"{ROOT_DIR}/audio_cpp_vulkan"
-        else:
-            cmd[cmd.index("vulkan")]="cpu"
-            if "--device" in cmd:
-                cmd[cmd.index("--device")]="0"
-            logger.warning('windows上尝试使用 vulkan 加速，但vulkan版本audio.cpp不存在，可能下载失败，强制转用cpu运行')
-
-    # 可能用户自行编译或将 audiocpp_cli 加入了环境变量，可全局使用
-    if not Path(cmd[0]).exists():
-        if shutil.which("audiocpp_cli"):
-            cmd[0]="audiocpp_cli"
-        else:
-            raise FileNotFoundError(cmd[0])
-
-    proc = subprocess.Popen(
-        cmd,
-        encoding="utf-8",
-        errors='ignore',
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        stdin=subprocess.DEVNULL,
-        creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0,
-        cwd=cwd,
-    )
-    while True:
-        try:
-            stdout, stderr = proc.communicate(timeout=0.1)
-            return proc.returncode, stdout, stderr, False
-        except subprocess.TimeoutExpired:
-            if app_cfg.exit_soft or Path(IPC_STATUS_FILE).exists():
-                proc.kill()
-                proc.communicate()
-                return 0, "", "", True
-
-
-def _ensure_audiocpp_threads(cmd: list) -> list:
-    if "--threads" not in cmd:
-        cmd.extend(["--threads", str(os.cpu_count() or 4)])
-    return cmd
-
-
-# No retry for failures. When the acceleration fails due to the audio.cpp and Vulkan versions on Windows, fallback to CPU still has a high probability of failure
-def exec_audiocpp(cmd):
-    from videotrans.util.gpus import get_audiocpp_backend_args
-    cmd = list(cmd)
-    for i in range(len(cmd) - 1):
-        if cmd[i] == "--backend" and cmd[i + 1] == "best":
-            backend_args = get_audiocpp_backend_args()
-            cmd[i : i + 2] = backend_args
-            break
-    _ensure_audiocpp_threads(cmd)
-    logger.debug(f'audio.cpp start: {cmd=}')
-    rc, stdout, stderr, aborted = _run_audiocpp_proc(cmd)
-    if aborted:
-        return True
-
-    if rc != 0:
-        logger.error(f'audio.cpp 执行失败:{stdout=},{stderr=},{cmd=}')
-        if "Access is denied" in f"{stdout}{stderr}" or "could not open" in f"{stdout}{stderr}":
-            raise RuntimeError('audio.cpp '+tr('Insufficient permissions'))
-        if "mem_buffer" in f"{stdout}{stderr}":
-            raise RuntimeError(tr('OOMerror'))
-
-        if sys.platform=='win32' and "vulkan" in cmd and not stderr:
-            raise RuntimeError(tr("The native Vulkan may be disabled or unavailable. Please disable hardware acceleration and try again"))
-        raise RuntimeError(
-            f'proc.returncode={rc},{stderr=}\n{stdout=}\n{cmd=}'
-        )
-    return True

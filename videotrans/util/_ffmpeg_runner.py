@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
 import os
+import platform
 import re
 import subprocess
 import sys
@@ -15,7 +16,7 @@ from videotrans.configure.config import ROOT_DIR, tr, app_cfg, settings, logger
 # encode. Blocking these closes the SSRF path while still allowing the
 # field's intended use: encoder-tuning flags like "-bf 7 -b_ref_mode middle".
 _FFMPEG_CMD_FORBIDDEN_FLAGS = {"-i"}
-
+_os=platform.system()
 
 def _reject_unsafe_ffmpeg_cmd(custom_params):
     for token in custom_params:
@@ -71,7 +72,7 @@ def runffmpeg(arg, *, noextname=None, force_cpu=True, cmd_dir=None):
             errors='replace',
             check=True,
             text=True,
-            creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0,
+            creationflags=subprocess.CREATE_NO_WINDOW if _os == 'Windows' else 0,
             cwd=cmd_dir
         )
         if noextname:
@@ -88,7 +89,7 @@ def runffmpeg(arg, *, noextname=None, force_cpu=True, cmd_dir=None):
         err = extract_concise_error(e.stderr,e.stdout)
         if noextname:
             app_cfg.queue_novice[noextname] = f"error:{err}"
-        if sys.platform == 'win32' and 'No such file or directory' in str(e):
+        if _os == 'Windows' and 'No such file or directory' in str(e):
             _err = get_filepath_from_cmd(cmd)
             err = _err or err
         from videotrans.configure.excepts import FFmpegError

@@ -6,10 +6,11 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 import os
 
-from videotrans.configure.config import tr, ROOT_DIR, settings, logger
-from videotrans.configure.constants import PUNC_RESTORE_MS, PUNC_RESTORE_HF
+from videotrans.configure.config import tr, ROOT_DIR, settings, logger, CPU_NUMS
+from videotrans.configure.constants import PUNC_RESTORE_HF
 from videotrans.configure.excepts import SpeechToTextError
 from videotrans.recognition import run as run_recogn,  FASTER_WHISPER
+from videotrans.util.gpus import whisper_device
 from videotrans.util.help_ffmpeg import conver_to_16k, runffmpeg, cut_from_audio
 from videotrans.util.help_misc import vail_file, is_connect_hf
 from videotrans.util.help_srt import get_subtitle_from_srt, delete_punc
@@ -51,8 +52,13 @@ class RecognMixin:
                     "model_name":settings.get('noise_model')
                 }
                 try:
+                    if kw.get('model_name')=='zipenhancer':
+                        from videotrans.util.help_audiocpp import download_audiocpp_check
+                        from videotrans.util.gpus import cpp_device
+                        download_audiocpp_check(callback=self._process_callback)
+                        kw['device_name']=cpp_device(is_cuda=self.cfg.is_cuda)
                     from videotrans.process.prepare_audio import remove_noise
-                    _rs = self._new_process(callback=remove_noise, title=title, is_cuda=self.cfg.is_cuda, kwargs=kw)
+                    _rs = self._new_process(callback=remove_noise, title=title,  kwargs=kw)
                     if _rs:
                         self.clone_ref = _remove_noise_wav
                         self.cfg.source_wav = _remove_noise_wav
@@ -86,14 +92,14 @@ class RecognMixin:
         # 恢复标点
         if self.cfg.fix_punc==1:
             try:
-                down_file_from_hf(f'{ROOT_DIR}/models/puntc', PUNC_RESTORE_MS if not is_connect_hf() else PUNC_RESTORE_HF, callback=self._process_callback)
+                down_file_from_hf(f'{ROOT_DIR}/models/puntc', PUNC_RESTORE_HF, callback=self._process_callback)
                 from videotrans.process.prepare_audio import fix_punc
                 text_dict = {f'{it["line"]}': re.sub(r'[,.?!，。？！]', ' ', it["text"]) for it in self.source_srt_list}
                 text_dict_file=f'{self.cfg.cache_folder}/text_dict_file_{time.time()}.json'
                 Path(text_dict_file).write_text(json.dumps(text_dict),encoding="utf-8")
                 kw = {"text_dict_file": text_dict_file, "is_cuda": self.cfg.is_cuda}
-                _rs = self._new_process(callback=fix_punc, title=tr("Restoring punct"), is_cuda=self.cfg.is_cuda,
-                                        kwargs=kw)
+                kw['device_name']=whisper_device(is_cuda=self.cfg.is_cuda)
+                _rs = self._new_process(callback=fix_punc, title=tr("Restoring punct"),  kwargs=kw)
                 if _rs:
                     text_dict_obj=json.loads(Path(text_dict_file).read_text(encoding='utf-8'))
                     for it in self.source_srt_list:
@@ -230,7 +236,7 @@ class RecognMixin:
                 logger.exception(f'裁切参考音频失败:{it=},{e}', exc_info=True)
 
         all_task = []
-        with ThreadPoolExecutor(max_workers=min(8, len(self.queue_tts), os.cpu_count())) as pool:
+        with ThreadPoolExecutor(max_workers=min(8, len(self.queue_tts), CPU_NUMS)) as pool:
             for item in self.queue_tts:
                 if item.get('ref_wav'):
                     all_task.append(pool.submit(_cutaudio_from_vocal, item))

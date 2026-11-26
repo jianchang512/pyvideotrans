@@ -1,7 +1,8 @@
 import multiprocessing, os
 import time
 
-from videotrans.configure.config import app_cfg, settings, logger
+from videotrans.configure.config import app_cfg, settings, logger, CPU_NUMS
+
 
 def pool_init_worker():
     import sys
@@ -96,13 +97,12 @@ class GlobalProcessManager:
 
     @classmethod
     def get_gpu_process_nums(cls):
-        cpu_count = max(int(os.cpu_count()),1)
         try:
             process_max_gpu = max( int(float(settings.get('process_max_gpu', 0))) ,1)
         except (TypeError, ValueError):
             process_max_gpu = 1
 
-        return int(min(process_max_gpu, 8, cpu_count))
+        return int(min(process_max_gpu, 8, CPU_NUMS))
 
 
     @classmethod

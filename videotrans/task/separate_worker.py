@@ -24,6 +24,17 @@ class SeparateWorker(QThread):
         self.instr_file=None
         self.error=None
 
+    def _process_callback(self,data):
+        if isinstance(data, str):
+            return self.finish_event.emit(f"logs:{tr('Downloading please wait')} {data}")
+
+        if not isinstance(data, dict):return
+
+        if data.get("type") == "file":
+            percent = data.get("percent")
+            return self.finish_event.emit(f"logs: {tr('Downloading please wait')} {data.get('filename')} {percent:.2f}%")
+        return self.finish_event.emit(f"logs: {tr('Downloading please wait')} {data.get('current')}/{data.get('total')} files")
+
     def run(self):
         try:
             p=Path(self.file)
@@ -49,6 +60,11 @@ class SeparateWorker(QThread):
                 self.file = newfile
             tools.set_process(text='start separate...',uuid=self.uuid)
             kw={"input_file":self.file,"vocal_file":self.vocal,"instr_file":self.instr_file,"uvr_models":settings.get('uvr_models')}
+            if kw["uvr_models"] in ['mel_band_roformer','bs_roformer']:
+                from videotrans.util.help_audiocpp import download_audiocpp_check
+                from videotrans.util.gpus import cpp_device
+                download_audiocpp_check(callback=self._process_callback)
+                kw['device_name']=cpp_device(is_cuda=True)
             future=GlobalProcessManager.submit_task_cpu(
                         vocal_bgm,
                         **kw

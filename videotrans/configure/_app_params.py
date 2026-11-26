@@ -70,7 +70,7 @@ class AppParams:
             "rephrase": False,# LLM 纠错
             "clear_cache": True, # 是否清理已生成
 
-            "is_cuda": False,#默认不启用CUDA加速
+            "is_cuda": True,#默认不启用CUDA加速
 
             "is_separate": False,# 默认不分离人声背景声
             "embed_bgm": True,# 默认选中 重新嵌入背景声
@@ -91,8 +91,6 @@ class AppParams:
             "tts_type": 0,# 默认 edge-tts
 
             "model_name": "large-v3-turbo",#默认语音识别模型
-
-
             "voice_autorate": True,# 默认选中配音加速
             "video_autorate": False,# 默认不选视频慢速
             "align_sub_audio": True,#默认选中字幕对齐
@@ -101,13 +99,11 @@ class AppParams:
 
             "f5tts_role": "zh_female_nverguo.wav#你说四大皆空，却为何，紧闭双眼，若你睁开眼睛看看我，我不相信你，两眼空空。\nzh_female_cosy.wav#希望你以后，能够做的比我还好哟！\nzh_male_bj.wav#说起咱北京的烤鸭啊，那可真是外焦里嫩、色泽金黄，一口咬下去满嘴流油！\nzh_female_cn.wav#大家好呀，今天跟你们分享一下我的日常护肤小习惯，其实护肤不需要太复杂，清洁补水最重要。\nzh_female_tw.wav#台湾有许多隐藏版的小吃店，他们可能不起眼，但食物却十分美味，下次不妨多留意身边这样的小店吧！\nen_female_1.wav#Genes of intracellular calcium metabolism and blood pressure control in primary hypertension.\nen_female_2.wav#Diamond develops and manufactures its own coils.",
 
-
-
             # 语音转录面板参数
             "stt_source_language": 0,
             "stt_recogn_type": 0,
             "stt_model_name": "large-v3-turbo",
-            "stt_cuda": False,
+            "stt_cuda": True,
             "stt_remove_noise": False,
             "stt_enable_diariz": False,
             "stt_spk_insert": True,
@@ -132,7 +128,6 @@ class AppParams:
             "dubb_hecheng_rate": 0,
             "dubb_pitch_rate": 0,
             "dubb_volume_rate": 0
-
         }
         from ._default_params import channel_default_params
         fix_params.update(channel_default_params())

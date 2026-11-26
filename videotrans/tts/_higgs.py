@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 
 from videotrans.configure._i18n import tr
-from videotrans.configure.config import logger,ROOT_DIR,app_cfg,TEMP_DIR
+from videotrans.configure.config import logger, ROOT_DIR, app_cfg, TEMP_DIR, CPU_NUMS
+from videotrans.util.gpus import transformers_device
 from videotrans.util.help_misc import vail_file, is_connect_hf
 from videotrans.tts._base import BaseTTS
 from pathlib import Path
@@ -35,7 +36,9 @@ class HiggsVoice(BaseTTS):
         queue_tts_file = f'{TEMP_DIR}/{self.uuid}/higgs-audio-v2-{time.time()}.json'
         Path(queue_tts_file).write_text(json.dumps(self.queue_tts),encoding='utf-8')
         title="higgs-audio-TTS dubbing..."
+        device=transformers_device(is_cuda=self.is_cuda)
         kwargs = {
+            "device_name":device,
             "queue_tts_file":queue_tts_file,
             "logs_file": logs_file,
             "is_cuda": self.is_cuda,
@@ -43,13 +46,13 @@ class HiggsVoice(BaseTTS):
             "is_redubb":self.is_redubb
         }
         from videotrans.process.higgs_tts import higgs_fun
-        self._new_process(callback=higgs_fun,title=title,is_cuda=self.is_cuda,kwargs=kwargs)
+        self._new_process(callback=higgs_fun,title=title,kwargs=kwargs)
         if self.is_redubb:return
 
         self.signal(text=tr('Standardized dubbing segment processing'))
         all_task = []
 
-        with ThreadPoolExecutor(max_workers=min(4,len(self.queue_tts),os.cpu_count())) as pool:
+        with ThreadPoolExecutor(max_workers=min(4,len(self.queue_tts),CPU_NUMS)) as pool:
             for item in self.queue_tts:
                 if vail_file(item['filename']):continue
                 filename=item.get('filename','')+"-24k.wav"

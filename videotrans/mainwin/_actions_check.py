@@ -1,3 +1,4 @@
+import platform
 import sys,re
 
 from pathlib import Path
@@ -106,7 +107,7 @@ class WinActionCheckMixin:
         return True
 
     def check_name_length(self):
-        if sys.platform != 'win32':
+        if platform.system() != 'Windows':
             return True
         from PySide6.QtWidgets import QMessageBox
         for it in self.queue_mp4:
@@ -213,17 +214,12 @@ class WinActionCheckMixin:
 
         self.cfg['rephrase'] = self.main.rephrase.isChecked()
         self.cfg['is_cuda'] = self.main.is_cuda.isChecked()
-        if self.cfg['is_cuda']:
-            settings['device_name'] = self.main.device_combo.itemData(self.main.device_combo.currentIndex())
 
         self.cfg['remove_silent_mid'] = False
         self.cfg['align_sub_audio'] = True
         if not self.cfg['voice_autorate'] and not self.cfg['video_autorate']:
             self.cfg['remove_silent_mid'] = self.main.remove_silent_mid.isChecked()
             self.cfg['align_sub_audio'] = self.main.align_sub_audio.isChecked()
-        if self.cuda_isok() is not True:
-            self.main.startbtn.setDisabled(False)
-            return
 
         if self.main.app_mode == 'biaozhun' and not self.cfg.get('target_language_code') and self.cfg['subtitle_type'] > 0:
             self.main.startbtn.setDisabled(False)

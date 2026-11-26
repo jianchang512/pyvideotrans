@@ -11,63 +11,66 @@ from videotrans.configure._i18n import tr
 # 内置渠道
 FASTER_WHISPER = 0
 OPENAI_WHISPER = 1
-QWENASR = 2
-FUNASR_CN = 3
-NEMOTRON_ASR = 4
-FIREREDASR = 5
-DOLPHIN = 6
-Omnilingual = 7
-HUGGINGFACE_ASR = 8
-MOSS_DIARIZE = 9
-VIBEVOICE_ASR = 10
-AUDIOCPP_API= 11
-Whisper_CPP = 12
+AUDIOCPP_API= 2
+
+QWENASR = 3
+FUNASR_CN = 4
+NEMOTRON_ASR = 5
+# cpu
+FIREREDASR = 6
+DOLPHIN = 7
+Omnilingual = 8
+#
+HUGGINGFACE_ASR = 9
+MOSS_DIARIZE = 10
+VIBEVOICE_ASR = 11
+
+
 
 # 在线API
-DEEPSEEK_API = 13
-OPENAI_API = 14
-QWEN3ASR = 15
-XIAOMIASR = 16
-ZIJIE_RECOGN_MODEL = 17
-ZHIPUAI_API = 18
-GEMINI_SPEECH = 19
+DEEPSEEK_API = 12
+OPENAI_API = 13
+QWEN3ASR = 14
+XIAOMIASR = 15
+ZIJIE_RECOGN_MODEL = 16
+ZHIPUAI_API = 17
+GEMINI_SPEECH = 18
 
 # 本地API
+Whisper_CPP = 19
 Faster_Whisper_XXL = 20
 WHISPERX_API = 21
 PARAKEET = 22
+STT_API = 23
 
 # 在线API
-AI_302 = 23
-ElevenLabs = 24
-GOOGLE_SPEECH = 25
-Deepgram = 26
-CAMB_ASR = 27
-STT_API = 28
-# .net
-WHISPER_NET = 29
+AI_302 = 24
+ElevenLabs = 25
+GOOGLE_SPEECH = 26
+Deepgram = 27
 
 # 自定义API
-CUSTOM_API = 30
+CUSTOM_API = 28
 
 # 在线API
-SILICONFLOW_API = 31
-OPENROUTER_API = 32
-MINIMAX_API = 33
-FISHAUDIO_API = 34
-AUDEXUM_API = 35
+SILICONFLOW_API = 29
+OPENROUTER_API = 30
+MINIMAX_API = 31
+FISHAUDIO_API = 32
+CAMB_ASR = 33
+AUDEXUM_API = 34
 
 # 允许切换不同模型的渠道
 ALLOW_CHANGE_MODEL = [
     FASTER_WHISPER, Faster_Whisper_XXL, Whisper_CPP,
     OPENAI_WHISPER, FUNASR_CN, Deepgram,
     WHISPERX_API, HUGGINGFACE_ASR, QWENASR,
-    WHISPER_NET, QWEN3ASR, SILICONFLOW_API, OPENROUTER_API, MINIMAX_API, GEMINI_SPEECH, ElevenLabs, CAMB_ASR,
+     QWEN3ASR, SILICONFLOW_API, OPENROUTER_API, MINIMAX_API, GEMINI_SPEECH, ElevenLabs, CAMB_ASR,
     OPENAI_API, STT_API, XIAOMIASR,AUDIOCPP_API]
 
 # 允许所有语言，无需语言支持检测
 ALLOW_ALL_LANGUAGES = [FASTER_WHISPER, OPENAI_WHISPER, WHISPERX_API, Faster_Whisper_XXL, Whisper_CPP, OPENAI_API,
-                       AI_302, GEMINI_SPEECH, WHISPER_NET, GOOGLE_SPEECH, AUDEXUM_API,FISHAUDIO_API]
+                       AI_302, GEMINI_SPEECH,  GOOGLE_SPEECH, AUDEXUM_API,FISHAUDIO_API]
 
 # 渠道id对应的设置窗口和sk键名,
 # key_name: 存储 SK 或 api url的键，通过 app_cfg.params 调用，如果不存在该值，在使用时报错未填写
@@ -78,6 +81,7 @@ ID_NAME_DICT = {
                                     imp="._whisper"),
     OPENAI_WHISPER: ChannelProvider(f"openai-whisper({tr('Built-in')})",
                                     imp="._whisper"),
+    AUDIOCPP_API: ChannelProvider(f"Audio.cpp({tr('Built-in')})", imp="._audiocpp"),
     QWENASR: ChannelProvider(f"Qwen-ASR({tr('Built-in')})",
                              imp="._qwenasrlocal"),
     FUNASR_CN: ChannelProvider(tr("FunASR-Chinese") + f"({tr('Built-in')})",
@@ -96,9 +100,8 @@ ID_NAME_DICT = {
                                   imp="._moss"),
     VIBEVOICE_ASR: ChannelProvider(f'{tr("VibeVoice-ASR")}({tr("Built-in")})',
                                    imp="._vibeasr"),
-    AUDIOCPP_API: ChannelProvider(f"Audio.cpp({tr('Local')})", imp="._audiocpp"),
-    Whisper_CPP: ChannelProvider(f"Whisper.cpp({tr('Built-in')})",
-                                 imp="._cpp"),
+
+
 
     DEEPSEEK_API: ChannelProvider("DeepSeek",
                                 key_name="deepseek_key",
@@ -129,6 +132,8 @@ ID_NAME_DICT = {
                                    win="gemini",
                                    imp="._gemini"),
 
+    Whisper_CPP: ChannelProvider(f"Whisper.cpp({tr('Built-in')})",
+                                 imp="._cpp"),
     Faster_Whisper_XXL: ChannelProvider("Faster-Whisper-XXL.exe",
                                         imp="._xxl"),
     WHISPERX_API: ChannelProvider(f"WhisperX({tr('Local')}API)",
@@ -137,7 +142,10 @@ ID_NAME_DICT = {
                               key_name="parakeet_api",
                               win="parakeet",
                               imp="._parakeet"),
-
+    STT_API: ChannelProvider(f"STT({tr('Local')}API)",
+                             key_name="stt_url",
+                             win="sttapi",
+                             imp="._sttapi"),
 
     AI_302: ChannelProvider("302.ai",
                             key_name="ai302_key",
@@ -153,16 +161,8 @@ ID_NAME_DICT = {
                               key_name="deepgram_key",
                               win="deepgram",
                               imp="._deepgram"),
-    CAMB_ASR: ChannelProvider("CAMB.ai",
-                              key_name="camb_api_key",
-                              win="camb",
-                              imp="._camb"),
-    STT_API: ChannelProvider(f"STT({tr('Local')}API)",
-                             key_name="stt_url",
-                             win="sttapi",
-                             imp="._sttapi"),
-    WHISPER_NET: ChannelProvider("Whisper.NET",
-                                 imp="._whispernet"),
+
+
     CUSTOM_API: ChannelProvider(tr("Custom API"),
                                 key_name="recognapi_url",
                                 win="recognapi",
@@ -183,6 +183,10 @@ ID_NAME_DICT = {
                                  key_name="fishaudio_key",
                                  win="fishaudio",
                                  imp="._fishaudio"),
+    CAMB_ASR: ChannelProvider("CAMB.ai",
+                              key_name="camb_api_key",
+                              win="camb",
+                              imp="._camb"),
     AUDEXUM_API: ChannelProvider("Audexum.com",
                                  key_name="audexum_key",
                                  win="audexum",

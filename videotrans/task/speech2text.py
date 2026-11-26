@@ -10,12 +10,12 @@ from typing import List
 from videotrans.configure import constants
 from videotrans.configure.config import ROOT_DIR, tr, settings, logger
 from videotrans.configure import config
-from videotrans.configure.constants import PUNC_RESTORE_MS, PUNC_RESTORE_HF
+from videotrans.configure.constants import PUNC_RESTORE_HF
 from videotrans.recognition import run
 from videotrans.task._base import BaseTask
 from videotrans.task.taskcfg import TaskCfgSTT
 from videotrans.translator import LLM_CONCERT_DICT
-from videotrans.util.help_misc import is_connect_hf
+from videotrans.util.gpus import whisper_device
 
 """
 对应 语音转录 面板
@@ -131,7 +131,12 @@ class SpeechToText(BaseTask):
                     "is_cuda": self.cfg.is_cuda,
                     "model_name": settings.get('noise_model')
                 }
-                _rs = self._new_process(callback=remove_noise, title=title, is_cuda=self.cfg.is_cuda, kwargs=kw)
+                if kw.get('model_name')=='zipenhancer':
+                    from videotrans.util.help_audiocpp import download_audiocpp_check
+                    from videotrans.util.gpus import cpp_device
+                    download_audiocpp_check(callback=self._process_callback)
+                    kw['device_name']=cpp_device(is_cuda=self.cfg.is_cuda)
+                _rs = self._new_process(callback=remove_noise, title=title,  kwargs=kw)
                 if _rs:
                     self.cfg.shibie_audio = _noise_wav
                 self.signal(text='remove noise end')
@@ -159,14 +164,13 @@ class SpeechToText(BaseTask):
         if self.cfg.fix_punc == 1:
             try:
                 from videotrans.process.prepare_audio import fix_punc
-                down_file_from_hf(f'{ROOT_DIR}/models/puntc',
-                                  PUNC_RESTORE_MS if not is_connect_hf() else PUNC_RESTORE_HF,
-                                  callback=self._process_callback)
+                down_file_from_hf(f'{ROOT_DIR}/models/puntc',PUNC_RESTORE_HF,callback=self._process_callback)
                 text_dict = {f'{it["line"]}': re.sub(r'[,.?!，。？！]', ' ', it["text"]) for it in self.source_srt_list}
                 # 序列化后传递文件路径
                 text_dict_file = f'{self.cfg.cache_folder}/text_dict_file_{time.time()}.json'
                 Path(text_dict_file).write_text(json.dumps(text_dict), encoding="utf-8")
                 kw = {"text_dict_file": text_dict_file, "is_cuda": self.cfg.is_cuda}
+                kw['device_name']=whisper_device(is_cuda=self.cfg.is_cuda)
                 _rs = self._new_process(callback=fix_punc, title=tr("Restoring punct"), kwargs=kw)
                 if _rs:
                     text_dict_obj = json.loads(Path(text_dict_file).read_text(encoding='utf-8'))

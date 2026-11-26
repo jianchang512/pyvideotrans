@@ -35,7 +35,7 @@ def higgs_fun(
         repo,
         trust_remote_code=True,
         quantization_config=quant,
-        device_map=kw.get('device_name','auto'),
+        device_map=kw.get("device_name"),
         dtype='auto', 
     ).eval()
 

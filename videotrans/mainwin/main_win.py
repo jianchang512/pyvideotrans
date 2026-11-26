@@ -1,8 +1,9 @@
+import platform
 from pathlib import Path
 import asyncio
-import sys
 import os
-if sys.platform == "win32":
+_os=platform.system()
+if _os == "Windows":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 from PySide6.QtCore import QEvent, QTimer
 from PySide6.QtGui import QIcon
@@ -42,7 +43,7 @@ class MainWindow(BindSignalsMixin, LifecycleMixin, QMainWindow, Ui_MainWindow):
             "biaozhun": self.action_biaozhun,
             "tiqu": self.action_tiquzimu
         }
-        from videotrans.util.checkgpu import AiLoaderThread
+        from videotrans.util.gpus import AiLoaderThread
         s = AiLoaderThread(self)
         s.gpu_io.connect(self._start_workers)
         self.startbtn.setDisabled(True)
@@ -153,7 +154,7 @@ class MainWindow(BindSignalsMixin, LifecycleMixin, QMainWindow, Ui_MainWindow):
         _rolelist = role_menu(_tts_type, _langcode)
         self.voice_role.addItems(_rolelist)
         self.current_rolelist = _rolelist
-        logger.debug(f'Version: {VERSION}, Frozen：{config.IS_FROZEN}, OS: {sys.platform}\n上次缓存的角色:{_role},字幕嵌入类型:{_subtitle_type},发音语言:{_source_language},目标语言:{_target_language}，目标语言代码:{_langcode},模型:{_model_name},TTS渠道[{_tts_type}]')
+        logger.debug(f'Version: {VERSION}, Frozen：{config.IS_FROZEN}, OS: {_os}\n上次缓存的角色:{_role},字幕嵌入类型:{_subtitle_type},发音语言:{_source_language},目标语言:{_target_language}，目标语言代码:{_langcode},模型:{_model_name},TTS渠道[{_tts_type}]')
         if _langcode:
             self.target_language.setCurrentText(_target_language)
             if _role in _rolelist:
@@ -181,8 +182,6 @@ class MainWindow(BindSignalsMixin, LifecycleMixin, QMainWindow, Ui_MainWindow):
 
     def _start_workers(self, status):
         if status == 'end':
-            from videotrans.winform import set_device_list
-            set_device_list(self,'is_cuda')
             from videotrans.task.job import start_thread
             self.worker_threads = start_thread()
             self.startbtn.setDisabled(False)

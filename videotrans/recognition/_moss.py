@@ -10,6 +10,7 @@ from videotrans.configure import config
 
 from videotrans.recognition._base import BaseRecogn
 from videotrans.task.taskcfg import SrtItem
+from videotrans.util.gpus import transformers_device
 from videotrans.util.help_down import check_and_down_ms, check_and_down_hf
 from videotrans.util.help_misc import is_connect_hf
 
@@ -42,7 +43,7 @@ class MossRecogn(BaseRecogn):
         if len(AudioSegment.from_file(self.audio_file, format="wav"))>5400000:
             cut_audio_list_file = f'{config.TEMP_DIR}/{self.uuid}/cut_audio_list_{time.time()}.json'
             Path(cut_audio_list_file).write_text(json.dumps([ asdict(item) for item in self.cut_audio()]), encoding='utf-8')
-        
+        device=transformers_device(is_cuda=self.is_cuda)
         kwargs = {
             "cut_audio_list": cut_audio_list_file,
             "logs_file": logs_file,
@@ -50,9 +51,10 @@ class MossRecogn(BaseRecogn):
             "audio_file": self.audio_file,
             "cache_folder": self.cache_folder,
             "hotword":settings.get('hotwords',''),
+            "device_name":device,
             "local_dir":self.local_dir
         }
         from videotrans.process.stt_mossasr import mosstrans_asr
-        jsdata = self._new_process(callback=mosstrans_asr, title=title, is_cuda=self.is_cuda, kwargs=kwargs)
+        jsdata = self._new_process(callback=mosstrans_asr, title=title,  kwargs=kwargs)
         logger.debug(f'MOSS-Transcribe-Diarize 返回的字词时间戳数据:{jsdata=}')
         return jsdata

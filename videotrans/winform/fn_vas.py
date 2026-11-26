@@ -382,7 +382,7 @@ def openwin():
                 encoding="utf-8",
                 errors='ignore',
                 text=True,
-                creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0,
+                creationflags=subprocess.CREATE_NO_WINDOW if platform.system() == 'Windows' else 0,
                 cwd=config.TEMP_DIR
             )
             while proc.poll() is None:

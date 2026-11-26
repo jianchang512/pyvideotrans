@@ -8,10 +8,11 @@ from pathlib import Path
 from typing import List, Union
 from videotrans.configure.config import tr, app_cfg, logger, ROOT_DIR, settings
 from videotrans.configure.base import BaseCon
-from videotrans.configure.constants import BUILTINT_URL_MS, BUILTINT_URL_HF
+from videotrans.configure.constants import BUILTINT_URL_HF
 from videotrans.task.taskcfg import TaskCfgBase, SrtItem
 from videotrans.translator import LLM_CONCERT_DICT
 from videotrans.translator._runner import get_model_transobj
+from videotrans.util.gpus import whisper_device
 from videotrans.util.help_misc import is_connect_hf
 
 
@@ -173,7 +174,9 @@ class BaseTask(BaseCon):
             title = tr('Speaker classification') + f':{speaker_type}'
             subtitles_file=f'{self.cfg.cache_folder}/diariz-{time.time()}.json'
             Path(subtitles_file).write_text(json.dumps([[it['start_time'], it['end_time']] for it in self.source_srt_list]),encoding='utf-8')
+            device=whisper_device(is_cuda=self.cfg.is_cuda)
             kw = {
+                "device_name":device,
                 "input_file": self.cfg.source_wav if not shibieaudio else shibieaudio,
                 "subtitles_file": subtitles_file,
                 "speak_file":self.cfg.cache_folder + "/speaker.json",
@@ -181,7 +184,7 @@ class BaseTask(BaseCon):
                 "is_cuda": self.cfg.is_cuda
             }
             if speaker_type == 'built':
-                down_file_from_hf(f'{ROOT_DIR}/models/onnx', BUILTINT_URL_MS if not ishf else BUILTINT_URL_HF, callback=self._process_callback)
+                down_file_from_hf(f'{ROOT_DIR}/models/onnx', BUILTINT_URL_HF, callback=self._process_callback)
                 from videotrans.process.prepare_audio import built_speakers as _run_speakers
                 del kw['is_cuda']
                 kw['num_speakers'] = -1 if self.max_speakers < 1 else self.max_speakers
@@ -220,8 +223,7 @@ class BaseTask(BaseCon):
                     None,
                     hf_token)
 
-            _rs = self._new_process(callback=_run_speakers, title=title,
-                                         is_cuda=self.cfg.is_cuda and speaker_type != 'built', kwargs=kw)
+            _rs = self._new_process(callback=_run_speakers, title=title, kwargs=kw)
 
             if _rs:
                 logger.debug('分离说话人成功完成')

@@ -10,20 +10,21 @@ from videotrans.configure._i18n import tr
 
 # 免费推荐
 EDGE_TTS = 0
-
 # 本地内置
-QWEN3LOCAL_TTS = 1
-F5_TTS = 2
-OMNIVOICE_TTS = 3
-CONFUCIUS_TTS = 4
-AUDIOCPP_TTS=5
+AUDIOCPP_TTS=1
+OMNIVOICE_TTS = 2
+F5_TTS = 3
+QWEN3LOCAL_TTS = 4
+CONFUCIUS_TTS = 5
 MOSS_TTS = 6
-ZIPVOICE_TTS = 7
-PIPER_TTS = 8
-CHATTERBOX_TTS = 9
-Supertonic_TTS = 10
-VITSCNEN_TTS = 11
-HIGGS_AUDIO_TTS = 12
+CHATTERBOX_TTS = 7
+Supertonic_TTS = 8
+HIGGS_AUDIO_TTS = 9
+
+# cpu
+ZIPVOICE_TTS = 10
+PIPER_TTS = 11
+VITSCNEN_TTS = 12
 
 # 本地 API
 INDEX_TTS = 13
@@ -139,31 +140,33 @@ TTS_STYLE_PARAMS = {
 ID_NAME_DICT = {
     EDGE_TTS: ChannelProvider(tr("Edge-TTS(free)"),
                               imp="._edgetts"),
-    QWEN3LOCAL_TTS: ChannelProvider(f"Qwen3-TTS({tr('Built-in')})",
-                                    imp="._qwenttslocal"),
-    F5_TTS: ChannelProvider(f"F5-TTS({tr('Built-in')})",
-                            imp="._f5tts"),
-    OMNIVOICE_TTS: ChannelProvider(f"OmniVoice({tr('Built-in')})",
-                                   imp="._omnivoice"),
-    CONFUCIUS_TTS: ChannelProvider(f"Confucius4({tr('Built-in')})",
-                                   imp="._confuciustts"),
     AUDIOCPP_TTS: ChannelProvider(f"Audio.cpp({tr('Local')})",
                            imp="._audiocpp"),
+    OMNIVOICE_TTS: ChannelProvider(f"OmniVoice({tr('Built-in')})",
+                                   imp="._omnivoice"),
+    F5_TTS: ChannelProvider(f"F5-TTS({tr('Built-in')})",
+                            imp="._f5tts"),
+    QWEN3LOCAL_TTS: ChannelProvider(f"Qwen3-TTS({tr('Built-in')})",
+                                    imp="._qwenttslocal"),
+    CONFUCIUS_TTS: ChannelProvider(f"Confucius4({tr('Built-in')})",
+                                   imp="._confuciustts"),
     MOSS_TTS: ChannelProvider(f"MOSS-TTS-Nano({tr('Built-in')})",
                               imp="._mosstts"),
-    ZIPVOICE_TTS: ChannelProvider(f"{tr('ZipVoice')}({tr('Built-in')})",
-                                  imp="._zipvoice"),
-    PIPER_TTS: ChannelProvider(f"Piper({tr('Built-in')})",
-                               imp="._piper"),
+
     CHATTERBOX_TTS: ChannelProvider(f"ChatterBox({tr('Built-in')})",
                                     imp="._chatterbox",
                                     win="chatterbox"),
     Supertonic_TTS: ChannelProvider(f"Supertonic3({tr('Built-in')})",
                                     imp="._supertonic"),
-    VITSCNEN_TTS: ChannelProvider(f"{tr('VITS')}({tr('Built-in')})",
-                                  imp="._vits"),
     HIGGS_AUDIO_TTS: ChannelProvider(f"Higgs-audio-v3({tr('Built-in')})",
                                      imp="._higgs"),
+
+    ZIPVOICE_TTS: ChannelProvider(f"{tr('ZipVoice')}({tr('Built-in')})",
+                                  imp="._zipvoice"),
+    PIPER_TTS: ChannelProvider(f"Piper({tr('Built-in')})",
+                               imp="._piper"),
+    VITSCNEN_TTS: ChannelProvider(f"{tr('VITS')}({tr('Built-in')})",
+                                  imp="._vits"),
 
     INDEX_TTS: ChannelProvider(f"Index-TTS({tr('Local')}API)",
                                imp="._index",

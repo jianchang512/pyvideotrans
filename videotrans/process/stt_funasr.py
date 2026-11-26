@@ -4,7 +4,6 @@
 # 成功，第一个值存在需要的返回值，不需要时返回True，第二个值为None
 import json, traceback
 from pathlib import Path
-from typing import List, Tuple, Union
 from videotrans.configure.config import logger, ROOT_DIR
 
 
@@ -13,8 +12,6 @@ def funasr_mlt(
         detect_language=None,
         model_name=None,
         logs_file=None,
-        is_cuda=False,
-        device_index=0,  # gpu索引
         hotword=None,
         **kw
 ):
@@ -23,9 +20,7 @@ def funasr_mlt(
     from modelscope.pipelines import pipeline
     from modelscope.utils.constant import Tasks
 
-    device=kw.get('device_name','auto')
-    if device=='auto':
-        device = f"cuda:{device_index}" if is_cuda else 'cpu'
+    device=kw.get("device_name")
 
     msg = f'Load {model_name} running on {device}'
     _write_log(logs_file, json.dumps({"type": "logs", "text": msg}))

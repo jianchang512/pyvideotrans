@@ -1,6 +1,8 @@
 from PySide6 import QtCore, QtGui, QtWidgets
+
+from videotrans.configure._i18n import tr
 from videotrans.ui.menu_list import MENU_CFG_TRANS, MENU_CFG_TTS, MENU_CFG_STT, MENU_CFG_TOOLS, MENU_CFG_HELP, \
-    MENU_CFG_PANEL
+    MENU_CFG_PANEL, MENU_CFG_AGG
 from videotrans.util.help_misc import open_url, show_popup
 
 
@@ -70,9 +72,24 @@ def _setup_actions_and_menus(ui, MainWindow):
     }
 """)
     MainWindow.addToolBar(QtCore.Qt.LeftToolBarArea, ui.toolBar)
-    # 翻译设置
+    # 翻译设置菜单
     for obj in MENU_CFG_TRANS:
         _make_action(ui, obj,ui.menu_Key)
+
+    ui.menu_Key.addSeparator()
+
+    # "聚合平台"子菜单。
+    ui.menu_Agg = QtWidgets.QMenu(ui.menu_Key)
+    ui.menu_Agg.setObjectName("menu_Agg")
+    ui.menu_Agg.setTitle(tr("AI aggregation platform"))
+    ui.menu_Key.addMenu(ui.menu_Agg)
+    ui.menu_Agg.menuAction().setIcon(
+        ui.menu_Key.style().standardIcon(QtWidgets.QStyle.SP_ArrowRight)
+    )
+
+
+    for obj in MENU_CFG_AGG:
+        _make_action(ui, obj, ui.menu_Agg)
 
 
     for obj in MENU_CFG_TTS:
