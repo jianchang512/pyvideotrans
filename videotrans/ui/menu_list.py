@@ -30,6 +30,8 @@ MENU_CFG_AGG=[
     ("trustedrouter", 'TrustedRouter', None),
     ("openllm", 'OpenLLM', None),
     ("aigrow", 'AIGROW', None),
+    ("teamorouter", 'TeamoRouter', None),
+    ("onomeo", 'onomeo', None),
 
 ]
 MENU_CFG_TRANS = [

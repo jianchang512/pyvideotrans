@@ -380,6 +380,23 @@ _default["aigrow"] = {
     "aigrow_max_token": 16384,
 }
 
+from videotrans.configure.constants import TEAMOROUTER_MODELS
+
+_default["teamorouter"] = {
+    # teamorouter.com
+    "teamorouter_key": "",
+    "teamorouter_model": TEAMOROUTER_MODELS.split(',')[0],
+    "teamorouter_max_token": 16384,
+}
+from videotrans.configure.constants import ONOMEO_MODELS
+
+_default["onomeo"] = {
+    # onomeo.com
+    "onomeo_key": "",
+    "onomeo_model": ONOMEO_MODELS.split(',')[0],
+    "onomeo_max_token": 8192,
+}
+
 
 # todo: 根据 name 返回配置dict???
 # 返回默认值

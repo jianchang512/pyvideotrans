@@ -57,6 +57,8 @@ REQUESTY_INDEX = 36
 TRUSTEDROUTER_INDEX = 37
 OPENLLM_INDEX = 38
 AIGROW_INDEX = 39
+TEAMOROUTER_INDEX = 40
+ONOMEO_INDEX = 41
 
 # AI 翻译渠道
 AI_TRANS_CHANNELS = [
@@ -88,7 +90,9 @@ AI_TRANS_CHANNELS = [
     REQUESTY_INDEX,
     TRUSTEDROUTER_INDEX,
     OPENLLM_INDEX,
-    AIGROW_INDEX
+    AIGROW_INDEX,
+    TEAMOROUTER_INDEX,
+    ONOMEO_INDEX
 ]
 # 渠道id对应的设置窗口和sk键名,
 # key_name: 存储 SK 或 api url的键，通过 app_cfg.params 调用，如果不存在该值，在使用时报错未填写
@@ -254,6 +258,14 @@ ID_NAME_DICT = {
                                   key_name="aigrow_key",
                                   win="aigrow",
                                   imp="._aigrow"),
+    TEAMOROUTER_INDEX: ChannelProvider("TeamoRouter",
+                                       key_name="teamorouter_key",
+                                       win="teamorouter",
+                                       imp="._teamorouter"),
+    ONOMEO_INDEX: ChannelProvider("onomeo",
+                                  key_name="onomeo_key",
+                                  win="onomeo",
+                                  imp="._onomeo"),
 }
 
 # 菜单--工具/选项--高级选项-通用设置--LLM纠错所用渠道的显示数据

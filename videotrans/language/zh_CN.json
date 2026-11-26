@@ -1025,6 +1025,7 @@
   "OpenAI-compatible gateway, one key for DeepSeek, Qwen, GPT, Claude and Gemini models": "兼容 OpenAI 的网关，一个密钥即可调用 DeepSeek、Qwen、GPT、Claude 和 Gemini 模型",
   "OpenAI-compatible endpoint for your API keys, subscription accounts and local models. Use the cloud URL with a key, or a local daemon URL without one": "兼容 OpenAI 的端点，可接入你的 API Key、订阅账号和本地模型。使用云端地址时需要填写密钥，使用本地守护进程地址时无需密钥",
   "OpenAI-compatible API, one prepaid key for genuine Claude, GPT, Gemini, Grok, Qwen and Kimi models": "兼容 OpenAI 的 API，一个预付费密钥即可调用正版 Claude、GPT、Gemini、Grok、Qwen 和 Kimi 模型",
+  "OpenAI-compatible API, one key for Claude, GPT, Gemini, DeepSeek and free open models": "兼容 OpenAI 的 API，一个密钥即可调用 Claude、GPT、Gemini、DeepSeek 和免费开源模型",
   "Get API Key": "获取 API Key",
 
     "common_head": "通用设置",

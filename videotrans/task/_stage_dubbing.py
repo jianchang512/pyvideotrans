@@ -7,7 +7,7 @@ from pathlib import Path
 from videotrans.configure._paths import DUBBING_CACHE
 from videotrans.configure.config import tr, app_cfg, settings, params, logger
 from videotrans.configure.excepts import DubbingSrtError
-from videotrans.tts import run as run_tts, SUPPORT_CLONE, AUDIOCPP_TTS, TTS_MODEL_PARAMS
+from videotrans.tts import run as run_tts, SUPPORT_CLONE, AUDIOCPP_TTS, TTS_MODEL_PARAMS, TTS_STYLE_PARAMS
 from videotrans.util.help_misc import get_md5, vail_file
 from videotrans.util.help_srt import get_subtitle_from_srt, delete_punc
 
@@ -61,6 +61,9 @@ class DubbingMixin:
         _model_key = TTS_MODEL_PARAMS.get(self.cfg.tts_type)
         if _model_key and not (self.cfg.tts_type == AUDIOCPP_TTS and tts_model):
             tts_model = params.get(_model_key)
+        # 提示词、情绪等设置也会改变配音效果，缓存键需包含渠道配音时读取的这些设置，否则修改后仍会用上之前的配音
+        # 没有此类设置的渠道缓存键不变，已有的缓存仍可使用
+        _style = ''.join(f"-{params.get(k)}" for k in TTS_STYLE_PARAMS.get(self.cfg.tts_type, []))
         for i, it in enumerate(subs):
             if it['end_time'] < it['start_time'] or not it['text'].strip():
                 continue
@@ -73,7 +76,7 @@ class DubbingMixin:
             # 没有模型设置的渠道缓存键不变，已有的缓存仍可使用
             _model = f"-{tts_model}" if tts_model else ''
 
-            _key = get_md5(f"{self.cfg.target_language_code}-{it['text']}-{voice}-{rate}-{self.cfg.volume}-{self.cfg.pitch}-{self.cfg.tts_type}-{settings.get('remove_dubb_silence', True)}-{settings.get('remove_dubb_all_silence', True)}-{settings.get('remove_dubb_silence_level', 'default')}-{settings.get('dubbing_normalize',False)}{_clone}{_model}")
+            _key = get_md5(f"{self.cfg.target_language_code}-{it['text']}-{voice}-{rate}-{self.cfg.volume}-{self.cfg.pitch}-{self.cfg.tts_type}-{settings.get('remove_dubb_silence', True)}-{settings.get('remove_dubb_all_silence', True)}-{settings.get('remove_dubb_silence_level', 'default')}-{settings.get('dubbing_normalize',False)}{_clone}{_model}{_style}")
 
             tmp_dict = {
                 "text": it['text'],
