@@ -42,7 +42,7 @@ models
 dev
 chatterbox
 audio_cpp
-audio_cpp_vulkan
+audio_cpp*
 llama_cpp
 
 .venv
