@@ -9,6 +9,7 @@
 
 import json
 import platform
+import re
 import shutil
 import subprocess
 from typing import Dict, List, Any
@@ -33,37 +34,31 @@ class AiLoaderThread(QThread):
             self.gpu_io.emit(f'{e},{err}')
 
 
-def get_vulkan_devices() -> List[Dict[str, Any]]:
+def get_vulkan_devices() -> Dict[str, str]:
     """Return list of available non-CPU Vulkan compute devices in ggml_vulkan order."""
     if _os=='Darwin' or not shutil.which("vulkaninfo"):
         logger.warning('无可用 vulkan 设备')
         return []
-    devices: List[Dict[str, Any]] = []
+    devices: Dict[str, str] = {}
     try:
         proc = subprocess.run(
             ["vulkaninfo", "--summary"],
             capture_output=True,
             text=True,
-            timeout=10,
+            timeout=20,
             encoding="utf-8",
             errors="ignore",
         )
         out = proc.stdout or ""
         idx = 0
-
-        for block in out.split("GPU"):
+        for block in re.split(r"\bGPU\d*?:",out):
             if "deviceType" in block and "PHYSICAL_DEVICE_TYPE_CPU" not in block:
-                name = f"Vulkan{idx}"
+                name = f"Vulkan:{idx}"
                 for line in block.splitlines():
                     if "deviceName" in line and "=" in line:
                         name = line.split("=", 1)[1].strip()
                         break
-                devices.append({
-                    "backend": "vulkan",
-                    "index": idx,
-                    "name": f"Vulkan{idx}",
-                    "description": name,
-                })
+                devices[f'{name}:{idx}']=f'vulkan:{idx}'
                 idx += 1
         logger.debug(f'检测到 Vulkan 可用信息:{devices}')
     except Exception as e:
@@ -75,13 +70,15 @@ def get_vulkan_devices() -> List[Dict[str, Any]]:
 def check_hardware_availability():
     app_cfg.NVIDIA_CUDA_NUMS=0
     app_cfg.MPS_NUMS=0
+    devices={config.tr("auto"):"auto"}
+    import torch
     if _os == 'Darwin':
         app_cfg.AUDIOCPP_REAL_CUDA=False
         app_cfg.AUDIOCPP_REAL_VULKAN=False
         try:
-            import torch
-            app_cfg.MPS_NUMS = 1 if torch.backends.mps.is_built() and torch.backends.mps.is_available() else 0
-            logger.debug(f'Darwin: {app_cfg.MPS_NUMS=}')
+            if torch.backends.mps.is_built() and torch.backends.mps.is_available():
+                app_cfg.MPS_NUMS = 1
+                devices["Metal"]="mps"
         except Exception:
             pass
     else:
@@ -99,30 +96,28 @@ def check_hardware_availability():
 
         try:
             # 再判断是否torch中可用
-            if app_cfg.NVIDIA_COUNT>0:
-                import torch
-                app_cfg.NVIDIA_CUDA_NUMS=torch.cuda.device_count() if torch.cuda.is_available() else 0
+            if app_cfg.NVIDIA_COUNT>0 and torch.cuda.is_available():
+                app_cfg.NVIDIA_CUDA_NUMS= torch.cuda.device_count()
+                for i in range(app_cfg.NVIDIA_CUDA_NUMS):
+                    try:
+                        _info=torch.cuda.get_device_properties(i)
+                        _name=f'{_info.name}:0',f'{_info.total_memory/1024/1024/1024:.2f}G'
+                        devices[_name]=f'cuda:{i}'
+                    except Exception:
+                        devices[f'cuda:{i}']=f'cuda:{i}'
             logger.debug(f'检测到可用 NVIDIA CUDA 核: {app_cfg.NVIDIA_CUDA_NUMS}')
         except Exception:
             pass
 
         app_cfg.VULKAN_LIST=get_vulkan_devices()
     # 准备硬件选择数据用于高级选项
-    devices=["auto"]
-    if config.app_cfg.NVIDIA_CUDA_NUMS>0:
-        devices.append("cuda")
-        if config.app_cfg.NVIDIA_CUDA_NUMS>1:
-            for i in range(config.app_cfg.NVIDIA_CUDA_NUMS):
-                devices.append(f"cuda:{i}")
-    if config.app_cfg.VULKAN_LIST:
-        devices.append(f"vulkan:")
-        if len(config.app_cfg.VULKAN_LIST)>1:
-            for it in config.app_cfg.VULKAN_LIST:
-                devices.append(f"vulkan:{it['index']}")
-    if config.app_cfg.MPS_NUMS:
-        devices.append("mps")
 
-    devices.append("cpu")
+
+    if app_cfg.VULKAN_LIST:
+        devices.update(app_cfg.VULKAN_LIST)
+
+
+    devices.update({"CPU":"cpu"})
     config.ACCESS_DEVICES=devices
     logger.debug(f'{config.ACCESS_DEVICES=}')
 
@@ -227,7 +222,7 @@ def exists_hard():
     return app_cfg.NVIDIA_COUNT >0 or app_cfg.NVIDIA_CUDA_NUMS > 0  or app_cfg.MPS_NUMS>0 or app_cfg.VULKAN_LIST
 
 def _format_device(device=None):
-    device=device or settings.get('device_name','auto') or 'auto'
+    device=device or config.get_select_device()
     idx=0
     prefix=device
     if ':' in device:

@@ -43,15 +43,16 @@ class Ui_setini(QtWidgets.QWidget):
         val = str(settings.get(key, ""))
         # 下拉列表 comboBox
         if self._is_comboBox(key):
-            combobox_data = self._get_comboBox(key) if key != 'device_name' else config.ACCESS_DEVICES
             tmp1 = QtWidgets.QComboBox()
-
+            combobox_data = self._get_comboBox(key) if key != 'device_name' else list(config.ACCESS_DEVICES.keys())
             tmp1.addItems(combobox_data)
-
             if key=='llm_ai_type':
                 tmp1.setCurrentIndex(int(float(val)) if re.match(r'^\d+$',val) else 0 )
             elif val in combobox_data:
                 tmp1.setCurrentText(val)
+
+
+
             tmp1.setObjectName(key)
             tmp1.setToolTip(tips_str)
             tmp.addWidget(tmp1)
@@ -155,6 +156,8 @@ class Ui_setini(QtWidgets.QWidget):
         # stretch=1 让 tab_widget 填充剩余空间，按钮固定在底部不会遮挡内容
         self.layout.addWidget(self.tab_widget, stretch=1)
 
+
+
         self.set_ok = QtWidgets.QPushButton()
         self.set_ok.setMinimumSize(QtCore.QSize(160, 40))
         self.set_ok.setObjectName("set_ok")
@@ -225,8 +228,12 @@ class Ui_setini(QtWidgets.QWidget):
         for it in self.findChildren(QtWidgets.QComboBox):
             if hasattr(it, 'objectName') and it.objectName()=='device_name':
                 it.clear()
-                it.addItems(config.ACCESS_DEVICES)
-                break
+                _com=list(config.ACCESS_DEVICES.keys())
+                _name=settings.get('device_name')
+                it.addItems(_com)
+                if _name in _com:
+                    it.setCurrentText(_name)
+                return
 
     def retranslateUi(self, setini):
         setini.setWindowTitle(tr("Options"))

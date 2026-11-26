@@ -10,7 +10,8 @@ from videotrans.configure._i18n import tr
 #   其他字符串: 弹窗
 
 # 菜单--翻译设置，每个  tuple 是一个菜单，
-# Fill in the menu data for the aggregation platform here 聚合平台的菜单数据在此填写
+# Fill in the menu data for the aggregation platform here
+# 聚合平台的菜单数据在此填写
 MENU_CFG_AGG=[
     ("siliconflow", tr("SiliconFlow"), None),
     ("openrouter", 'OpenRouter.ai', None),

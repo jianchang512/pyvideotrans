@@ -34,10 +34,18 @@ if _proxy:
 
 TEMP_DIR = f'{TEMP_ROOT}/None'
 # 高级选项中硬件选择列表
-ACCESS_DEVICES=["auto"]
+ACCESS_DEVICES={"auto":"auto","CPU":"cpu"}
 # audio.cpp 启动对象
 AUDIO_SERVER_CFG=None
 CPU_NUMS=int(os.cpu_count() or 1)
+
+def get_select_device():
+    dev=settings.get("device_name","auto") or "auto"
+    if dev in ACCESS_DEVICES:
+        return ACCESS_DEVICES[dev]
+    if dev in ACCESS_DEVICES.values():
+        return dev
+    return "auto"
 
 def init_run():
     global TEMP_DIR

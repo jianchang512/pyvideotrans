@@ -25,7 +25,7 @@ class AppCfg:
     AUDIOCPP_REAL_METAL: Union[None,bool]=None
 
     # 通过 vulkaninfo --summary 检测出的vulkan，可能存在，但未必能被 audio.cpp 使用
-    VULKAN_LIST: List = field(default_factory=list)
+    VULKAN_LIST: Dict = field(default_factory=dict)
     # vulkaninfo 可检测出vulkan，但因驱动、库文件等原因未必真实可用，True=真实可用
     AUDIOCPP_REAL_VULKAN: Union[None,bool]=None
     MAX_CPU_PROCESS: int = 1

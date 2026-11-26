@@ -130,9 +130,6 @@ def openwin():
         winobj.fanyi_targettext.clear()
         winobj.loglabel.setText('')
         is_cuda=winobj.is_cuda.isChecked()
-        # if is_cuda:
-        #     settings['device_name'] = winobj.device_combo.itemData(winobj.device_combo.currentIndex())
-
         settings['aisendsrt'] = winobj.aisendsrt.isChecked()
 
         settings.save()

@@ -1,6 +1,6 @@
 
 from videotrans.configure._languages_dict import LANG_CODE
-from videotrans.configure.config import app_cfg
+from videotrans.configure import config
 from videotrans.configure.constants import WHISPER_MODELS
 from videotrans.translator import LLM_CONCERT_DICT
 
@@ -28,7 +28,7 @@ ComboBox_Data = {
     "video_codec": ['264', '265'],
     "preset": ['ultrafast', 'superfast', 'veryfast', 'faster', 'fast', 'medium', 'slow', 'slower',
                'veryslow'],
-    "lang": list(app_cfg.SUPPORT_LANG.keys()),
+    "lang": list(config.app_cfg.SUPPORT_LANG.keys()),
     "uvr_models": [
         'mel_band_roformer',
         'bs_roformer',
@@ -44,7 +44,7 @@ ComboBox_Data = {
         'UVR-MDX-NET-Inst_3'
     ],
     "out_video_ext": ['.mp4', '.mkv'],
-    "device_name": ['auto'],
+    "device_name": config.ACCESS_DEVICES,
     "model_for_recogn2": WHISPER_MODELS.split(','),
     "remove_dubb_silence_level": ["low", "default", "max"],
     "noise_model":["dpdfnet2.onnx","dpdfnet4.onnx","dpdfnet8.onnx","zipenhancer"]

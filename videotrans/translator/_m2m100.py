@@ -3,7 +3,7 @@ from pathlib import Path
 import ctranslate2
 import sentencepiece as spm
 from dataclasses import dataclass
-from videotrans.configure.config import ROOT_DIR, logger, settings
+from videotrans.configure.config import ROOT_DIR, logger, settings, get_select_device
 from videotrans.configure.constants import M2M100_URL_HF
 from videotrans.translator._base import BaseTrans
 
@@ -23,7 +23,7 @@ class M2M100Trans(BaseTrans):
     def _download(self):
         if not Path(f'{ROOT_DIR}/models/m2m100_12b/model.bin').exists():
             down_zip(f"{ROOT_DIR}/models", M2M100_URL_HF,self._process_callback)
-        device = whisper_device(settings.get('device_name', 'auto'), is_cuda=self.is_cuda)
+        device = whisper_device(get_select_device(), is_cuda=self.is_cuda)
         self.model = ctranslate2.Translator(
             model_path=f'{ROOT_DIR}/models/m2m100_12b',
             device=device

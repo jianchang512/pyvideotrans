@@ -76,12 +76,9 @@ def _setup_actions_and_menus(ui, MainWindow):
     for obj in MENU_CFG_TRANS:
         _make_action(ui, obj,ui.menu_Key)
 
-    # TODO 在翻译设置菜单底部增加一个新菜单，鼠标移动上去显示下一级子菜单，下级菜单数据和 MENU_CFG_TRANS 类型一致
-    # 1) 与上面普通项隔开，视觉上更清晰
     ui.menu_Key.addSeparator()
 
-    # 2) 创建"聚合平台"子菜单。
-    #    QMenu.addMenu() 添加的菜单本身就是 hover 自动展开下一级的，无需额外写鼠标事件
+    # "聚合平台"子菜单。
     ui.menu_Agg = QtWidgets.QMenu(ui.menu_Key)
     ui.menu_Agg.setObjectName("menu_Agg")
     ui.menu_Agg.setTitle(tr("AI aggregation platform"))
@@ -91,8 +88,7 @@ def _setup_actions_and_menus(ui, MainWindow):
     )
 
 
-    # 3) 用与 MENU_CFG_TRANS 完全相同的三元组结构 (key, title, _inst) 填充下一级菜单
-    for obj in MENU_CFG_AGG:      # ← 换成你自己的数据源变量名即可
+    for obj in MENU_CFG_AGG:
         _make_action(ui, obj, ui.menu_Agg)
 
 
