@@ -159,7 +159,8 @@ class EnglishNormalizer:
 
         # 解析整数部分和小数部分
         dollars = int(parts[0]) if parts[0] else 0
-        cents = int(parts[1]) if len(parts) > 1 and parts[1] else 0
+        # 一位小数表示十分之一美元，右侧补零后转换为美分
+        cents = int(parts[1].ljust(2, "0")) if len(parts) > 1 and parts[1] else 0
         # 根据货币值的整数部分和小数部分，构造成对应的英文表达形式
         if dollars and cents:
             dollar_unit = "dollar" if dollars == 1 else "dollars"
@@ -187,8 +188,9 @@ class EnglishNormalizer:
         """
         This method is used to expand '.' into spoken word ' point '.
         """
-        # 将输入字符串中的点号 '.' 替换为单词 " point "
-        return m.group(1).replace(".", " point ")
+        # 将点号替换为 " point "，分隔小数位以便后续逐位转换
+        integer, fraction = m.group(1).split(".")
+        return integer + " point " + " ".join(fraction)
 
     def _expand_ordinal(self, num: str) -> str:
         """
