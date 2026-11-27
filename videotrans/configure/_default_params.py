@@ -397,6 +397,15 @@ _default["onomeo"] = {
     "onomeo_max_token": 8192,
 }
 
+from videotrans.configure.constants import LLMTR_MODELS
+
+_default["llmtr"] = {
+    # llmtr.com
+    "llmtr_key": "",
+    "llmtr_model": LLMTR_MODELS.split(',')[0],
+    "llmtr_max_token": 16384,
+}
+
 
 # todo: 根据 name 返回配置dict???
 # 返回默认值
