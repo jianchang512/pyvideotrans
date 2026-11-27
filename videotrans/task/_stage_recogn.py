@@ -37,7 +37,6 @@ class RecognMixin:
         if self.cfg.remove_noise and self.cfg.is_separate:
             logger.warning(f'已进行人声背景声分离，忽略降噪处理')
         if self.cfg.remove_noise and not self.cfg.is_separate:
-            from videotrans.util.help_down import down_file_from_hf
             _remove_noise_wav = f"{self.cfg.cache_folder}/remove_noise.wav"
             if vail_file(_remove_noise_wav):
                 self.cfg.source_wav = _remove_noise_wav
@@ -92,6 +91,8 @@ class RecognMixin:
         # 恢复标点
         if self.cfg.fix_punc==1:
             try:
+                # 需在此导入，不能只在降噪分支中导入，否则未降噪时 down_file_from_hf 未定义，恢复标点会被跳过
+                from videotrans.util.help_down import down_file_from_hf
                 down_file_from_hf(f'{ROOT_DIR}/models/puntc', PUNC_RESTORE_HF, callback=self._process_callback)
                 from videotrans.process.prepare_audio import fix_punc
                 text_dict = {f'{it["line"]}': re.sub(r'[,.?!，。？！]', ' ', it["text"]) for it in self.source_srt_list}
