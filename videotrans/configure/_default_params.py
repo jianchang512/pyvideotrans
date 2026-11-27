@@ -397,6 +397,15 @@ _default["onomeo"] = {
     "onomeo_max_token": 8192,
 }
 
+from videotrans.configure.constants import ATMOROUTER_MODELS
+
+_default["atmorouter"] = {
+    # atmorouter.dev
+    "atmorouter_key": "",
+    "atmorouter_model": ATMOROUTER_MODELS.split(',')[0],
+    "atmorouter_max_token": 8192,
+}
+
 
 # todo: 根据 name 返回配置dict???
 # 返回默认值
