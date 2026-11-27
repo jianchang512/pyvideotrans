@@ -262,6 +262,8 @@ class AppSettings:
             "backaudio_volume",
             "repetition_penalty",
             "compression_ratio_threshold",
+            "translation_wait",
+            "dubbing_wait",
         ]
         int_type = [
             "crf",
@@ -277,8 +279,6 @@ class AppSettings:
             "min_silence_duration_ms",
             "trans_thread",
             "aitrans_thread",
-            "translation_wait",
-            "dubbing_wait",
             "dubbing_thread",
             "countdown_sec",
             "loop_backaudio",
