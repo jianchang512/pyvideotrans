@@ -4,7 +4,7 @@
 > | :--- | :--- |
 > | [Recall.ai Meeting Transcription API](https://www.recall.ai/product/meeting-transcription-api?utm_source=github&utm_medium=sponsorship&utm_campaign=jianchang512-pyvideotrans)   | If you’re looking for a transcription API for meetings, consider checking out **[Recall.ai](https://www.recall.ai/product/meeting-transcription-api?utm_source=github&utm_medium=sponsorship&utm_campaign=jianchang512-pyvideotrans)** , an API that works with Zoom, Google Meet, Microsoft Teams, and more |
 > | <a  href="https://apixo.ai/?utm_source=github&amp;utm_medium=sponsorship&amp;utm_campaign=pyvideotrans&amp;utm_content=logo"><img width="200"  alt="apixo-card-mcp-en" src="https://github.com/user-attachments/assets/d497d7b9-462c-4553-9775-5d5bf7365476" /></a> | **[APIXO AI](https://apixo.ai/?utm_source=github&utm_medium=sponsorship&utm_campaign=pyvideotrans&utm_content=brand_mention): All-in-One AI Video Maker & Multimodal Creation Platform**<br>Create video covers and illustrations with Seedream 5.5 to help your localized content stand out. **[Seedream 5.5 image API](https://apixo.ai/models/seedream-5-5?utm_source=github&utm_medium=sponsorship&utm_campaign=pyvideotrans&utm_content=seedream_5_5)**: limited-time 30% off, output images from $0.014 each (rates vary by output size; input images billed separately).<br>Create online or connect through API and **[MCP →](https://apixo.ai/mcp?utm_source=github&utm_medium=sponsorship&utm_campaign=pyvideotrans&utm_content=mcp_page)** to fit your workflow.|
-> 
+>
 ---
 
 

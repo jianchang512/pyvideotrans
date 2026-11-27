@@ -235,6 +235,9 @@ no_proxy = ",".join( [
 # 统一上传到  huggingface.co ，方便中国大陆直接使用国内镜像站 hf-mirror.com, github.com 国内下载极慢，几KB/s,无权威镜像站
 # whisper.cpp windows二进制文件
 WHISPER_CPP_URL_HF = '/mortimerme/repocollect/resolve/main/whisper-cpp-win32.zip?download=true'
+# windows vulkan
+WHISPER_CPP_VULKAN_URL_HF = '/mortimerme/repocollect/resolve/main/whisper-cpp-win32-vulkan.zip?download=true'
+# linux cuda
 WHISPER_CPP_LINUX_URL_HF = '/mortimerme/repocollect/resolve/main/whisper-cpp-linux.tar.gz?download=true'
 
 # 内置说话人下载地址
@@ -280,14 +283,10 @@ WHISPERCPP_MODEL_URL_HF = '/ggerganov/whisper.cpp/resolve/main/{}?download=true'
 SPACY_URL_HF = '/mortimerme/repocollect/resolve/main/spacy_ontonotes.zip?download=true'
 
 # audio.cpp
-AUDIO_CPP_MAC_HF="/mortimerme/repocollect/resolve/main/audio-v0.9.5-bin-macos-arm64-metal.tar.gz?download=true"
-
-AUDIO_CPP_LINUX_VULKAN_HF="/mortimerme/repocollect/resolve/main/audio-v0.9.5-bin-ubuntu-x64-vulkan-portable.tar.gz?download=true"
-
-AUDIO_CPP_WIN_VULKAN_HF="/mortimerme/repocollect/resolve/main/audio-v0.9.5-bin-windows-x64-vulkan-portable.zip?download=true"
-
-
-AUDIO_CPP_WIN_HF="/mortimerme/repocollect/resolve/main/audio-v0.9.5-bin-windows-x64-cuda12.4.zip?download=true"
+AUDIO_CPP_MAC_HF="/mortimerme/repocollect/resolve/main/bin-macos-arm64-metal.tar.gz?download=true"
+AUDIO_CPP_LINUX_VULKAN_HF="/mortimerme/repocollect/resolve/main/bin-ubuntu-x64-vulkan-portable.tar.gz?download=true"
+AUDIO_CPP_WIN_VULKAN_HF="/mortimerme/repocollect/resolve/main/bin-windows-x64-vulkan-portable.zip?download=true"
+AUDIO_CPP_WIN_HF="/mortimerme/repocollect/resolve/main/bin-windows-x64-cuda12.4.zip?download=true"
 
 LLAMA_CPP_LINUX_VULKAN_HF="/mortimerme/repocollect/resolve/main/llama-b12359-bin-ubuntu-vulkan-x64.tar.gz?download=true"
 LLAMA_CPP_WIN_VULKAN_HF="/mortimerme/repocollect/resolve/main/llama-b12359-bin-win-vulkan-x64.zip?download=true"

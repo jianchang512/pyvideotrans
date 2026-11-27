@@ -6,8 +6,9 @@ from pathlib import Path
 
 from videotrans.configure import constants
 from videotrans.configure._paths import ROOT_DIR
-from videotrans.configure.config import tr, settings, logger, CPU_NUMS
-from videotrans.configure.constants import WHISPER_CPP_URL_HF, WHISPER_CPP_LINUX_URL_HF,WHISPERCPP_MODEL_URL_HF
+from videotrans.configure.config import tr, settings, logger, CPU_NUMS, app_cfg
+from videotrans.configure.constants import WHISPER_CPP_URL_HF, WHISPER_CPP_LINUX_URL_HF, WHISPERCPP_MODEL_URL_HF, \
+    WHISPER_CPP_VULKAN_URL_HF
 from videotrans.configure.excepts import SpeechToTextError
 from videotrans.recognition._base import BaseRecogn
 from videotrans.util._srt_parse import get_subtitle_from_srt
@@ -20,11 +21,12 @@ _os=platform.system()
 @dataclass(repr=False)
 class CPPRecogn(BaseRecogn):
 
-    def _download_cli(self):
-        if  _os== 'Darwin':return
-        # windows linux 上自动下载
+    def _download_cli(self,device=None):
         self.signal(text=f'Download whisper-cli')
-        down_zip(f'{ROOT_DIR}', WHISPER_CPP_URL_HF if _os=='Windows' else WHISPER_CPP_LINUX_URL_HF, callback=self._process_callback)
+        if _os=='Linux':
+            return down_zip(f'{ROOT_DIR}', WHISPER_CPP_LINUX_URL_HF, callback=self._process_callback)
+        # windows 上
+        return  down_zip(f'{ROOT_DIR}', WHISPER_CPP_VULKAN_URL_HF if device=='vulkan' else WHISPER_CPP_URL_HF, callback=self._process_callback)
 
 
     def _exec(self):
@@ -34,8 +36,15 @@ class CPPRecogn(BaseRecogn):
         Path_cpp=Path(cpp_path)
         if _os=='Darwin' and not Path_cpp.exists():
             raise RuntimeError(f'Please install whisper.cpp and place the whisper-cli file in the {ROOT_DIR}/whisper-cpp directory')
+
+        # window上只要没有cuda，始终尝试 vulkan
+        device="vulkan" if _os=='Windows' and app_cfg.NVIDIA_CUDA_NUMS<1 and app_cfg.VULKAN_LIST else whisper_device(is_cuda=self.is_cuda)
+
         if not Path_cpp.is_file():
-            self._download_cli()
+            self._download_cli(device)
+        # 当windows使用vulkan失败时，cpu也可能执行失败，此时用户需重新下载cuda版本在cpu运行
+        if device=='vulkan' and not Path(f'{ROOT_DIR}/whisper-cpp/ggml-vulkan.dll').exists():
+            device="cpu"
 
         if not Path(f'{ROOT_DIR}/models/{self.model_name}').is_file():
             from videotrans.util import help_down
@@ -45,15 +54,15 @@ class CPPRecogn(BaseRecogn):
                 [url],
                 self._process_callback)
 
-        device = whisper_device(is_cuda=self.is_cuda)
+
 
         txt_file = ROOT_DIR + '/pyvideotrans_cpp.txt'
 
-        n_threads = str(max(min(4, CPU_NUMS - 1), 1))
+
         cmd = [
             cpp_path,
-            "-t" if device.startswith("cuda") else "-p",
-            n_threads,
+            # "-t" if device.startswith("cuda") else "-p",
+            # n_threads,
             "-f",
             self.audio_file,
             "-osrt",
@@ -121,6 +130,10 @@ class CPPRecogn(BaseRecogn):
 
             if return_code != 0:
                 # 进程异常退出，抛出收集到的全部错误日志
+                # WINDOWS 可能vulkan加速失败，而cpu也无法正常运行，需重新下载 cuda+cpu版
+                if not all_logs and device=='vulkan' and _os=='Windows' and Path(f'{ROOT_DIR}/whisper-cpp/ggml-vulkan.dll').exists():
+                    raise RuntimeError(tr("Vulkan acceleration failed. Please try deleting all files into that folder before re-executing",ROOT_DIR,WHISPER_CPP_URL_HF))
+
                 raise SpeechToTextError("".join(all_logs))
             try:
                 Path(log_file_path).unlink(missing_ok=True)
