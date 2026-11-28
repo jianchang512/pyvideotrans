@@ -148,6 +148,8 @@ AIGROW_MODELS = "claude-haiku-5.5,gemini-3.8-flash,gpt-6.1-terra,gpt-6-luna,clau
 TEAMOROUTER_MODELS = "claude-haiku-5-5,deepseek-v4-flash,gpt-6.1-sol,claude-sonnet-5-5,gemini-4-neon,glm-5.3,kimi-k3,qwen3.8-max"
 # Unprefixed ids from https://onomeo.com/models (2026-11-23); deepseek-v4.1-flash and glm-5.3 can be used without a top-up.
 ONOMEO_MODELS = "deepseek-v4.1-flash,glm-5.3,claude-haiku-5.5,claude-sonnet-5.5,gpt-6-luna,gemini-3.8-flash,kimi-k3,qwen3.8-max"
+# Prefixed ids from https://atmorouter.dev/v1/models (2026-11-27), which is public and needs no key.
+ATMOROUTER_MODELS = "zai/glm-5.3,cc/claude-haiku-5-5,cc/claude-sonnet-5-5,cb/kimi-k3"
 # Vendor-prefixed ids from https://llmtr.com/v1/models (2026-11-27).
 LLMTR_MODELS = "qwen/qwen3.8-flash,qwen/qwen3.8-max,qwen/qwen3.8-27b-free,deepseek/deepseek-v4-pro,zai/glm-5.3-flash,moonshot/kimi-k3,minimax/minimax-m3.1-flash,llmtr/qwen3-8-27b"
 # Model ids from https://api.straitly.ai/v1/models (2026-11-26).

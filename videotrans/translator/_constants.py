@@ -61,6 +61,7 @@ TEAMOROUTER_INDEX = 40
 ONOMEO_INDEX = 41
 LLMTR_INDEX = 42
 STRAITLY_INDEX = 43
+ATMOROUTER_INDEX = 44
 
 # AI 翻译渠道
 AI_TRANS_CHANNELS = [
@@ -95,6 +96,7 @@ AI_TRANS_CHANNELS = [
     AIGROW_INDEX,
     TEAMOROUTER_INDEX,
     ONOMEO_INDEX,
+    ATMOROUTER_INDEX,
     LLMTR_INDEX,
     STRAITLY_INDEX,
 ]
@@ -278,6 +280,10 @@ ID_NAME_DICT = {
                                     key_name="straitly_key",
                                     win="straitly",
                                     imp="._straitly"),
+  ATMOROUTER_INDEX: ChannelProvider("AtmoRouter",
+                                      key_name="atmorouter_key",
+                                      win="atmorouter",
+                                      imp="._atmorouter"),
 }
 
 # 菜单--工具/选项--高级选项-通用设置--LLM纠错所用渠道的显示数据
