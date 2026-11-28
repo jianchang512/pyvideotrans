@@ -245,6 +245,8 @@ _default = {
     "gradiowin": {
         "index_url": "http://127.0.0.1:7860",
         "index_version": 1,
+        "index_emo_vector": "",
+        "index_emo_weight": 0.65,
         "voxcpm_url": "http://127.0.0.1:7860",
         "voxcpm_version": "v2",
         "firered3tts_url": "http://127.0.0.1:7860",
@@ -395,6 +397,23 @@ _default["onomeo"] = {
     "onomeo_key": "",
     "onomeo_model": ONOMEO_MODELS.split(',')[0],
     "onomeo_max_token": 8192,
+}
+from videotrans.configure.constants import STRAITLY_MODELS
+
+_default["straitly"] = {
+    # straitly.ai
+    "straitly_key": "",
+    "straitly_model": STRAITLY_MODELS.split(',')[0],
+    "straitly_max_token": 16384,
+}
+
+from videotrans.configure.constants import LLMTR_MODELS
+
+_default["llmtr"] = {
+    # llmtr.com
+    "llmtr_key": "",
+    "llmtr_model": LLMTR_MODELS.split(',')[0],
+    "llmtr_max_token": 16384,
 }
 
 from videotrans.configure.constants import ATMOROUTER_MODELS

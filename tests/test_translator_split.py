@@ -194,12 +194,27 @@ class TestTranslatorIndexConstants:
         assert ONOMEO_INDEX == 41
         assert ONOMEO_INDEX in AI_TRANS_CHANNELS
 
+
     def test_atmorouter_index(self):
         from videotrans.translator import ATMOROUTER_INDEX, AI_TRANS_CHANNELS, ID_NAME_DICT
-        assert ATMOROUTER_INDEX == 42
+        assert ATMOROUTER_INDEX == 44
         assert ATMOROUTER_INDEX in AI_TRANS_CHANNELS
         assert ID_NAME_DICT[ATMOROUTER_INDEX].key_name == "atmorouter_key"
 
+        def test_llmtr_index(self):
+        from videotrans.translator import LLMTR_INDEX, AI_TRANS_CHANNELS, ID_NAME_DICT
+        assert LLMTR_INDEX == 42
+        assert LLMTR_INDEX in AI_TRANS_CHANNELS
+        assert ID_NAME_DICT[LLMTR_INDEX].key_name == "llmtr_key"
+    def test_straitly_index(self):
+        from videotrans.translator import STRAITLY_INDEX, AI_TRANS_CHANNELS, ID_NAME_DICT
+        assert STRAITLY_INDEX == 43
+        assert STRAITLY_INDEX in AI_TRANS_CHANNELS
+        assert ID_NAME_DICT[STRAITLY_INDEX].key_name == "straitly_key"
+        assert ID_NAME_DICT[STRAITLY_INDEX].win == "straitly"
+        assert ID_NAME_DICT[STRAITLY_INDEX].imp == "._straitly"
+
+        
     def test_infistar_index(self):
         from videotrans.translator import INFISTAR_INDEX, AI_TRANS_CHANNELS
         assert INFISTAR_INDEX == 28

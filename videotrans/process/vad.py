@@ -6,6 +6,43 @@ from ten_vad import TenVad
 from videotrans.configure.config import logger
 
 
+import soundfile as sf
+import platform
+import subprocess
+import shutil
+
+def _load_audio_soundfile(input_wav, sampling_rate=16000):
+    audio, sr = sf.read(input_wav, dtype="float32", always_2d=False)
+    if audio.ndim > 1:
+        audio = audio.mean(axis=1)  # 单声道
+    if sr != sampling_rate:
+        try:
+            audio = _resample_audio(audio, sr, sampling_rate)
+        except ImportError:
+            return _load_audio_ffmpeg(input_wav, sampling_rate)
+    return audio.astype(np.float32)
+
+def _resample_audio(audio, orig_sr, target_sr):
+    from scipy.signal import resample_poly
+    from math import gcd
+    g = gcd(orig_sr, target_sr)
+    return resample_poly(audio, target_sr // g, orig_sr // g).astype(np.float32)
+
+
+def _load_audio_ffmpeg(input_wav, sampling_rate=16000):
+    cmd = [
+        "ffmpeg", "-nostdin", "-v", "error",
+        "-i", input_wav,
+        "-f", "s16le", "-ac", "1", "-ar", str(sampling_rate),
+        "-"
+    ]
+    proc = subprocess.run(
+        cmd, capture_output=True, check=True,
+        **({"creationflags": subprocess.CREATE_NO_WINDOW} if platform.system() == "Windows" else {})
+    )
+    audio = np.frombuffer(proc.stdout, dtype=np.int16).astype(np.float32) / 32768.0
+    return audio
+
 
 
 def get_speech_timestamp_silero(input_wav,
@@ -29,14 +66,13 @@ def get_speech_timestamp_silero(input_wav,
     sampling_rate = 16000
     min_isolated_duration_ms=100  # 前后孤立，并且片段时长小于此，则丢弃
 
-    from faster_whisper.audio import decode_audio
     from faster_whisper.vad import (
         VadOptions,
         get_speech_timestamps
     )
 
 
-    audio_data = decode_audio(input_wav, sampling_rate=sampling_rate)
+    audio_data = _load_audio_soundfile(input_wav, sampling_rate=sampling_rate)
     total_audio_duration_ms = int(len(audio_data) / sampling_rate * 1000)
 
     raw_chunks = get_speech_timestamps(

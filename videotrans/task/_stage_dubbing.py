@@ -7,7 +7,8 @@ from pathlib import Path
 from videotrans.configure._paths import DUBBING_CACHE
 from videotrans.configure.config import tr, app_cfg, settings, params, logger
 from videotrans.configure.excepts import DubbingSrtError
-from videotrans.tts import run as run_tts, SUPPORT_CLONE, AUDIOCPP_TTS, TTS_MODEL_PARAMS, TTS_STYLE_PARAMS
+from videotrans.tts import run as run_tts, SUPPORT_CLONE, AUDIOCPP_TTS, INDEX_TTS, TTS_MODEL_PARAMS, TTS_STYLE_PARAMS
+from videotrans.tts._index_emotion import emotion_cache_suffix
 from videotrans.util.help_misc import get_md5, vail_file
 from videotrans.util.help_srt import get_subtitle_from_srt, delete_punc
 
@@ -64,6 +65,12 @@ class DubbingMixin:
         # 提示词、情绪等设置也会改变配音效果，缓存键需包含渠道配音时读取的这些设置，否则修改后仍会用上之前的配音
         # 没有此类设置的渠道缓存键不变，已有的缓存仍可使用
         _style = ''.join(f"-{params.get(k)}" for k in TTS_STYLE_PARAMS.get(self.cfg.tts_type, []))
+        if self.cfg.tts_type == INDEX_TTS:
+            # 未发送情感向量时后缀为空，已有缓存仍然有效
+            try:
+                _style += emotion_cache_suffix(params)
+            except ValueError:
+                pass
         for i, it in enumerate(subs):
             if it['end_time'] < it['start_time'] or not it['text'].strip():
                 continue
