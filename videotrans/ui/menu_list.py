@@ -33,6 +33,7 @@ MENU_CFG_AGG=[
     ("aigrow", 'AIGROW', None),
     ("teamorouter", 'TeamoRouter', None),
     ("onomeo", 'onomeo', None),
+    ("llmtr", 'LLMTR', None),
     ("straitly", 'Straitly', None),
 
 ]

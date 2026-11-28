@@ -194,9 +194,14 @@ class TestTranslatorIndexConstants:
         assert ONOMEO_INDEX == 41
         assert ONOMEO_INDEX in AI_TRANS_CHANNELS
 
+    def test_llmtr_index(self):
+        from videotrans.translator import LLMTR_INDEX, AI_TRANS_CHANNELS, ID_NAME_DICT
+        assert LLMTR_INDEX == 42
+        assert LLMTR_INDEX in AI_TRANS_CHANNELS
+        assert ID_NAME_DICT[LLMTR_INDEX].key_name == "llmtr_key"
     def test_straitly_index(self):
         from videotrans.translator import STRAITLY_INDEX, AI_TRANS_CHANNELS, ID_NAME_DICT
-        assert STRAITLY_INDEX == 42
+        assert STRAITLY_INDEX == 43
         assert STRAITLY_INDEX in AI_TRANS_CHANNELS
         assert ID_NAME_DICT[STRAITLY_INDEX].key_name == "straitly_key"
         assert ID_NAME_DICT[STRAITLY_INDEX].win == "straitly"
