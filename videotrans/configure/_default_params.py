@@ -247,6 +247,7 @@ _default = {
         "index_version": 1,
         "index_emo_vector": "",
         "index_emo_weight": 0.65,
+        "index_role_emotions": "",
         "voxcpm_url": "http://127.0.0.1:7860",
         "voxcpm_version": "v2",
         "firered3tts_url": "http://127.0.0.1:7860",

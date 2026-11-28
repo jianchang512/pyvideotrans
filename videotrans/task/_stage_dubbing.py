@@ -6,7 +6,7 @@ from pathlib import Path
 
 from videotrans.configure._paths import DUBBING_CACHE
 from videotrans.configure.config import tr, app_cfg, settings, params, logger
-from videotrans.configure.excepts import DubbingSrtError
+from videotrans.configure.excepts import DubbingSrtError, StopTask
 from videotrans.tts import run as run_tts, SUPPORT_CLONE, AUDIOCPP_TTS, INDEX_TTS, TTS_MODEL_PARAMS, TTS_STYLE_PARAMS
 from videotrans.tts._index_emotion import emotion_cache_suffix
 from videotrans.util.help_misc import get_md5, vail_file
@@ -65,16 +65,17 @@ class DubbingMixin:
         # 提示词、情绪等设置也会改变配音效果，缓存键需包含渠道配音时读取的这些设置，否则修改后仍会用上之前的配音
         # 没有此类设置的渠道缓存键不变，已有的缓存仍可使用
         _style = ''.join(f"-{params.get(k)}" for k in TTS_STYLE_PARAMS.get(self.cfg.tts_type, []))
-        if self.cfg.tts_type == INDEX_TTS:
-            # 未发送情感向量时后缀为空，已有缓存仍然有效
-            try:
-                _style += emotion_cache_suffix(params)
-            except ValueError:
-                pass
         for i, it in enumerate(subs):
             if it['end_time'] < it['start_time'] or not it['text'].strip():
                 continue
             voice = line_roles.get(f'{it["line"]}', voice_role) if line_roles else voice_role
+            _line_style = _style
+            if self.cfg.tts_type == INDEX_TTS:
+                # 未发送情感向量时后缀为空，已有缓存仍然有效
+                try:
+                    _line_style += emotion_cache_suffix(params, voice)
+                except ValueError as e:
+                    raise StopTask(str(e)) from e
             is_clone = str(voice).strip().lower() == 'clone' and self.cfg.tts_type in SUPPORT_CLONE
             # 克隆音色时，参考音频是从当前视频中裁切的，缓存键需包含视频 uuid，否则会用上其他视频中说话人的配音
             # uuid 由文件路径、大小和修改时间生成，再次处理同一视频时不变，仍会使用缓存
@@ -83,7 +84,7 @@ class DubbingMixin:
             # 没有模型设置的渠道缓存键不变，已有的缓存仍可使用
             _model = f"-{tts_model}" if tts_model else ''
 
-            _key = get_md5(f"{self.cfg.target_language_code}-{it['text']}-{voice}-{rate}-{self.cfg.volume}-{self.cfg.pitch}-{self.cfg.tts_type}-{settings.get('remove_dubb_silence', True)}-{settings.get('remove_dubb_all_silence', True)}-{settings.get('remove_dubb_silence_level', 'default')}-{settings.get('dubbing_normalize',False)}{_clone}{_model}{_style}")
+            _key = get_md5(f"{self.cfg.target_language_code}-{it['text']}-{voice}-{rate}-{self.cfg.volume}-{self.cfg.pitch}-{self.cfg.tts_type}-{settings.get('remove_dubb_silence', True)}-{settings.get('remove_dubb_all_silence', True)}-{settings.get('remove_dubb_silence_level', 'default')}-{settings.get('dubbing_normalize',False)}{_clone}{_model}{_line_style}")
 
             tmp_dict = {
                 "text": it['text'],
