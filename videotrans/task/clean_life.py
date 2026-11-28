@@ -57,7 +57,7 @@ def safe_quit():
     # 清理 TEMP_ROOT 下的 txt srt json 文件，
     # 不直接删除 tmp 文件夹，避免同时启动多个实例导致其他报错，保留 pid 状态文件，防止其他实例出错
     for it in Path(TEMP_ROOT).iterdir():
-        if not it.is_file() or it.suffix.lower()=='pid':
+        if not it.is_file() or it.suffix.lower()=='.pid':
             continue
         try:
             it.unlink(missing_ok=True)
