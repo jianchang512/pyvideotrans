@@ -148,7 +148,7 @@ def srt_str_to_listdict(srt_string: str) -> List[SrtItem]:
                     i += 1
 
             text = ('\n'.join(text_lines)).strip()
-            text = re.sub(r'</?[a-zA-Z]+>', '', text.replace("\r", '').strip(), flags=re.I | re.S)
+            text = re.sub(r'</?[a-zA-Z]+\b[^>]*>', '', text.replace("\r", '').strip(), flags=re.I | re.S)
             text = re.sub(r'\n{2,}', '\n', text, flags=re.I | re.S).strip()
             _srtitem = SrtItem(
                 line=len(srt_list) + 1,

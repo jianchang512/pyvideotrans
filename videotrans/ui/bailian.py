@@ -23,11 +23,11 @@ class Ui_bailian(QDialog):
 
         v1 = QtWidgets.QVBoxLayout(form)
 
-        self.label_0 = QtWidgets.QPushButton()
-        self.label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
-        self.label_0.setStyleSheet("background-color: rgba(255, 255, 255,0);text-align:left")
-        self.label_0.setText(tr('Configure Alibaba Bailian Qwen-MT model or other text models or Qwen3-ASR speech recognition model here'))
-        v1.addWidget(self.label_0)
+        label_0 = QtWidgets.QPushButton()
+        label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
+        label_0.setStyleSheet("background-color: rgba(255, 255, 255,0);text-align:left")
+        label_0.setText(tr('Configure Alibaba Bailian Qwen-MT model or other text models or Qwen3-ASR speech recognition model here'))
+        v1.addWidget(label_0)
 
         h2 = QtWidgets.QHBoxLayout()
         self.label_2 = QtWidgets.QLabel()

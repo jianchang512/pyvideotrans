@@ -40,6 +40,24 @@ class Ui_gradiowin(QDialog):
 
         v1.addLayout(h1indextts_url)
 
+        h1indextts_emo = QtWidgets.QHBoxLayout()
+        self.indextts_emo_label = QLabel(tr("Index-TTS emotion vector"))
+        self.indextts_emo_vector = QLineEdit()
+        emo_order = tr("Happy, Angry, Sad, Afraid, Disgusted, Melancholic, Surprised, Calm; e.g. 0.8,0,0,0,0,0,0,0")
+        self.indextts_emo_vector.setPlaceholderText(emo_order)
+        self.indextts_emo_weight = QLineEdit()
+        self.indextts_emo_weight.setPlaceholderText(tr("Emotion weight"))
+        self.indextts_emo_weight.setMaximumWidth(80)
+        emo_tooltip = tr("V2/V2.5 only; empty = same as the voice reference")
+        self.indextts_emo_label.setToolTip(emo_tooltip)
+        # 填写后占位文字不再显示，提示中保留情感顺序和权重说明
+        self.indextts_emo_vector.setToolTip(f"{emo_order}\n{emo_tooltip}")
+        self.indextts_emo_weight.setToolTip(f"{tr('Emotion weight')} (0-1)\n{emo_tooltip}")
+        h1indextts_emo.addWidget(self.indextts_emo_label)
+        h1indextts_emo.addWidget(self.indextts_emo_vector)
+        h1indextts_emo.addWidget(self.indextts_emo_weight)
+        v1.addLayout(h1indextts_emo)
+
         h1sparktts_url = QtWidgets.QHBoxLayout()
         self.sparktts_urllabel = QLabel('Spark-TTS URL')
         self.sparktts_urllabel.setObjectName("sparktts_urllabel")

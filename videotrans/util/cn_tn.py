@@ -984,11 +984,9 @@ def normalize_nsw(raw_text):
 
     # 规范化纯数+量词
     pattern = re.compile(r"(\d+(\.\d+)?)[多余几]?" + COM_QUANTIFIERS)
-    matchers = pattern.findall(text)
-    if matchers:
-        # print('cardinal+quantifier')
-        for matcher in matchers:
-            text = text.replace(matcher[0], Cardinal(cardinal=matcher[0]).cardinal2chntext(), 1)
+    text = pattern.sub(
+        lambda matcher: Cardinal(cardinal=matcher.group(1)).cardinal2chntext()
+        + matcher.group(0)[len(matcher.group(1)):], text)
 
     # 规范化数字编号
     pattern = re.compile(r"(\d{4,32})")

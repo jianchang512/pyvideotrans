@@ -418,6 +418,10 @@
   "When this item is checked, and the target language is different from the language of the pronunciation will move the translated srt file to the original video location and rename it to the same name as the video.": "選取該項，並且目標語言和發音語言不同時\n將移動翻譯後srt檔案到原影片位置，並重新命名為影片同名",
   "When using AI translation channel, you can translate in srt format, but there may be more empty lines": "當使用AI翻譯管道時，可選以完整srt字幕格式傳送請求，效果更好",
   "When using Index-TTS, select v1 or v2.": "當使用Index-TTS時，請選擇是v1 還是v2版本",
+  "Index-TTS emotion vector": "Index-TTS 情感向量",
+  "Emotion weight": "情感權重",
+  "Happy, Angry, Sad, Afraid, Disgusted, Melancholic, Surprised, Calm; e.g. 0.8,0,0,0,0,0,0,0": "快樂、憤怒、悲傷、害怕、厭惡、低落、驚訝、平靜；例如 0.8,0,0,0,0,0,0,0",
+  "V2/V2.5 only; empty = same as the voice reference": "僅適用於 V2/V2.5；留空 = 與音色參考音訊相同",
   "Whisper model": "語音辨識模型",
   "Will merge video and audio with the same name in that folder, e.g. 1.mp4 and 1.wav": "將把所選資料夾內同名的影片與音訊進行合併，例如 1.mp4和 1.wav",
   "Will merge video and srt subtitles with the same name in that folder, e.g. 1.mp4 and 1.srt": "將把所選資料夾內同名的影片和srt字幕進行合併，例如 1.mp4 和 1.srt",
@@ -1021,6 +1025,7 @@
   "OpenAI-compatible endpoint for your API keys, subscription accounts and local models. Use the cloud URL with a key, or a local daemon URL without one": "相容 OpenAI 的端點，可接入你的 API Key、訂閱帳號和本地模型。使用雲端網址時需要填寫金鑰，使用本地常駐程式網址時無需金鑰",
   "OpenAI-compatible API, one prepaid key for genuine Claude, GPT, Gemini, Grok, Qwen and Kimi models": "相容 OpenAI 的 API，一個預付金鑰即可呼叫正版 Claude、GPT、Gemini、Grok、Qwen 和 Kimi 模型",
   "OpenAI-compatible API, one key for Claude, GPT, Gemini, DeepSeek and free open models": "相容 OpenAI 的 API，一把金鑰即可呼叫 Claude、GPT、Gemini、DeepSeek 和免費開源模型",
+  "OpenAI-compatible gateway, one prepaid key for Claude, GPT, Gemini, DeepSeek, GLM, Kimi and Qwen models": "相容 OpenAI 的閘道，一個預付金鑰即可呼叫 Claude、GPT、Gemini、DeepSeek、GLM、Kimi 和 Qwen 模型",
   "Get API Key": "獲取 API Key",
   "common_head": "通用設定",
   "video_head": "影片輸出控制",
@@ -1277,6 +1282,7 @@
   "維吾爾文": "ug",
   "The native Vulkan may be disabled or unavailable. Please disable hardware acceleration and try again": "本機vulkan可能被停用或無法使用，請取消硬體加速後重試",
   "You may need to upgrade audio.cpp. Please delete the {} folder, then re-execute the automatic download of the latest audio.cpp, or manually update audio_cpp": "可能需要升級 audio.cpp，請刪掉 {}，然後重新執行自動下載最新audio.cpp，或手動更新audio_cpp",
-  "AI aggregation platform": "AI大模型聚合平台　▸",
-  "Vulkan acceleration failed. Please try deleting all files into that folder before re-executing": "使用Vulkan加速失敗，請嘗試刪掉[{}/whisper-cpp]資料夾內所有檔案，\n下載 https://huggingface.co{} 解壓縮到該資料夾內重新執行"
+  "AI aggregation platform": "聚合平台设置(&A)",
+  "Vulkan acceleration failed. Please try deleting all files into that folder before re-executing": "使用Vulkan加速失敗，請嘗試刪掉[{}/whisper-cpp]資料夾內所有檔案，\n下載 https://huggingface.co{} 解壓縮到該資料夾內重新執行",
+  "This channel is added and maintained by": "該渠道由[{}]新增維護，若有費用、安全疑慮請直接諮詢該渠道方。點擊上方連結查看使用文件及獲取SK"
 }

@@ -1,7 +1,7 @@
 {
   "&Help": "帮助/关于(&H)",
   "&RECOGNsetting": "语音识别设置(&R)",
-  "&Setting": "翻译设置(&S)",
+  "&Setting": "翻译渠道设置(&S)",
   "&TTSsetting": "TTS设置(&E)",
   "&Tools": "工具/选项(&T)",
   "302.AI API KEY": "302.AI",
@@ -419,6 +419,10 @@
   "When this item is checked, and the target language is different from the language of the pronunciation will move the translated srt file to the original video location and rename it to the same name as the video.": "选中该项，并且目标语言和发音语言不同时\n将移动翻译后srt文件到原视频位置，并重命名为视频同名",
   "When using AI translation channel, you can translate in srt format, but there may be more empty lines": "当使用AI翻译渠道时，可选以完整srt字幕格式发送请求，效果更好",
   "When using Index-TTS, select v1 or v2.": "当使用Index-TTS时，请选择是v1 还是v2版本",
+  "Index-TTS emotion vector": "Index-TTS 情感向量",
+  "Emotion weight": "情感权重",
+  "Happy, Angry, Sad, Afraid, Disgusted, Melancholic, Surprised, Calm; e.g. 0.8,0,0,0,0,0,0,0": "快乐、愤怒、悲伤、害怕、厌恶、低落、惊讶、平静；例如 0.8,0,0,0,0,0,0,0",
+  "V2/V2.5 only; empty = same as the voice reference": "仅适用于 V2/V2.5；留空 = 与音色参考音频相同",
   "Whisper model": "语音识别模型",
   "Will merge video and audio with the same name in that folder, e.g. 1.mp4 and 1.wav": "将把所选文件夹内同名的视频和音频进行合并，例如 1.mp4和 1.wav",
   "Will merge video and srt subtitles with the same name in that folder, e.g. 1.mp4 and 1.srt": "将把所选文件夹内同名的视频和srt字幕进行合并，例如 1.mp4 和 1.srt",
@@ -1026,6 +1030,7 @@
   "OpenAI-compatible endpoint for your API keys, subscription accounts and local models. Use the cloud URL with a key, or a local daemon URL without one": "兼容 OpenAI 的端点，可接入你的 API Key、订阅账号和本地模型。使用云端地址时需要填写密钥，使用本地守护进程地址时无需密钥",
   "OpenAI-compatible API, one prepaid key for genuine Claude, GPT, Gemini, Grok, Qwen and Kimi models": "兼容 OpenAI 的 API，一个预付费密钥即可调用正版 Claude、GPT、Gemini、Grok、Qwen 和 Kimi 模型",
   "OpenAI-compatible API, one key for Claude, GPT, Gemini, DeepSeek and free open models": "兼容 OpenAI 的 API，一个密钥即可调用 Claude、GPT、Gemini、DeepSeek 和免费开源模型",
+  "OpenAI-compatible gateway, one prepaid key for Claude, GPT, Gemini, DeepSeek, GLM, Kimi and Qwen models": "兼容 OpenAI 的网关，一个预付费密钥即可调用 Claude、GPT、Gemini、DeepSeek、GLM、Kimi 和 Qwen 模型",
   "Get API Key": "获取 API Key",
 
     "common_head": "通用设置",
@@ -1209,7 +1214,8 @@
   "Text alignment failed": "文字对齐时失败，请尝试将发音语言设为 自动检测 后重试",
   "The native Vulkan may be disabled or unavailable. Please disable hardware acceleration and try again": "本机vulkan可能被禁用或不可用，请取消 硬件加速后重试",
   "You may need to upgrade audio.cpp. Please delete the {} folder, then re-execute the automatic download of the latest audio.cpp, or manually update audio_cpp": "可能需要升级 audio.cpp ，请删掉 {}，然后重新执行自动下载最新audio.cpp，或手动更新audio_cpp",
-  "AI aggregation platform": "AI大模型聚合平台　▸",
-  "Vulkan acceleration failed. Please try deleting all files into that folder before re-executing": "使用Vulkan加速失败，请尝试删掉[{}/whisper-cpp]文件夹内所有文件，\n下载 https://huggingface.co{} 解压到该文件夹内重新执行"
+  "AI aggregation platform": "聚合平台设置(&A)",
+  "Vulkan acceleration failed. Please try deleting all files into that folder before re-executing": "使用Vulkan加速失败，请尝试删掉[{}/whisper-cpp]文件夹内所有文件，\n下载 https://huggingface.co{} 解压到该文件夹内重新执行",
+  "This channel is added and maintained by": "该渠道由[{}]添加维护，若有费用、安全疑虑请直接咨询该渠道方。点击上方链接查看使用文档及获取SK"
 
 }

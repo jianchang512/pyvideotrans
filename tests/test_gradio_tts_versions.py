@@ -85,6 +85,7 @@ def test_index_tts_sends_the_inputs_of_the_chosen_version(
     monkeypatch, tmp_path, sent, version, inputs, lang_choice
 ):
     monkeypatch.setitem(params, "index_version", version)
+    monkeypatch.setitem(params, "index_emo_vector", "")
 
     kwargs = _dub(tts.INDEX_TTS, tmp_path, sent)
 

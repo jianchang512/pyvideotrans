@@ -25,12 +25,12 @@ class Ui_deepseek(QDialog):
 
         h4 = QtWidgets.QHBoxLayout()
 
-        self.label_0 = QtWidgets.QPushButton()
-        self.label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
-        self.label_0.setStyleSheet("background-color: rgba(255, 255, 255,0);text-align:left")
-        self.label_0.setText(
+        label_0 = QtWidgets.QPushButton()
+        label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
+        label_0.setStyleSheet("background-color: rgba(255, 255, 255,0);text-align:left")
+        label_0.setText(
             'DeepSeek AI')
-        v1.addWidget(self.label_0)
+        v1.addWidget(label_0)
 
         self.label_2 = QtWidgets.QLabel()
         self.label_2.setMinimumSize(QtCore.QSize(0, 35))
