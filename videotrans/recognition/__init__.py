@@ -2,14 +2,12 @@ import platform
 from typing import Union, List, Type
 from videotrans import winform, get_class
 from videotrans.configure import constants
-from videotrans.configure.config import tr, params, app_cfg, logger
-from videotrans.recognition._base import BaseRecogn
+from videotrans.configure.config import params, app_cfg, logger
+
 from videotrans.task.taskcfg import SrtItem
 from ._constants import *
 
 
-# 根据渠道id获取模型列表
-from ..configure.constants import WHISPER_CPP_MODELS
 
 
 def get_model_by_type(recogn_type: int) -> List[str]:
@@ -144,8 +142,9 @@ def run(*,
         "recogn2pass": recogn2pass
     }
     logger.debug(f'语音识别前参数:{kwargs}')
+    from videotrans.recognition._base import BaseRecogn
 
-    if recogn_type==FASTER_WHISPER and is_cuda and f"ggml-{model_name}.bin" in WHISPER_CPP_MODELS and app_cfg.NVIDIA_CUDA_NUMS<1 and app_cfg.VULKAN_LIST and platform.system()=='Windows':
+    if recogn_type==FASTER_WHISPER and is_cuda and f"ggml-{model_name}.bin" in constants.WHISPER_CPP_MODELS and app_cfg.NVIDIA_CUDA_NUMS<1 and app_cfg.VULKAN_LIST and platform.system()=='Windows':
         # Windows上 faster-whisper 启用cuda但不存在n卡，同时vulkan可用时，尝试使用 whisper.cpp 替代，以便尽量实现硬件加速
         if trk and hasattr(trk,'signal'):
             trk.signal(text="Route to whisper.cpp for Vulkan acceleration")
