@@ -58,6 +58,22 @@ class Ui_gradiowin(QDialog):
         h1indextts_emo.addWidget(self.indextts_emo_weight)
         v1.addLayout(h1indextts_emo)
 
+        h1indextts_role_emo = QtWidgets.QHBoxLayout()
+        self.indextts_role_emo_label = QLabel(tr("Index-TTS role emotions"))
+        self.indextts_role_emotions = QPlainTextEdit()
+        self.indextts_role_emotions.setFixedHeight(78)
+        self.indextts_role_emotions.setPlaceholderText(
+            "man.wav = 0.8,0,0,0,0,0,0,0 ; 0.7"
+        )
+        role_emo_tooltip = tr(
+            "V2/V2.5 only; one role per line: role = 8 numbers ; weight (optional, else the weight above); unlisted roles use the vector above; all zeros = no emotion for that role"
+        )
+        self.indextts_role_emo_label.setToolTip(role_emo_tooltip)
+        self.indextts_role_emotions.setToolTip(role_emo_tooltip)
+        h1indextts_role_emo.addWidget(self.indextts_role_emo_label)
+        h1indextts_role_emo.addWidget(self.indextts_role_emotions)
+        v1.addLayout(h1indextts_role_emo)
+
         h1sparktts_url = QtWidgets.QHBoxLayout()
         self.sparktts_urllabel = QLabel('Spark-TTS URL')
         self.sparktts_urllabel.setObjectName("sparktts_urllabel")

@@ -6,7 +6,7 @@ from gradio_client import handle_file
 from videotrans.configure.config import params,app_cfg
 from videotrans.configure.excepts import StopTask
 from videotrans.tts._gradio import GradioBase
-from videotrans.tts._index_emotion import index_emotion
+from videotrans.tts._index_emotion import index_emotion_for_role
 from videotrans.util.help_misc import vail_file
 
 # 兼容 index-webui 中英界面
@@ -26,6 +26,12 @@ class IndexTTS(GradioBase):
 
     def _run(self, data_item: Union[Dict, List, None], idx: int = -1) -> Union[str, None]:
         global REAL_USE
+        # 0=v1 1=v2 2=v2.5
+        try:
+            _v=int(params.get('index_version', 1))
+            emotion = index_emotion_for_role(params, data_item['role'])
+        except ValueError as e:
+            raise StopTask(str(e)) from e
         if vail_file(data_item['filename']):return
         ref_wav,ref_text = self.get_ref_wav(data_item)
         kwargs = {
@@ -33,12 +39,6 @@ class IndexTTS(GradioBase):
             "text": data_item['text'].strip(),
             "api_name": '/gen_single'
         }
-        # 0=v1 1=v2 2=v2.5
-        try:
-            _v=int(params.get('index_version', 1))
-            emotion = index_emotion(params)
-        except ValueError as e:
-            raise StopTask(str(e)) from e
         if _v >0:
             emo_vector = emotion[0] if emotion else None
             kwargs['emo_control_method'] = (
