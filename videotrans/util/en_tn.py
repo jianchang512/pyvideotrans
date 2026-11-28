@@ -20,6 +20,22 @@
 
 import re
 
+POUND_RE = re.compile(
+    r"\u00a3((?:[0-9](?:[0-9,]*[0-9])?(?:[\u00a0\u202f][0-9]{3})*|\.[0-9]+)(?:\.[0-9]+)?)"
+    r"(?:\s*(k|m|bn|thousand|million|billion|trillion)\b)?([\u00a0\u202f])?",
+    re.IGNORECASE,
+)
+
+POUND_MAGNITUDES = {
+    "k": "thousand",
+    "m": "million",
+    "bn": "billion",
+    "thousand": "thousand",
+    "million": "million",
+    "billion": "billion",
+    "trillion": "trillion",
+}
+
 
 class EnglishNormalizer:
     def __init__(self):
@@ -146,34 +162,52 @@ class EnglishNormalizer:
         return text.encode("ascii", "ignore").decode("utf-8")
 
     @staticmethod
-    def _expand_dollars(m: str) -> str:
+    def _expand_currency(amount: str, major_singular: str, major_plural: str,
+                         minor_singular: str, minor_plural: str) -> str:
         """
-        This method is used to expand numerical dollar values into spoken words.
+        This method is used to expand numerical currency values into spoken words.
         """
-        # 匹配到的数字字符串，即货币值
-        match = m.group(1)
         # 将货币值按小数点分割为整数部分和小数部分
-        parts = match.split(".")
+        parts = amount.split(".")
         if len(parts) > 2:
-            return match + " dollars"  # 如果小数点超过一个，返回原始字符串加上 " dollars" 表示异常格式
+            return amount + " " + major_plural  # 如果小数点超过一个，返回原始字符串加上货币单位
 
         # 解析整数部分和小数部分
-        dollars = int(parts[0]) if parts[0] else 0
-        # 一位小数表示十分之一美元，右侧补零后转换为美分
-        cents = int(parts[1].ljust(2, "0")) if len(parts) > 1 and parts[1] else 0
+        major = int(parts[0]) if parts[0] else 0
+        # 一位小数表示十分之一货币，右侧补零后转换为小单位
+        minor = int(parts[1].ljust(2, "0")) if len(parts) > 1 and parts[1] else 0
         # 根据货币值的整数部分和小数部分，构造成对应的英文表达形式
-        if dollars and cents:
-            dollar_unit = "dollar" if dollars == 1 else "dollars"
-            cent_unit = "cent" if cents == 1 else "cents"
-            return "%s %s, %s %s" % (dollars, dollar_unit, cents, cent_unit)
-        elif dollars:
-            dollar_unit = "dollar" if dollars == 1 else "dollars"
-            return "%s %s" % (dollars, dollar_unit)
-        elif cents:
-            cent_unit = "cent" if cents == 1 else "cents"
-            return "%s %s" % (cents, cent_unit)
+        if major and minor:
+            major_unit = major_singular if major == 1 else major_plural
+            minor_unit = minor_singular if minor == 1 else minor_plural
+            return "%s %s, %s %s" % (major, major_unit, minor, minor_unit)
+        elif major:
+            major_unit = major_singular if major == 1 else major_plural
+            return "%s %s" % (major, major_unit)
+        elif minor:
+            minor_unit = minor_singular if minor == 1 else minor_plural
+            return "%s %s" % (minor, minor_unit)
         else:
-            return "zero dollars"
+            return "zero " + major_plural
+
+    @staticmethod
+    def _expand_dollars(m: str) -> str:
+        return EnglishNormalizer._expand_currency(m.group(1), "dollar", "dollars", "cent", "cents")
+
+    @staticmethod
+    def _expand_pounds(m: str) -> str:
+        amount = m.group(1).replace(",", "").replace("\u00a0", "").replace("\u202f", "")
+        if amount.startswith("."):
+            amount = "0" + amount
+        magnitude = m.group(2)
+        if magnitude:
+            expanded = f"{amount} {POUND_MAGNITUDES[magnitude.lower()]} pounds"
+            return expanded + (" " if m.group(3) else "")
+        if "." in amount and len(amount.rsplit(".", 1)[1]) > 2:
+            expanded = f"{amount} pounds"
+        else:
+            expanded = EnglishNormalizer._expand_currency(amount, "pound", "pounds", "penny", "pence")
+        return expanded + (" " if m.group(3) else "")
 
     @staticmethod
     def _remove_commas(m: str) -> str:
@@ -236,8 +270,8 @@ class EnglishNormalizer:
     def normalize_numbers(self, text: str) -> str:
         # 使用正则表达式替换匹配的数字和逗号，调用 self._remove_commas 方法
         text = re.sub(re.compile(r"([0-9][0-9,]+[0-9])"), self._remove_commas, text)
-        # 替换匹配的英镑金额为其单词表示形式
-        text = re.sub(re.compile(r"£([0-9,]*[0-9]+)"), r"\1 pounds", text)
+        # 替换匹配的英镑金额为其完整的金额表达形式
+        text = re.sub(POUND_RE, self._expand_pounds, text)
         # 替换匹配的美元金额为其完整的金额表达形式，调用 self._expand_dollars 方法
         text = re.sub(re.compile(r"\$([0-9.,]*[0-9]+)"), self._expand_dollars, text)
         # 替换匹配的小数形式为其完整的数值表达形式，调用 self._expand_decimal_point 方法
@@ -265,6 +299,8 @@ class EnglishNormalizer:
 
     # 对象可调用方法，将文本转换为 ASCII 码，将数字转换为完整形式，并扩展缩写词
     def __call__(self, text):
+        # 在 ASCII 转换移除英镑符号前扩展英镑金额
+        text = re.sub(POUND_RE, self._expand_pounds, text)
         # 将文本转换为 ASCII 码表示形式
         text = self.convert_to_ascii(text)
         # 将文本转换为小写形式
