@@ -238,7 +238,7 @@ WHISPER_CPP_URL_HF = '/mortimerme/repocollect/resolve/main/whisper-cpp-win32.zip
 # windows vulkan
 WHISPER_CPP_VULKAN_URL_HF = '/mortimerme/repocollect/resolve/main/whisper-cpp-win32-vulkan.zip?download=true'
 # linux cuda
-WHISPER_CPP_LINUX_URL_HF = '/mortimerme/repocollect/resolve/main/whisper-cpp-linux.tar.gz?download=true'
+WHISPER_CPP_LINUX_URL_HF = '/mortimerme/repocollect/resolve/main/whisper-cpp-linux.zip?download=true'
 
 # 内置说话人下载地址
 BUILTINT_URL_HF = [
@@ -283,19 +283,20 @@ WHISPERCPP_MODEL_URL_HF = '/ggerganov/whisper.cpp/resolve/main/{}?download=true'
 SPACY_URL_HF = '/mortimerme/repocollect/resolve/main/spacy_ontonotes.zip?download=true'
 
 # audio.cpp
-AUDIO_CPP_MAC_HF="/mortimerme/repocollect/resolve/main/bin-macos-arm64-metal.tar.gz?download=true"
-AUDIO_CPP_LINUX_VULKAN_HF="/mortimerme/repocollect/resolve/main/bin-ubuntu-x64-vulkan-portable.tar.gz?download=true"
-AUDIO_CPP_WIN_VULKAN_HF="/mortimerme/repocollect/resolve/main/bin-windows-x64-vulkan-portable.zip?download=true"
-AUDIO_CPP_WIN_HF="/mortimerme/repocollect/resolve/main/bin-windows-x64-cuda12.4.zip?download=true"
+AUDIO_CPP_MAC_HF="/mortimerme/repocollect/resolve/main/audiocpp-bin-macos-arm64-metal.tar.gz?download=true"
+AUDIO_CPP_LINUX_VULKAN_HF="/mortimerme/repocollect/resolve/main/audiocpp-bin-ubuntu-x64-vulkan-portable.tar.gz?download=true"
+AUDIO_CPP_WIN_VULKAN_HF="/mortimerme/repocollect/resolve/main/audiocpp-bin-windows-x64-vulkan-portable.zip?download=true"
+AUDIO_CPP_WIN_HF="/mortimerme/repocollect/resolve/main/audiocpp-bin-windows-x64-cuda12.4.zip?download=true"
+
+AUDIO_CPP_MELBAND="/audio-cpp/audio.cpp-gguf/resolve/main/Mel-Band-RoFormer-GGUF/mel-band-roformer-q8_0.gguf?download=true"
+AUDIO_CPP_BS="/audio-cpp/audio.cpp-gguf/resolve/main/BS-RoFormer-ep368-GGUF/bs-roformer-ep368-q8_0.gguf?download=true"
+ZIPENHANCER_HF="/mortimerme/repocollect/resolve/main/zipenhancer.safetensors?download=true"
+
 
 LLAMA_CPP_LINUX_VULKAN_HF="/mortimerme/repocollect/resolve/main/llama-b12359-bin-ubuntu-vulkan-x64.tar.gz?download=true"
 LLAMA_CPP_WIN_VULKAN_HF="/mortimerme/repocollect/resolve/main/llama-b12359-bin-win-vulkan-x64.zip?download=true"
 LLAMA_CPP_MAC_HF="/mortimerme/repocollect/resolve/main/llama-b12600-bin-macos-arm64.tar.gz?download=true"
 HYMT2_GGUF_HF="/tencent/Hy-MT2-1.8B-GGUF/resolve/main/Hy-MT2-1.8B-Q8_0.gguf?download=true"
-
-AUDIO_CPP_MELBAND="/audio-cpp/audio.cpp-gguf/resolve/main/Mel-Band-RoFormer-GGUF/mel-band-roformer-q8_0.gguf?download=true"
-AUDIO_CPP_BS="/audio-cpp/audio.cpp-gguf/resolve/main/BS-RoFormer-ep368-GGUF/bs-roformer-ep368-q8_0.gguf?download=true"
-ZIPENHANCER_HF="/mortimerme/repocollect/resolve/main/zipenhancer.safetensors?download=true"
 
 
 # ----------Rubberband 库安装提示------------------

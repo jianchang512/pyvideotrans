@@ -1,3 +1,4 @@
+import platform
 from typing import Union, List, Type
 from videotrans import winform, get_class
 from videotrans.configure import constants
@@ -8,6 +9,9 @@ from ._constants import *
 
 
 # 根据渠道id获取模型列表
+from ..configure.constants import WHISPER_CPP_MODELS
+
+
 def get_model_by_type(recogn_type: int) -> List[str]:
     if recogn_type == Deepgram:
         return constants.DEEPGRAM_ASR_MODELS.split(',')
@@ -106,7 +110,8 @@ def run(*,
         is_cuda=None,
         subtitle_type=0,
         max_speakers=-1,
-        recogn2pass=False
+        recogn2pass=False,
+        trk=None
         ) -> Union[List[SrtItem], None]:
     """
 
@@ -139,6 +144,22 @@ def run(*,
         "recogn2pass": recogn2pass
     }
     logger.debug(f'语音识别前参数:{kwargs}')
+
+    if recogn_type==FASTER_WHISPER and is_cuda and f"ggml-{model_name}.bin" in WHISPER_CPP_MODELS and app_cfg.NVIDIA_CUDA_NUMS<1 and app_cfg.VULKAN_LIST and platform.system()=='Windows':
+        # Windows上 faster-whisper 启用cuda但不存在n卡，同时vulkan可用时，尝试使用 whisper.cpp 替代，以便尽量实现硬件加速
+        if trk and hasattr(trk,'signal'):
+            trk.signal(text="Route to whisper.cpp for Vulkan acceleration")
+        _cls: Union[Type[BaseRecogn], None] = get_class(Whisper_CPP, "recognition", ID_NAME_DICT)
+        try:
+            logger.warning(f'当前Windows上选择faster-whisper并启用硬件加速，不存在cuda但存在 vulkan，尝试使用whisper.cpp加速:{model_name=}')
+            kwargs["model_name"]= f"ggml-{model_name}.bin"
+            kwargs["recogn_type"]= Whisper_CPP
+            return _cls(**kwargs).run()
+        except Exception:
+            kwargs["model_name"]= model_name
+            kwargs["recogn_type"]= recogn_type
+            logger.warning('faster-whisper渠道尝试使用whisper.cpp替换时失败，重新回退faster-whisper尝试')
+
 
     _cls: Union[Type[BaseRecogn], None] = get_class(recogn_type, "recognition", ID_NAME_DICT)
     if not _cls:

@@ -1210,6 +1210,6 @@
   "The native Vulkan may be disabled or unavailable. Please disable hardware acceleration and try again": "本机vulkan可能被禁用或不可用，请取消 硬件加速后重试",
   "You may need to upgrade audio.cpp. Please delete the {} folder, then re-execute the automatic download of the latest audio.cpp, or manually update audio_cpp": "可能需要升级 audio.cpp ，请删掉 {}，然后重新执行自动下载最新audio.cpp，或手动更新audio_cpp",
   "AI aggregation platform": "AI大模型聚合平台　▸",
-  "Vulkan acceleration failed. Please try deleting all files into that folder before re-executing": "使用Vulkan加速失败，请尝试删掉[{}/whisper-cpp]文件夹内所有文件，下载 https://huggingface.co{} 解压到该文件夹内重新执行"
+  "Vulkan acceleration failed. Please try deleting all files into that folder before re-executing": "使用Vulkan加速失败，请尝试删掉[{}/whisper-cpp]文件夹内所有文件，\n下载 https://huggingface.co{} 解压到该文件夹内重新执行"
 
 }

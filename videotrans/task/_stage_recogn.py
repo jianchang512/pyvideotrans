@@ -76,6 +76,7 @@ class RecognMixin:
             is_cuda=self.cfg.is_cuda,
             subtitle_type=self.cfg.subtitle_type,
             max_speakers=self.max_speakers,
+            trk=self
         )
         if self._exit(): return
         if not raw_subtitles:
@@ -170,7 +171,8 @@ class RecognMixin:
                 detect_language=detect_language,
                 cache_folder=self.cfg.cache_folder,
                 is_cuda=self.cfg.is_cuda,
-                recogn2pass=True
+                recogn2pass=True,
+                trk=self
             )
             if self._exit(): return
             if not raw_subtitles:

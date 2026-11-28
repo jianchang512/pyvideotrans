@@ -1211,6 +1211,6 @@
   "The native Vulkan may be disabled or unavailable. Please disable hardware acceleration and try again": "The native Vulkan may be disabled or unavailable. Please disable hardware acceleration and try again",
   "You may need to upgrade audio.cpp. Please delete the {} folder, then re-execute the automatic download of the latest audio.cpp, or manually update audio_cpp": "You may need to upgrade audio.cpp. Please delete the {}, then re-execute the automatic download of the latest audio.cpp, or manually update audio_cpp",
   "AI aggregation platform": "AI Model Aggregation Platform　▸",
-    "Vulkan acceleration failed. Please try deleting all files into that folder before re-executing": "Vulkan acceleration failed. Please try deleting all files in the [{}/whisper-cpp] folder, downloading https://huggingface.co{} and extracting it into that folder before re-executing"
+    "Vulkan acceleration failed. Please try deleting all files into that folder before re-executing": "Vulkan acceleration failed. Please try deleting all files in the [{}/whisper-cpp] folder, \ndownloading https://huggingface.co{} and extracting it into that folder before re-executing"
 
 }
