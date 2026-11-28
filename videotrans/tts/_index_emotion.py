@@ -1,6 +1,12 @@
 import re
 
 
+def version_cache_suffix(params_like) -> str:
+    """Return the cache-key suffix for the selected Index-TTS webui version."""
+    version = int(params_like.get("index_version", 1))
+    return "" if version == 1 else f"-v{version}"
+
+
 def parse_emo_vector(value) -> list[float] | None:
     """Parse the eight Index-TTS emotion sliders saved by the settings window."""
     text = "" if value is None else str(value).strip()

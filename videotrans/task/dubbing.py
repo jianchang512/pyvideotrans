@@ -16,7 +16,7 @@ from videotrans.task.taskcfg import TaskCfgTTS, SrtItem
 import asyncio
 
 from videotrans.tts import SUPPORT_VOLUME
-from videotrans.tts._index_emotion import emotion_cache_suffix
+from videotrans.tts._index_emotion import emotion_cache_suffix, version_cache_suffix
 from videotrans.util.help_misc import vail_file
 
 """
@@ -232,14 +232,16 @@ class DubbingSrt(BaseTask):
                 spec_role = None
             voice_role = spec_role if spec_role else self.cfg.voice_role
             from videotrans.util.help_misc import get_md5
-            emotion_suffix = ""
+            index_suffix = ""
             if self.cfg.tts_type == tts.INDEX_TTS:
+                # 不同版本是不同的模型，非默认版本（V1、V2.5）加入缓存键，默认 V2 的缓存键不变
                 try:
-                    emotion_suffix = emotion_cache_suffix(params, voice_role)
+                    index_suffix = version_cache_suffix(params)
+                    index_suffix += emotion_cache_suffix(params, voice_role)
                 except ValueError as e:
                     raise StopTask(str(e)) from e
             _key = get_md5(
-                f"{self.cfg.target_language_code}-{it['text']}-{voice_role}-{rate}-{self.cfg.volume}-{self.cfg.pitch}-{self.cfg.tts_type}{emotion_suffix}")
+                f"{self.cfg.target_language_code}-{it['text']}-{voice_role}-{rate}-{self.cfg.volume}-{self.cfg.pitch}-{self.cfg.tts_type}{index_suffix}")
             tmp_dict = {
                 "line": it['line'],
                 "text": it['text'],

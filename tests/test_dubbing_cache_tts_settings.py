@@ -235,6 +235,7 @@ def test_index_emotion_request_changes_its_cache_key(monkeypatch, tmp_path, tts_
 
     monkeypatch.setattr(params, "index_version", 1)
     monkeypatch.setattr(params, "index_emo_vector", "")
+    # V2 is another model: these lines are dubbed again (the last assert)
     assert _dub(tmp_path, tts.INDEX_TTS, "clone") == expected
 
     monkeypatch.setattr(params, "index_emo_vector", "0.8,0,0,0,0,0,0,0")
@@ -242,7 +243,66 @@ def test_index_emotion_request_changes_its_cache_key(monkeypatch, tmp_path, tts_
 
     monkeypatch.setattr(params, "index_emo_weight", 0.5)
     assert _dub(tmp_path, tts.INDEX_TTS, "clone") == expected
-    assert [dubbed for _, dubbed in tts_calls] == [[1, 2], [], [1, 2], [1, 2]]
+    assert [dubbed for _, dubbed in tts_calls] == [
+        [1, 2],
+        [1, 2],
+        [1, 2],
+        [1, 2],
+    ]
+
+
+@pytest.mark.parametrize(
+    "first_version, second_version",
+    [
+        pytest.param(1, 2, id="v2-to-v2.5"),
+        pytest.param(2, 0, id="v2.5-to-v1"),
+    ],
+)
+def test_switching_index_version_dubs_the_same_video_again(
+    monkeypatch, tmp_path, tts_calls, first_version, second_version
+):
+    monkeypatch.setattr(params, "index_version", first_version)
+    _dub(tmp_path, tts.INDEX_TTS, "clone")
+    monkeypatch.setattr(params, "index_version", second_version)
+    _dub(tmp_path, tts.INDEX_TTS, "clone")
+    assert [dubbed for _, dubbed in tts_calls] == [[1, 2], [1, 2]]
+
+
+def test_same_index_version_uses_the_shared_cache(monkeypatch, tmp_path, tts_calls):
+    monkeypatch.setattr(params, "index_version", "2")
+    _dub(tmp_path, tts.INDEX_TTS, "clone")
+    monkeypatch.setattr(params, "index_version", 2)
+    _dub(tmp_path, tts.INDEX_TTS, "clone")
+    assert [dubbed for _, dubbed in tts_calls] == [[1, 2], []]
+
+
+def test_default_v2_keeps_the_key_without_a_version_suffix(
+    monkeypatch, tmp_path, tts_calls
+):
+    monkeypatch.setattr(params, "index_version", 1)
+    suffix = _stage_dubbing.version_cache_suffix
+    monkeypatch.setattr(_stage_dubbing, "version_cache_suffix", lambda *_: "")
+    _dub(tmp_path, tts.INDEX_TTS, "clone")
+    monkeypatch.setattr(_stage_dubbing, "version_cache_suffix", suffix)
+    _dub(tmp_path, tts.INDEX_TTS, "clone")
+    assert [dubbed for _, dubbed in tts_calls] == [[1, 2], []]
+
+
+def test_bad_index_version_stops_before_any_line_is_dubbed(
+    monkeypatch, tmp_path, tts_calls
+):
+    monkeypatch.setattr(params, "index_version", "abc")
+    with pytest.raises(StopTask, match="invalid literal"):
+        _dub(tmp_path, tts.INDEX_TTS, "clone")
+    assert tts_calls == []
+
+
+def test_other_video_channels_ignore_index_version(monkeypatch, tmp_path, tts_calls):
+    monkeypatch.setattr(params, "index_version", 1)
+    _dub(tmp_path, tts.OPENAI_TTS, "alloy")
+    monkeypatch.setattr(params, "index_version", 2)
+    _dub(tmp_path, tts.OPENAI_TTS, "alloy")
+    assert [dubbed for _, dubbed in tts_calls] == [[1, 2], []]
 
 
 def test_bad_index_emotion_stops_while_building_the_cache_key(

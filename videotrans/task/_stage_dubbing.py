@@ -8,7 +8,7 @@ from videotrans.configure._paths import DUBBING_CACHE
 from videotrans.configure.config import tr, app_cfg, settings, params, logger
 from videotrans.configure.excepts import DubbingSrtError, StopTask
 from videotrans.tts import run as run_tts, SUPPORT_CLONE, AUDIOCPP_TTS, INDEX_TTS, TTS_MODEL_PARAMS, TTS_STYLE_PARAMS
-from videotrans.tts._index_emotion import emotion_cache_suffix
+from videotrans.tts._index_emotion import emotion_cache_suffix, version_cache_suffix
 from videotrans.util.help_misc import get_md5, vail_file
 from videotrans.util.help_srt import get_subtitle_from_srt, delete_punc
 
@@ -72,7 +72,9 @@ class DubbingMixin:
             _line_style = _style
             if self.cfg.tts_type == INDEX_TTS:
                 # 未发送情感向量时后缀为空，已有缓存仍然有效
+                # 不同版本是不同的模型，缓存键需包含非默认版本（V1、V2.5），默认 V2 的缓存键不变
                 try:
+                    _line_style += version_cache_suffix(params)
                     _line_style += emotion_cache_suffix(params, voice)
                 except ValueError as e:
                     raise StopTask(str(e)) from e
