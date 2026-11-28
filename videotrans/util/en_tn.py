@@ -20,11 +20,29 @@
 
 import re
 
+_CURRENCY_NUMBER = (
+    r"(?:[0-9](?:[0-9,]*[0-9])?(?:[\u00a0\u202f][0-9]{3})*|\.[0-9]+)(?:\.[0-9]+)?"
+)
+_TRAILING_EURO_NUMBER = (
+    rf"(?:[0-9]{{1,3}}(?:[ \u00a0\u202f][0-9]{{3}})+(?:[.,][0-9]+)?|{_CURRENCY_NUMBER})"
+)
+
 POUND_RE = re.compile(
-    r"\u00a3((?:[0-9](?:[0-9,]*[0-9])?(?:[\u00a0\u202f][0-9]{3})*|\.[0-9]+)(?:\.[0-9]+)?)"
+    rf"\u00a3({_CURRENCY_NUMBER})"
     r"(?:\s*(k|m|bn|thousand|million|billion|trillion)\b)?([\u00a0\u202f])?",
     re.IGNORECASE,
 )
+
+EURO_RE = re.compile(
+    rf"(?<![\u20ac0-9])\u20ac({_CURRENCY_NUMBER})"
+    r"(?:\s*(k|m|bn|thousand|million|billion|trillion)\b)?([\u00a0\u202f])?"
+    r"(?![0-9\u20ac]|\.[0-9])|"
+    rf"(?<![0-9.\u20ac])({_TRAILING_EURO_NUMBER})(?:[ \u00a0\u202f]*)\u20ac"
+    r"([\u00a0\u202f])?(?![0-9\u20ac])",
+    re.IGNORECASE,
+)
+
+PERCENT_RE = re.compile(r"([0-9]+(?:\.[0-9]+)?|\.[0-9]+)[ \u00a0\u202f]*%([A-Za-z]?)")
 
 POUND_MAGNITUDES = {
     "k": "thousand",
@@ -195,19 +213,50 @@ class EnglishNormalizer:
         return EnglishNormalizer._expand_currency(m.group(1), "dollar", "dollars", "cent", "cents")
 
     @staticmethod
-    def _expand_pounds(m: str) -> str:
-        amount = m.group(1).replace(",", "").replace("\u00a0", "").replace("\u202f", "")
+    def _expand_currency_amount(amount: str, magnitude: str | None, trailing_space: str | None,
+                                major_singular: str, major_plural: str,
+                                minor_singular: str, minor_plural: str) -> str:
+        amount = amount.replace(",", "").replace("\u00a0", "").replace("\u202f", "")
         if amount.startswith("."):
             amount = "0" + amount
-        magnitude = m.group(2)
         if magnitude:
-            expanded = f"{amount} {POUND_MAGNITUDES[magnitude.lower()]} pounds"
-            return expanded + (" " if m.group(3) else "")
+            expanded = f"{amount} {POUND_MAGNITUDES[magnitude.lower()]} {major_plural}"
+            return expanded + (" " if trailing_space else "")
         if "." in amount and len(amount.rsplit(".", 1)[1]) > 2:
-            expanded = f"{amount} pounds"
+            expanded = f"{amount} {major_plural}"
         else:
-            expanded = EnglishNormalizer._expand_currency(amount, "pound", "pounds", "penny", "pence")
-        return expanded + (" " if m.group(3) else "")
+            expanded = EnglishNormalizer._expand_currency(
+                amount, major_singular, major_plural, minor_singular, minor_plural
+            )
+        return expanded + (" " if trailing_space else "")
+
+    @staticmethod
+    def _expand_pounds(m: str) -> str:
+        return EnglishNormalizer._expand_currency_amount(
+            m.group(1), m.group(2), m.group(3), "pound", "pounds", "penny", "pence"
+        )
+
+    def _expand_euros(self, m: str) -> str:
+        if m.group(1) is not None:
+            amount, magnitude, trailing_space = m.group(1), m.group(2), m.group(3)
+        else:
+            amount, magnitude, trailing_space = m.group(4), None, m.group(5)
+        if "." not in amount:
+            decimal_comma = re.search(r",([0-9]{1,2})$", amount)
+            if decimal_comma:
+                amount = amount[:decimal_comma.start()].replace(",", "") + "." + decimal_comma.group(1)
+        amount = amount.replace(" ", "")
+        return self._expand_currency_amount(
+            amount, magnitude, trailing_space, "euro", "euros", "cent", "cents"
+        )
+
+    @staticmethod
+    def _expand_percent(m: str) -> str:
+        following_letter = m.group(2)
+        amount = m.group(1)
+        if amount.startswith("."):
+            amount = "0" + amount
+        return f"{amount} percent" + (f" {following_letter}" if following_letter else "")
 
     @staticmethod
     def _remove_commas(m: str) -> str:
@@ -268,12 +317,16 @@ class EnglishNormalizer:
 
     # 此方法用于规范化文本中的数字，如将数字转换为单词，移除逗号等操作。
     def normalize_numbers(self, text: str) -> str:
+        # 在通用逗号移除前替换欧元金额，以保留小数逗号
+        text = re.sub(EURO_RE, self._expand_euros, text)
         # 使用正则表达式替换匹配的数字和逗号，调用 self._remove_commas 方法
         text = re.sub(re.compile(r"([0-9][0-9,]+[0-9])"), self._remove_commas, text)
         # 替换匹配的英镑金额为其完整的金额表达形式
         text = re.sub(POUND_RE, self._expand_pounds, text)
         # 替换匹配的美元金额为其完整的金额表达形式，调用 self._expand_dollars 方法
         text = re.sub(re.compile(r"\$([0-9.,]*[0-9]+)"), self._expand_dollars, text)
+        # 将数字后的百分号替换为 percent
+        text = re.sub(PERCENT_RE, self._expand_percent, text)
         # 替换匹配的小数形式为其完整的数值表达形式，调用 self._expand_decimal_point 方法
         text = re.sub(re.compile(r"([0-9]+\.[0-9]+)"), self._expand_decimal_point, text)
         # 替换匹配的序数词（如1st、2nd）为其完整的序数词形式，调用 self._expand_ordinal 方法
@@ -301,6 +354,8 @@ class EnglishNormalizer:
     def __call__(self, text):
         # 在 ASCII 转换移除英镑符号前扩展英镑金额
         text = re.sub(POUND_RE, self._expand_pounds, text)
+        # 在 ASCII 转换移除欧元符号前扩展欧元金额
+        text = re.sub(EURO_RE, self._expand_euros, text)
         # 将文本转换为 ASCII 码表示形式
         text = self.convert_to_ascii(text)
         # 将文本转换为小写形式
