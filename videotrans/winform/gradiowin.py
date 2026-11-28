@@ -12,6 +12,19 @@ def openwin():
     from PySide6 import QtWidgets
     from videotrans.util.ListenVoice import ListenVoice
     from videotrans import tts
+    from videotrans.tts._index_emotion import parse_emo_vector, parse_emo_weight
+
+    def get_index_emotion():
+        try:
+            vector = parse_emo_vector(winobj.indextts_emo_vector.text())
+            weight = parse_emo_weight(winobj.indextts_emo_weight.text())
+        except ValueError as e:
+            show_error(str(e))
+            return None
+        vector_text = "" if vector is None else ",".join(str(value) for value in vector)
+        winobj.indextts_emo_vector.setText(vector_text)
+        winobj.indextts_emo_weight.setText(str(weight))
+        return vector_text, weight
     
 
     def feed(d):
@@ -25,6 +38,11 @@ def openwin():
 
 
     def test(tts_type=tts.INDEX_TTS):
+        emotion = None
+        if tts_type == tts.INDEX_TTS:
+            emotion = get_index_emotion()
+            if emotion is None:
+                return
         indexttsversion = winobj.indextts_version.currentIndex()
         # 通用
         params["index_version"] = indexttsversion
@@ -32,6 +50,8 @@ def openwin():
         params["voxcpm_url"] = winobj.voxcpmtts_url.text()
         params["firered3tts_url"] = winobj.firered3tts_url.text()
         params["index_url"] = winobj.indextts_url.text()
+        if emotion is not None:
+            params["index_emo_vector"], params["index_emo_weight"] = emotion
         params["spark_url"] = winobj.sparktts_url.text()
         params.save()
         
@@ -53,7 +73,9 @@ def openwin():
         wk.start()
 
     def save():
-
+        emotion = get_index_emotion()
+        if emotion is None:
+            return
         indextts_version = winobj.indextts_version.currentIndex()
         params["index_version"] = indextts_version
         params["voxcpm_version"] = winobj.voxcpmtts_version.currentText()
@@ -61,6 +83,7 @@ def openwin():
         params["voxcpm_url"] = winobj.voxcpmtts_url.text()
         params["firered3tts_url"] = winobj.firered3tts_url.text()
         params["index_url"] = winobj.indextts_url.text()
+        params["index_emo_vector"], params["index_emo_weight"] = emotion
         params["spark_url"] = winobj.sparktts_url.text()
 
 
@@ -77,6 +100,8 @@ def openwin():
     
     winobj.sparktts_url.setText(str(params.get('spark_url','')))
     winobj.indextts_url.setText(str(params.get('index_url','')))
+    winobj.indextts_emo_vector.setText(str(params.get('index_emo_vector','')))
+    winobj.indextts_emo_weight.setText(str(params.get('index_emo_weight',0.65)))
     winobj.voxcpmtts_url.setText(str(params.get('voxcpm_url','')))
     winobj.firered3tts_url.setText(str(params.get('firered3tts_url','')))
 
