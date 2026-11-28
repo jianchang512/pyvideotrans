@@ -398,6 +398,14 @@ _default["onomeo"] = {
     "onomeo_model": ONOMEO_MODELS.split(',')[0],
     "onomeo_max_token": 8192,
 }
+from videotrans.configure.constants import STRAITLY_MODELS
+
+_default["straitly"] = {
+    # straitly.ai
+    "straitly_key": "",
+    "straitly_model": STRAITLY_MODELS.split(',')[0],
+    "straitly_max_token": 16384,
+}
 
 
 # todo: 根据 name 返回配置dict???
