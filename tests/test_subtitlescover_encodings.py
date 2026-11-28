@@ -1,4 +1,5 @@
 import codecs
+import os
 import shutil
 from unittest.mock import MagicMock
 
@@ -26,13 +27,20 @@ ASS = (
     "Dialogue: 0,0:00:01.00,0:00:03.50,Default,,0,0,0,,Hello there, friend.\r\n"
     "Dialogue: 0,0:00:04.00,0:00:06.20,Default,,0,0,0,,你好，世界\r\n"
 )
+VTT = (
+    "WEBVTT\r\n\r\n"
+    "STYLE\r\n::cue { color: lime; }\r\n\r\n"
+    "NOTE This note must be preserved\r\n\r\n"
+    "00:00:01.000 --> 00:00:03.500 line:10% align:start\r\n"
+    "Hello there, friend.\r\n"
+)
 # the texts of the two subtitles of both files
 LINES = ["Hello there, friend.", "你好，世界"]
 
 # the file chosen in the window and the target format. ffmpeg converts the
 # file, and for TXT converts an .ass file to SRT first; TXT from an .srt file
 # is read without ffmpeg, with get_subtitle_from_srt(), and a file of the
-# target format is meant to be copied
+# target format is copied
 CONVERSIONS = [
     pytest.param("talk.srt", SRT, "ass", id="srt-to-ass"),
     pytest.param("talk.srt", SRT, "vtt", id="srt-to-vtt"),
@@ -154,4 +162,70 @@ def test_file_neither_utf8_nor_gbk_does_not_stop_the_batch(window, tmp_path):
         assert [line in converted for line in LINES] == [True, True]
     # ffmpeg keeps the plain-ASCII subtitle of the Big5 file, as before
     assert LINES[0] in (results / "two.vtt").read_text(encoding="utf-8")
+    window.logs.setText.assert_called_with(tr("quanbuend"))
+
+
+@pytest.mark.parametrize(
+    "name, data, target",
+    [
+        pytest.param("Talk.SRT", SRT.encode("gbk"), "srt", id="srt-gbk"),
+        pytest.param("talk.ass", ASS.encode("utf-8"), "ass", id="ass"),
+        pytest.param("talk.vtt", VTT.encode("utf-8"), "vtt", id="vtt"),
+    ],
+)
+def test_file_in_target_format_is_copied_byte_for_byte(
+    window, tmp_path, name, data, target
+):
+    file = tmp_path / "subs" / name
+    file.parent.mkdir()
+    file.write_bytes(data)
+    window.subtitlefiles = [file.as_posix()]
+    window.formatlist.currentText.return_value = target
+
+    start = window.startbtn.clicked.connect.call_args.args[0]
+    start()
+
+    assert (tmp_path / "out" / name).read_bytes() == data
+    assert file.read_bytes() == data
+    window.logs.setText.assert_any_call("100.0%")
+    window.logs.setText.assert_called_with(tr("quanbuend"))
+
+
+@needs_ffmpeg
+def test_target_format_file_in_output_folder_does_not_stop_batch(window, tmp_path):
+    subs = tmp_path / "subs"
+    subs.mkdir()
+    unchanged = subs / "one.vtt"
+    unchanged_data = VTT.encode("utf-8")
+    unchanged.write_bytes(unchanged_data)
+    converted_input = subs / "two.srt"
+    converted_input.write_bytes(SRT.encode("utf-8"))
+    window.output_data.text.return_value = subs.as_posix()
+    window.subtitlefiles = [unchanged.as_posix(), converted_input.as_posix()]
+    window.formatlist.currentText.return_value = "vtt"
+
+    start = window.startbtn.clicked.connect.call_args.args[0]
+    start()
+
+    assert unchanged.read_bytes() == unchanged_data
+    converted = (subs / "two.vtt").read_text(encoding="utf-8")
+    assert [line in converted for line in LINES] == [True, True]
+    window.logs.setText.assert_called_with(tr("quanbuend"))
+
+
+def test_hard_link_in_output_folder_does_not_stop_batch(window, tmp_path):
+    file = tmp_path / "subs" / "talk.vtt"
+    file.parent.mkdir()
+    data = VTT.encode("utf-8")
+    file.write_bytes(data)
+    target = tmp_path / "out" / file.name
+    os.link(file, target)
+    window.subtitlefiles = [file.as_posix()]
+    window.formatlist.currentText.return_value = "vtt"
+
+    start = window.startbtn.clicked.connect.call_args.args[0]
+    start()
+
+    assert file.read_bytes() == data
+    assert target.read_bytes() == data
     window.logs.setText.assert_called_with(tr("quanbuend"))

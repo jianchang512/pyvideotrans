@@ -59,8 +59,12 @@ def openwin():
                 for i, v in enumerate(self.subtitlefiles):
                     raw_path = Path(v)
                     # 格式不变直接复制
-                    if raw_path.suffix.lower() == self.target_format:
-                        shutil.copy2(v, os.path.normpath(target_dir + f'/{raw_path.name}'))
+                    if raw_path.suffix.lower() == f'.{self.target_format}':
+                        target_file = os.path.normpath(target_dir + f'/{raw_path.name}')
+                        if not (os.path.exists(target_file) and os.path.samefile(v, target_file)):
+                            shutil.copy2(v, target_file)
+                        jd = round((i + 1) * 100 / len(self.subtitlefiles), 2)
+                        self.post(type='jd', text=f'{jd}%')
                         continue
                     if self.target_format == 'txt':
                         if raw_path.name.lower().endswith('.srt'):
