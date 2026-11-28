@@ -34,6 +34,7 @@ MENU_CFG_AGG=[
     ("teamorouter", 'TeamoRouter', None),
     ("onomeo", 'onomeo', None),
     ("llmtr", 'LLMTR', None),
+    ("straitly", 'Straitly', None),
 
 ]
 MENU_CFG_TRANS = [
