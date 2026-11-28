@@ -123,8 +123,8 @@ class CPPRecogn(BaseRecogn):
         device="vulkan" if _os=='Windows' and app_cfg.NVIDIA_CUDA_NUMS<1 and app_cfg.VULKAN_LIST else whisper_device(is_cuda=self.is_cuda)
 
         # 当windows使用vulkan失败时，cpu也可能执行失败，此时用户需重新下载cuda版本在cpu运行
-        if device=='vulkan' and not Path(f'{ROOT_DIR}/whisper-cpp/ggml-vulkan.dll').exists():
-            device="cpu"
+        # if device=='vulkan' and not Path(f'{ROOT_DIR}/whisper-cpp/ggml-vulkan.dll').exists():
+        #     device="cpu"
         _sub=f'{self.cache_folder}/cpp_srt'
         _lang=self.detect_language.split('-')[0]
 
@@ -133,8 +133,7 @@ class CPPRecogn(BaseRecogn):
         except FallbackError:
             logger.error(f'Windows上使用vulkan加速失败，回退cpu')
             shutil.rmtree(f'{ROOT_DIR}/whisper-cpp',ignore_errors=True)
-            device="cpu"
-            self._run(device,_sub,cpp_path,_lang)
+            self._run("cpu",_sub,cpp_path,_lang)
 
         try:
             texts=[]

@@ -23,7 +23,10 @@ AI嘲: 码之烂平生仅见
 """
 import os
 import atexit, sys, time
-from PySide6.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QMessageBox
+import platform
+
+from PySide6 import QtCore
+from PySide6.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QMessageBox, QComboBox, QListView
 from PySide6.QtCore import Qt, qInstallMessageHandler, QTimer
 from PySide6.QtGui import QPixmap, QGuiApplication, QIcon
 import argparse
@@ -56,6 +59,47 @@ def show_global_error_dialog(exctype, value, tb):
     tb_str = "".join(traceback.format_exception(exctype, value, tb))
     QMessageBox.critical(None, 'Error', tb_str)
 
+
+# 修复 Ubuntu 上下拉列表左侧过大空白、右侧被遮挡问题
+class _PopupWidthFilter(QtCore.QObject):
+    """弹出列表每次显示时，按当前最长文本计算宽度"""
+    def __init__(self, combo):
+        super().__init__(combo)
+        self._combo = combo
+
+    def eventFilter(self, obj, event):
+        if event.type() == QtCore.QEvent.Type.Show:
+            c = self._combo
+            fm = c.fontMetrics()
+            text_w = max((fm.horizontalAdvance(c.itemText(i)) for i in range(c.count())), default=0)
+            obj.setMinimumWidth(text_w + 40)
+        return False
+
+
+def fix_combo(combo: QComboBox):
+    if getattr(combo, "_popup_fixed", False):
+        return
+    combo._popup_fixed = True
+
+    view = QListView()          # 替换默认的 QComboMenuDelegate
+    view.setStyleSheet("""
+        QListView::item {
+            padding: 4px 12px 4px 6px;
+            min-height: 24px;
+        }
+    """)
+    combo.setView(view)
+
+    combo._width_filter = _PopupWidthFilter(combo)
+    view.installEventFilter(combo._width_filter)
+
+
+class _ComboFixFilter(QtCore.QObject):
+    """应用级过滤器：所有 QComboBox 初始化时自动修复"""
+    def eventFilter(self, obj, event):
+        if isinstance(obj, QComboBox) and event.type() == QtCore.QEvent.Type.Polish:
+            fix_combo(obj)
+        return False
 
 # 启动画面
 class StartWindow(QWidget):
@@ -130,6 +174,9 @@ def initialize_full_app(start_window, app_instance):
             print(e)
 
     sys.excepthook = show_global_error_dialog
+    if platform.system()=='Linux':
+        _combo_fix = _ComboFixFilter()
+        app_instance.installEventFilter(_combo_fix)   # 保持引用
 
     # 命令行参数
     parser = argparse.ArgumentParser()
