@@ -23,7 +23,7 @@ def kill_processes(process_name_list=None):
             except Exception as e:
                 logger.exception(f"Error using taskkill: {e}", exc_info=True)
 
-            return
+            continue
 
         try:
             result = subprocess.run(
