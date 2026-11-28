@@ -302,6 +302,12 @@ def test_shared_window_only_validates_and_saves_emotion_for_index_test(
         def setText(self, value):
             self.value = value
 
+        def toPlainText(self):
+            return self.value
+
+        def setPlainText(self, value):
+            self.value = value
+
         def currentIndex(self):
             return 1
 
@@ -326,6 +332,7 @@ def test_shared_window_only_validates_and_saves_emotion_for_index_test(
                 "indextts_url",
                 "indextts_emo_vector",
                 "indextts_emo_weight",
+                "indextts_role_emotions",
                 "voxcpmtts_url",
                 "firered3tts_url",
                 "indextts_version",

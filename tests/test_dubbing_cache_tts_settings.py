@@ -5,6 +5,7 @@ import pytest
 
 from videotrans import tts
 from videotrans.configure.config import app_cfg, params
+from videotrans.configure.excepts import StopTask
 from videotrans.task import _stage_dubbing
 from videotrans.task.taskcfg import TaskCfgVTT
 from videotrans.task.trans_create import TransCreate
@@ -219,7 +220,7 @@ def test_default_index_tts_task_keeps_the_cache_key_used_before_emotion_support(
     monkeypatch.setattr(params, "index_emo_vector", "")
     monkeypatch.setattr(params, "index_emo_weight", 0.65)
     suffix = _stage_dubbing.emotion_cache_suffix
-    monkeypatch.setattr(_stage_dubbing, "emotion_cache_suffix", lambda _: "")
+    monkeypatch.setattr(_stage_dubbing, "emotion_cache_suffix", lambda *_: "")
     expected = _dub(tmp_path, tts.INDEX_TTS, "clone")
     monkeypatch.setattr(_stage_dubbing, "emotion_cache_suffix", suffix)
     assert _dub(tmp_path, tts.INDEX_TTS, "clone") == expected
@@ -244,13 +245,17 @@ def test_index_emotion_request_changes_its_cache_key(monkeypatch, tmp_path, tts_
     assert [dubbed for _, dubbed in tts_calls] == [[1, 2], [], [1, 2], [1, 2]]
 
 
-def test_bad_index_emotion_does_not_crash_while_building_the_cache_key(
+def test_bad_index_emotion_stops_while_building_the_cache_key(
     monkeypatch, tmp_path, tts_calls
 ):
     monkeypatch.setattr(params, "index_version", 1)
+    monkeypatch.setattr(params, "index_emo_vector", "")
+    _dub(tmp_path, tts.INDEX_TTS, "clone")
+    tts_calls.clear()
     monkeypatch.setattr(params, "index_emo_vector", "0.8,0")
-    assert _dub(tmp_path, tts.INDEX_TTS, "clone") == [b": clone"] * 2
-    assert [dubbed for _, dubbed in tts_calls] == [[1, 2]]
+    with pytest.raises(StopTask, match="exactly 8"):
+        _dub(tmp_path, tts.INDEX_TTS, "clone")
+    assert tts_calls == []
 
 
 def test_these_settings_change_the_keys_of_their_own_channel_only(
