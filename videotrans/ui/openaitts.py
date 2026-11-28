@@ -22,10 +22,10 @@ class Ui_openaitts(QDialog):
 
         v1 = QtWidgets.QVBoxLayout(form)
 
-        self.label_0 = QtWidgets.QLabel()
-        self.label_0.setText(
+        label_0 = QtWidgets.QLabel()
+        label_0.setText(
             tr("AIs compatible with the ChatGPT also used here"))
-        v1.addWidget(self.label_0)
+        v1.addWidget(label_0)
 
         h1 = QtWidgets.QHBoxLayout()
         self.label = QtWidgets.QLabel()

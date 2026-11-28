@@ -24,11 +24,6 @@ class Ui_zhipuai(QDialog):
         h2 = QtWidgets.QHBoxLayout()
         h4 = QtWidgets.QHBoxLayout()
 
-        self.label_0 = QtWidgets.QPushButton()
-        self.label_0.setStyleSheet("background-color: rgba(255, 255, 255,0);text-align:left")
-        self.label_0.setText(tr('Zhipu AI'))
-        v1.addWidget(self.label_0)
-
         self.label_2 = QtWidgets.QLabel()
         self.label_2.setMinimumSize(QtCore.QSize(0, 35))
         self.label_2.setSizeIncrement(QtCore.QSize(0, 35))

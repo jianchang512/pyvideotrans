@@ -27,11 +27,11 @@ class Ui_localllm(QDialog):
         h3 = QtWidgets.QHBoxLayout()
         h4 = QtWidgets.QHBoxLayout()
 
-        self.label_0 = QtWidgets.QLabel()
-        self.label_0.setText(
+        label_0 = QtWidgets.QLabel()
+        label_0.setText(
             tr("AIs compatible with the ChatGPT Local LLM also used here"))
 
-        v1.addWidget(self.label_0)
+        v1.addWidget(label_0)
 
         self.label = QtWidgets.QLabel()
         self.label.setMinimumSize(QtCore.QSize(0, 35))

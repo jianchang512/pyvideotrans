@@ -8,6 +8,8 @@ from tenacity import RetryError as TenRetryError
 import httpx
 from videotrans.configure.config import defaulelang
 
+class FallbackError(Exception):
+    pass
 
 # 内部已整理好错误提示消息的异常，将ex=None,message='{错误消息}'
 class VideoTransError(Exception):

@@ -18,9 +18,25 @@ class Ui_audexum(QDialog):
         form.setObjectName("form")
         form.resize(500, 200)
         form.setWindowTitle("Audexum")
+        
+        
 
         v1 = QtWidgets.QVBoxLayout(form)
         v1.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
+        
+        label_0 = QtWidgets.QPushButton()
+        label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
+        label_0.setStyleSheet("background-color: rgba(255, 255, 255,0);text-align:left")
+        label_0.setCursor(Qt.PointingHandCursor)
+        label_0.setText('Audexum')
+        label_0.clicked.connect(lambda: open_url(url='https://audexum.com/developer?ref=gh-pyvideotrans'))
+        v1.addWidget(label_0)
+        
+        warining_tips=QtWidgets.QLabel()
+        warining_tips.setWordWrap(True)
+        warining_tips.setStyleSheet("""color:#aaaaaa;font-size:12px""")
+        warining_tips.setText(tr("This channel is added and maintained by","audexum.com"))
+        v1.addWidget(warining_tips)
 
         h2 = QtWidgets.QHBoxLayout()
         label_key = QtWidgets.QLabel()

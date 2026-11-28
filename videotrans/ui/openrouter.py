@@ -26,11 +26,6 @@ class Ui_openrouter(QDialog):
         h2 = QtWidgets.QHBoxLayout()
         h4 = QtWidgets.QHBoxLayout()
 
-        label_0 = QtWidgets.QPushButton()
-        label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
-        label_0.setStyleSheet("background-color: rgba(255, 255, 255,0);text-align:left")
-        label_0.setText('OpenRouter.ai')
-        v1.addWidget(label_0)
 
         label_2 = QtWidgets.QLabel(form)
         label_2.setMinimumSize(QtCore.QSize(0, 35))

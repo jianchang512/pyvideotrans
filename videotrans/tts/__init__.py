@@ -1,16 +1,8 @@
-import json
 from typing import Union, Type
-from videotrans.configure.config import tr, params, app_cfg, logger,ROOT_DIR
-from videotrans.tts._base import BaseTTS
+from videotrans.configure.config import  params, app_cfg, logger
+
 from videotrans import get_class
-from pathlib import Path
-import platform
 from ._constants import *
-
-# 检查当前配音渠道是否支持所选配音语言
-# 返回True为支持，其他为不支持并返回错误字符串
-from ..util.help_role import get_audiocpp_rolelist
-
 
 def is_allow_lang(langcode: str = None, tts_type: int = None):
     """
@@ -26,6 +18,7 @@ def is_allow_lang(langcode: str = None, tts_type: int = None):
     name = ID_NAME_DICT.get(tts_type).name
     _lang2 = langcode.split('-')[0]
     if tts_type==AUDIOCPP_TTS:
+        from videotrans.util.help_role import get_audiocpp_rolelist
         _obj=get_audiocpp_rolelist(params.get("audiocpp_model")).get('support_languages')
         if _obj and _lang2 not in _obj:
             is_support=False
@@ -145,7 +138,7 @@ def run(*, queue_tts=None, language="", uuid=None, play=False, tts_type=0, is_cu
         "model_name": model_name
     }
     logger.debug(f'文字配音前参数:{[{k:v} for k,v in kwargs.items() if k !="queue_tts"]}')
-
+    from videotrans.tts._base import BaseTTS
     _cls: Union[Type[BaseTTS], None] = get_class(tts_type, "tts", ID_NAME_DICT)
     if not _cls:
         from videotrans.configure.excepts import DubbingSrtError

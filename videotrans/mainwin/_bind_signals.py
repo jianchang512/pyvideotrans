@@ -11,6 +11,7 @@ class BindSignalsMixin:
         from videotrans.configure.signal_hub import SignalHub
         from videotrans.configure.config import settings, params
         from videotrans.util.help_misc import open_url, show_glossary_editor
+        self.callback('Load ActionControl...')
 
         self.win_action = WinAction(self)
         self.restart_btn.clicked.connect(self.restart_app)

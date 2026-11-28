@@ -26,12 +26,6 @@ class Ui_siliconflow(QDialog):
         h3 = QtWidgets.QHBoxLayout()
         h4 = QtWidgets.QHBoxLayout()
 
-        self.label_0 = QtWidgets.QPushButton()
-        self.label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
-        self.label_0.setStyleSheet("background-color: rgba(255, 255, 255,0);text-align:left")
-        self.label_0.setText(tr('SiliconFlow'))
-        v1.addWidget(self.label_0)
-
         self.label_3 = QtWidgets.QLabel()
         self.label_3.setObjectName("label_3")
         self.siliconflow_key = QtWidgets.QLineEdit()

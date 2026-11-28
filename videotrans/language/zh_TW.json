@@ -1284,5 +1284,7 @@
   "維吾爾文": "ug",
   "The native Vulkan may be disabled or unavailable. Please disable hardware acceleration and try again": "本機vulkan可能被停用或無法使用，請取消硬體加速後重試",
   "You may need to upgrade audio.cpp. Please delete the {} folder, then re-execute the automatic download of the latest audio.cpp, or manually update audio_cpp": "可能需要升級 audio.cpp，請刪掉 {}，然後重新執行自動下載最新audio.cpp，或手動更新audio_cpp",
-  "AI aggregation platform": "AI大模型聚合平台　▸"
+  "AI aggregation platform": "聚合平台设置(&A)",
+  "Vulkan acceleration failed. Please try deleting all files into that folder before re-executing": "使用Vulkan加速失敗，請嘗試刪掉[{}/whisper-cpp]資料夾內所有檔案，\n下載 https://huggingface.co{} 解壓縮到該資料夾內重新執行",
+  "This channel is added and maintained by": "該渠道由[{}]新增維護，若有費用、安全疑慮請直接諮詢該渠道方。點擊上方連結查看使用文件及獲取SK"
 }

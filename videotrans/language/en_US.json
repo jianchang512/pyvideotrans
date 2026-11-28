@@ -1,9 +1,9 @@
 {
   "&Help": "Help / About (&H)",
-  "&RECOGNsetting": "Speech Recognition Settings (&R)",
+  "&RECOGNsetting": "Speech Recognition (&R)",
   "&Setting": "Translation Settings (&S)",
   "&TTSsetting": "TTS Settings (&E)",
-  "&Tools": "Tools / Options (&T)",
+  "&Tools": "Tools/Options (&T)",
   "continnextstep": "Continue Next",
   "302.AI API KEY": "302.AI",
   "A default role must be selected": "A default role must be selected",
@@ -1217,6 +1217,8 @@
   "Text alignment failed": "Text alignment failed. Please try setting the pronunciation language to [Auto Detect] and try again",
   "The native Vulkan may be disabled or unavailable. Please disable hardware acceleration and try again": "The native Vulkan may be disabled or unavailable. Please disable hardware acceleration and try again",
   "You may need to upgrade audio.cpp. Please delete the {} folder, then re-execute the automatic download of the latest audio.cpp, or manually update audio_cpp": "You may need to upgrade audio.cpp. Please delete the {}, then re-execute the automatic download of the latest audio.cpp, or manually update audio_cpp",
-  "AI aggregation platform": "AI Model Aggregation Platform　▸"
+  "AI aggregation platform": "AI LLM Router (&A)",
+    "Vulkan acceleration failed. Please try deleting all files into that folder before re-executing": "Vulkan acceleration failed. Please try deleting all files in the [{}/whisper-cpp] folder, \ndownloading https://huggingface.co{} and extracting it into that folder before re-executing",
+  "This channel is added and maintained by": "This channel is added and maintained by [{}]. If you have any concerns about fees or security, please directly consult the channel provider. Click the link above to view the usage documentation and obtain an SK"
 
 }

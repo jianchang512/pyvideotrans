@@ -21,6 +21,20 @@ class Ui_camb(QDialog):
 
         self.verticalLayout = QtWidgets.QVBoxLayout(form)
         self.verticalLayout.setObjectName("verticalLayout")
+        
+        label_0 = QtWidgets.QPushButton()
+        label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
+        label_0.setStyleSheet("background-color: rgba(255, 255, 255,0);text-align:left")
+        label_0.setCursor(Qt.PointingHandCursor)
+        label_0.setText('Audexum')
+        label_0.clicked.connect(lambda: open_url(url='https://www.camb.ai?ref=gh-pyvideotrans'))
+        self.verticalLayout.addWidget(label_0)
+        
+        warining_tips=QtWidgets.QLabel()
+        warining_tips.setWordWrap(True)
+        warining_tips.setStyleSheet("""color:#aaaaaa;font-size:12px""")
+        warining_tips.setText(tr("This channel is added and maintained by","camb.ai"))
+        self.verticalLayout.addWidget(warining_tips)
 
         # API Key row
         self.formLayout_2 = QtWidgets.QHBoxLayout()

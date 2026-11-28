@@ -22,6 +22,22 @@ class Ui_api_route(QDialog):
         form.resize(600, 600)
 
         v1 = QtWidgets.QVBoxLayout(form)
+        
+        label_0 = QtWidgets.QPushButton()
+        label_0.setGeometry(QtCore.QRect(10, 10, 580, 35))
+        label_0.setStyleSheet("background-color: rgba(255, 255, 255,0);text-align:left")
+        label_0.setCursor(Qt.PointingHandCursor)
+        label_0.setText('Api-Route.com')
+        label_0.clicked.connect(lambda: open_url(url='https://www.api-route.com'))
+        v1.addWidget(label_0)
+        
+        
+        warining_tips=QtWidgets.QLabel()
+        warining_tips.setWordWrap(True)
+        warining_tips.setStyleSheet("""color:#aaaaaa;font-size:12px""")
+        warining_tips.setText(tr("This channel is added and maintained by","api-route.com"))
+        v1.addWidget(warining_tips)
+        
 
         h3 = QtWidgets.QHBoxLayout()
         h4 = QtWidgets.QHBoxLayout()
@@ -35,6 +51,8 @@ class Ui_api_route(QDialog):
         h3.addWidget(self.label_3)
         h3.addWidget(self.api_route_key)
         v1.addLayout(h3)
+        
+        
 
         h_token = QtWidgets.QHBoxLayout()
         label_token = QtWidgets.QLabel()

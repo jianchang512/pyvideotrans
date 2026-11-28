@@ -76,16 +76,15 @@ def _setup_actions_and_menus(ui, MainWindow):
     for obj in MENU_CFG_TRANS:
         _make_action(ui, obj,ui.menu_Key)
 
-    ui.menu_Key.addSeparator()
 
     # "聚合平台"子菜单。
     ui.menu_Agg = QtWidgets.QMenu(ui.menu_Key)
     ui.menu_Agg.setObjectName("menu_Agg")
     ui.menu_Agg.setTitle(tr("AI aggregation platform"))
-    ui.menu_Key.addMenu(ui.menu_Agg)
-    ui.menu_Agg.menuAction().setIcon(
-        ui.menu_Key.style().standardIcon(QtWidgets.QStyle.SP_ArrowRight)
-    )
+    # ui.menu_Key.addMenu(ui.menu_Agg)
+    # ui.menu_Agg.menuAction().setIcon(
+    #     ui.menu_Key.style().standardIcon(QtWidgets.QStyle.SP_ArrowRight)
+    # )
 
 
     for obj in MENU_CFG_AGG:
@@ -109,6 +108,7 @@ def _setup_actions_and_menus(ui, MainWindow):
         _make_action(ui, obj,ui.toolBar,False)
 
     ui.menuBar.addAction(ui.menu_Key.menuAction())
+    ui.menuBar.addAction(ui.menu_Agg.menuAction())
     ui.menuBar.addAction(ui.menu_TTS.menuAction())
     ui.menuBar.addAction(ui.menu_RECOGN.menuAction())
     ui.menuBar.addAction(ui.menu.menuAction())
